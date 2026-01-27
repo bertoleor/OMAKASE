@@ -8,27 +8,36 @@ export async function createClient() {
   if (!supabaseUrl || !supabaseAnonKey) {
     console.warn("Supabase environment variables not configured.");
     // Return a basic mock for server-side
+    // Return a better mock for server-side to prevent build crashes
+    const mockBuilder = () => ({
+      select: () => mockBuilder(),
+      insert: () => mockBuilder(),
+      update: () => mockBuilder(),
+      delete: () => mockBuilder(),
+      eq: () => mockBuilder(),
+      neq: () => mockBuilder(),
+      gt: () => mockBuilder(),
+      lt: () => mockBuilder(),
+      gte: () => mockBuilder(),
+      lte: () => mockBuilder(),
+      in: () => mockBuilder(),
+      order: () => mockBuilder(),
+      limit: () => mockBuilder(),
+      single: () =>
+        Promise.resolve({ data: null, error: { message: "Mock error" } }),
+      maybeSingle: () => Promise.resolve({ data: null, error: null }),
+      then: (resolve: any) =>
+        Promise.resolve({ data: [], error: null }).then(resolve),
+    });
+
     return {
-      from: () => ({
-        select: () => ({
-          eq: () => ({
-            order: () => Promise.resolve({ data: [], error: null }),
-          }),
-        }),
-        insert: () => ({
-          select: () => ({
-            single: () =>
-              Promise.resolve({
-                data: null,
-                error: { message: "Supabase not configured" },
-              }),
-          }),
-        }),
-        update: () => ({
-          eq: () => Promise.resolve({ data: null, error: null }),
-        }),
-      }),
-    } as ReturnType<typeof createServerClient>;
+      from: () => mockBuilder(),
+      auth: {
+        getUser: () => Promise.resolve({ data: { user: null }, error: null }),
+        getSession: () =>
+          Promise.resolve({ data: { session: null }, error: null }),
+      },
+    } as any;
   }
 
   const cookieStore = await cookies();
