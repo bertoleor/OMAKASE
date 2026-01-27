@@ -26,6 +26,7 @@ export async function createClient() {
       single: () =>
         Promise.resolve({ data: null, error: { message: "Mock error" } }),
       maybeSingle: () => Promise.resolve({ data: null, error: null }),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       then: (resolve: any) =>
         Promise.resolve({ data: [], error: null }).then(resolve),
     });
@@ -37,6 +38,7 @@ export async function createClient() {
         getSession: () =>
           Promise.resolve({ data: { session: null }, error: null }),
       },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
   }
 

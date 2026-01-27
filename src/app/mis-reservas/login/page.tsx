@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -123,12 +124,12 @@ export default function MyReservationsLoginPage() {
 
         {/* Back to home */}
         <div className="text-center mt-6">
-          <a
+          <Link
             href="/"
             className="text-white/60 hover:text-white text-sm transition-colors"
           >
             ← Volver al inicio
-          </a>
+          </Link>
         </div>
       </div>
     </div>
