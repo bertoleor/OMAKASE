@@ -13,6 +13,13 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  {
+    rules: {
+      // Suppress warnings for inline styles which are used for dynamic custom properties
+      "react-dom/no-missing-button-type": "off",
+      "react/style-prop-object": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;
