@@ -292,7 +292,7 @@ function BookingCard({
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center space-x-3">
             <div className={`p-2 rounded-lg ${statusConfig.bgColor}`}>
-              <Clock className={`w-4 h-4 ${statusConfig.color}`} />
+              <StatusIcon className={`w-4 h-4 ${statusConfig.color}`} />
             </div>
             <div>
               <span className="text-xl font-bold text-white">

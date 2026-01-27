@@ -564,7 +564,6 @@ export default function TablesPage() {
                   ? "bg-blue-500/20 border-2 border-blue-500/50 text-blue-300"
                   : "bg-white/10 border border-white/20 text-white/40"
               } ${table.shape === "circle" ? "rounded-full" : "rounded-lg"}`}
-              // eslint-disable-next-line
               style={{
                 left: table.position_x,
                 top: table.position_y,

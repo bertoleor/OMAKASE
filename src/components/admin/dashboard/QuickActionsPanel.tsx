@@ -342,7 +342,6 @@ export default function QuickActionsPanel({ date }: QuickActionsPanelProps) {
                             : "bg-green-500"
                       }`}
                       style={
-                        // eslint-disable-next-line
                         {
                           "--progress": `${zone.percentage}%`,
                         } as React.CSSProperties
@@ -371,7 +370,6 @@ export default function QuickActionsPanel({ date }: QuickActionsPanelProps) {
                           : "bg-green-500"
                     }`}
                     style={
-                      // eslint-disable-next-line
                       {
                         "--progress": `${Math.min(100, totalPercentage)}%`,
                       } as React.CSSProperties

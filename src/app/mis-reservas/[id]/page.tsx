@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { User } from "@supabase/supabase-js";
 import {
   Calendar,
   Clock,
@@ -86,7 +85,7 @@ export default function ReservationDetailPage() {
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
+
 
   useEffect(() => {
     checkAuthAndFetch();
@@ -104,7 +103,6 @@ export default function ReservationDetailPage() {
       return;
     }
 
-    setUser(session.user);
     await fetchReservation(session.user.email);
   }
 

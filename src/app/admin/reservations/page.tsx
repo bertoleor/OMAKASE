@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Plus, Search, Filter, RefreshCw, Loader2 } from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
+import { Plus, Search, RefreshCw, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import ReservationsTable from "@/components/admin/dashboard/ReservationsTable";
 import ReservationDetail from "@/components/admin/reservations/ReservationDetail";
 import BookingForm from "@/components/admin/reservations/BookingForm";
 
@@ -55,11 +54,9 @@ export default function ReservationsPage() {
     search: "",
   });
 
-  useEffect(() => {
-    fetchData();
-  }, [filters.date, filters.status, filters.zone]);
 
-  async function fetchData() {
+
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const supabase = createClient();
@@ -95,7 +92,11 @@ export default function ReservationsPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [filters.date, filters.status, filters.zone]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   // Filter by search locally
   const filteredBookings = bookings.filter((b) => {

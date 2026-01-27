@@ -24,10 +24,10 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Get settings for auto-confirm threshold
-    const { data: settings } = await supabase
-      .from("restaurant_settings")
-      .select("*")
-      .single();
+    // const { data: settings } = await supabase
+    //   .from("restaurant_settings")
+    //   .select("*")
+    //   .single();
 
     const autoConfirmHours = 2; // Could make this configurable
 

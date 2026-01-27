@@ -13,7 +13,6 @@ const UI_LOGIC_VIOLATION = ["supabase.from", "prisma.", "axios."];
 
 const validateSeniority = (path: string) => {
   const file = fs.readFileSync(path, "utf-8");
-  const lines = file.split("\n");
   const violations: string[] = [];
 
   if (file.match(/\/\/ .+/g)) violations.push("Redundant comments detected");

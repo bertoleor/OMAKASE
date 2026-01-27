@@ -28,9 +28,9 @@ NEXT_PUBLIC_SITE_URL=https://tu-dominio.vercel.app
 
 Asegúrate de haber ejecutado todos los scripts de migración en el "SQL Editor" de Supabase, en este orden:
 
-1.  **Tablas Base:** Reservas, Clientes, Zonas, Mesas.
-2.  **Configuración Global:** `restaurant_settings`, `weekly_schedule`, `events`.
-3.  **Seguridad (RBAC):** `profiles` y políticas RLS.
+1. **Tablas Base:** Reservas, Clientes, Zonas, Mesas.
+2. **Configuración Global:** `restaurant_settings`, `weekly_schedule`, `events`.
+3. **Seguridad (RBAC):** `profiles` y políticas RLS.
 
 _Los archivos SQL se encuentran en la carpeta `supabase/migrations/`._
 
@@ -53,13 +53,13 @@ SELECT make_user_admin('tu-email@ejemplo.com');
 
 ## 5. Verificación Post-Despliegue
 
-1.  **Acceso:** Entra a la URL proporcionada por Vercel.
-2.  **Login:** Inicia sesión con el usuario administrador.
+1. **Acceso:** Entra a la URL proporcionada por Vercel.
+2. **Login:** Inicia sesión con el usuario administrador.
 
 - Deberías ver el badge "ADMIN" en el sidebar.
 - Deberías tener acceso completo a Configuración (`/admin/settings`).
 
-3.  **Prueba de Usuario:**
+1. **Prueba de Usuario:**
 
 - Inicia sesión con otro usuario (rol 'staff').
 - Verifica que **NO** tenga acceso a Configuración ni Reportes.

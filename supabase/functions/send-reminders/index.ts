@@ -37,7 +37,7 @@ serve(async (req) => {
     const targetTimeStr = twoHoursLater.toTimeString().substring(0, 5);
 
     // Find bookings needing 24h reminder
-    const { data: reminder24h, error: err24h } = await supabase
+    const { data: reminder24h } = await supabase
       .from("bookings")
       .select(
         "id, customer_name, customer_email, booking_date, booking_time, pax",
@@ -47,7 +47,7 @@ serve(async (req) => {
       .is("reminder_24h_sent", null); // Assume we add this column
 
     // Find bookings needing 2h reminder
-    const { data: reminder2h, error: err2h } = await supabase
+    const { data: reminder2h } = await supabase
       .from("bookings")
       .select(
         "id, customer_name, customer_email, booking_date, booking_time, pax",

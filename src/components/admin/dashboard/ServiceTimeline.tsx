@@ -251,7 +251,6 @@ export default function ServiceTimeline({ date }: ServiceTimelineProps) {
                   return (
                     <div
                       className="absolute top-0 bottom-0 w-0.5 bg-red-500 z-10 timeline-indicator"
-                      // eslint-disable-next-line
                       style={indicatorStyle}
                     >
                       <div className="absolute -top-1 -left-1.5 w-3 h-3 rounded-full bg-red-500"></div>
