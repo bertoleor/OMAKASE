@@ -45,11 +45,11 @@ SELECT make_user_admin('tu-email@ejemplo.com');
 
 ## 4. Despliegue en Vercel
 
-1.  Conecta tu repositorio de GitHub a Vercel.
-2.  Importa el proyecto "suhi reservas".
-3.  En **Build & Development Settings**, el comando por defecto `next build` es correcto.
-4.  Agrega las variables de entorno configuradas en el paso 2.
-5.  Haz clic en **Deploy**.
+1. Conecta tu repositorio de GitHub a Vercel.
+2. Importa el proyecto "suhi reservas".
+3. En **Build & Development Settings**, el comando por defecto `next build` es correcto.
+4. Agrega las variables de entorno configuradas en el paso 2.
+5. Haz clic en **Deploy**.
 
 ## 5. Verificación Post-Despliegue
 

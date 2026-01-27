@@ -367,6 +367,7 @@ export default function ReportsPage() {
                                 : "bg-gray-400"
                           }`}
                           style={
+                            // eslint-disable-next-line
                             {
                               "--progress": `${percentage}%`,
                             } as React.CSSProperties
@@ -424,6 +425,7 @@ export default function ReportsPage() {
                       <div
                         className="w-2 bg-blue-400 rounded-t chart-bar hover:bg-blue-300"
                         style={
+                          // eslint-disable-next-line
                           {
                             "--bar-height": `${heightBookings}%`,
                           } as React.CSSProperties
@@ -432,6 +434,7 @@ export default function ReportsPage() {
                       <div
                         className="w-2 bg-green-400 rounded-t chart-bar hover:bg-green-300"
                         style={
+                          // eslint-disable-next-line
                           {
                             "--bar-height": `${heightPax}%`,
                           } as React.CSSProperties

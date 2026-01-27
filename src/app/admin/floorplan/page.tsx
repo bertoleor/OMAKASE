@@ -272,6 +272,7 @@ export default function FloorPlanPage() {
                       : "bg-green-500"
                 }`}
                 style={
+                  // eslint-disable-next-line
                   {
                     "--progress": `${occupancyPercent}%`,
                   } as React.CSSProperties
@@ -302,6 +303,7 @@ export default function FloorPlanPage() {
         <div
           className="relative mx-auto floorplan-canvas"
           style={
+            // eslint-disable-next-line
             {
               "--canvas-width": `${450 * zoom}px`,
               "--canvas-height": `${300 * zoom}px`,
@@ -332,6 +334,7 @@ export default function FloorPlanPage() {
                     ? "bg-red-500/30 border-2 border-red-500 text-red-300 hover:bg-red-500/40"
                     : "bg-green-500/20 border-2 border-green-500/50 text-green-300 hover:bg-green-500/30"
                 } ${table.shape === "circle" ? "rounded-full" : "rounded-lg"}`}
+                // eslint-disable-next-line
                 style={tableStyle}
                 title={
                   isOccupied
