@@ -234,3 +234,66 @@ export async function sendCancellationEmail(
     };
   }
 }
+
+/**
+ * Send Magic Link email for authentication
+ */
+export async function sendMagicLinkEmail(
+  to: string,
+  magicLink: string,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await getResendClient().emails.send({
+      from: FROM_EMAIL,
+      to,
+      subject: "Acceso a Mis Reservas - OMAKASE",
+      html: `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          </head>
+          <body style="font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #0a0a0a; color: #ffffff; margin: 0; padding: 40px 20px;">
+            <div style="max-width: 600px; margin: 0 auto; background: linear-gradient(145deg, rgba(30,30,30,0.8), rgba(20,20,20,0.9)); border-radius: 16px; padding: 40px; border: 1px solid rgba(255,255,255,0.1);">
+              <h1 style="text-align: center; font-size: 32px; letter-spacing: 0.2em; margin-bottom: 30px; color: #ffffff;">OMAKASE</h1>
+              
+              <div style="text-align: center; padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                <p style="color: #ffffff; font-size: 14px; text-transform: uppercase; letter-spacing: 0.1em; margin: 0;">Enlace de Acceso</p>
+              </div>
+              
+              <div style="padding: 30px 0; text-align: center;">
+                <p style="color: rgba(255,255,255,0.8); margin-bottom: 30px;">Haz clic en el siguiente botón para acceder a la gestión de tus reservas:</p>
+                
+                <a href="${magicLink}" style="display: inline-block; background-color: #ffffff; color: #000000; padding: 16px 32px; border-radius: 12px; font-weight: bold; text-decoration: none; text-transform: uppercase; letter-spacing: 0.1em; font-size: 12px; transition: all 0.2s;">
+                  Ingresar a Mis Reservas
+                </a>
+                
+                <p style="color: rgba(255,255,255,0.4); font-size: 11px; margin-top: 30px;">
+                  Este enlace expirará en breve y solo puede ser usado una vez.
+                </p>
+              </div>
+              
+              <div style="text-align: center; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+                <p style="color: rgba(255,255,255,0.3); font-size: 10px; margin: 0;">
+                  Si no solicitaste este enlace, puedes ignorar este correo.
+                </p>
+              </div>
+            </div>
+          </body>
+        </html>
+      `,
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Unknown error",
+    };
+  }
+}

@@ -54,15 +54,20 @@ export async function createBooking(data: CreateBookingData) {
     return { success: false, error: error.message };
   }
 
-  // Send confirmation email (async, don't block response)
-  sendConfirmationEmail({
-    to: data.customerEmail,
-    customerName: data.customerName,
-    bookingDate: data.date,
-    bookingTime: data.timeSlot,
-    pax: data.pax,
-    zoneName: data.zone,
-  }).catch((e) => console.error("Error sending confirmation email:", e));
+  // Send confirmation email
+  try {
+    await sendConfirmationEmail({
+      to: data.customerEmail,
+      customerName: data.customerName,
+      bookingDate: data.date,
+      bookingTime: data.timeSlot,
+      pax: data.pax,
+      zoneName: data.zone,
+    });
+  } catch (e) {
+    console.error("Error sending confirmation email:", e);
+    // We don't return error here because the booking was already created successfully
+  }
 
   return { success: true, booking: result };
 }

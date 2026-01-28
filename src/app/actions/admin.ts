@@ -2,7 +2,7 @@
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { sendCancellationEmail, getResendClient } from "@/lib/email/resend";
+import { sendCancellationEmail, getResendClient, sendMagicLinkEmail } from "@/lib/email/resend";
 
 export interface StaffUser {
   id: string;
@@ -183,5 +183,36 @@ export async function sendQuickContactEmail(
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",
     };
+  }
+}
+
+/**
+ * Generates an auth magic link and sends it via Resend
+ */
+export async function sendAuthMagicLink(email: string, redirectTo: string) {
+  try {
+    const supabase = createAdminClient();
+    
+    // Generate the magic link
+    const { data, error: genError } = await supabase.auth.admin.generateLink({
+      type: 'magiclink',
+      email: email,
+      options: {
+        redirectTo: redirectTo
+      }
+    });
+
+    if (genError) throw genError;
+
+    // Send the link via Resend
+    const { success, error: sendError } = await sendMagicLinkEmail(email, data.properties.action_link);
+    
+    if (!success) throw new Error(sendError);
+
+    return { success: true };
+  } catch (error: unknown) {
+    console.error("Error in sendAuthMagicLink:", error);
+    const errorMsg = error instanceof Error ? error.message : "Error desconocido";
+    return { success: false, error: errorMsg || "Error al enviar el enlace." };
   }
 }

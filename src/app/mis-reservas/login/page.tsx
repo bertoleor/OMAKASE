@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Loader2, CheckCircle2 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { sendAuthMagicLink } from "@/app/actions/admin";
 
 export default function MyReservationsLoginPage() {
   const [email, setEmail] = useState("");
@@ -17,21 +17,18 @@ export default function MyReservationsLoginPage() {
     setError("");
 
     try {
-      const supabase = createClient();
-
-      // Send magic link
-      const { error: authError } = await supabase.auth.signInWithOtp({
+      // Use the manual Resend-based magic link flow
+      const { success, error: authError } = await sendAuthMagicLink(
         email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/mis-reservas`,
-        },
-      });
+        `${window.location.origin}/mis-reservas`
+      );
 
-      if (authError) throw authError;
+      if (!success) throw new Error(authError);
       setSent(true);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Login error:", err);
-      setError("Error al enviar el enlace. Por favor intenta de nuevo.");
+      const errorMsg = err instanceof Error ? err.message : "Error desconocido";
+      setError(errorMsg || "Error al enviar el enlace. Por favor intenta de nuevo.");
     } finally {
       setLoading(false);
     }
