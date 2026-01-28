@@ -163,8 +163,9 @@ export default function AdminLoginPage() {
             href="/"
             className="group inline-flex items-center space-x-2 text-white/20 hover:text-white/60 text-[10px] transition-all uppercase tracking-[0.2em] font-medium"
           >
-            <div className="w-6 h-px bg-white/10 group-hover:w-10 group-hover:bg-white/30 transition-all" />
+            <div className="w-4 h-px bg-white/10 group-hover:w-8 group-hover:bg-white/30 transition-all" />
             <span>Volver al sitio</span>
+            <div className="w-4 h-px bg-white/10 group-hover:w-8 group-hover:bg-white/30 transition-all" />
           </Link>
         </div>
       </div>

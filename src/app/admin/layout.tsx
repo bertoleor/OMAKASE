@@ -6,6 +6,7 @@ import NotificationToast from "@/components/admin/NotificationToast";
 import CommandPalette from "@/components/admin/CommandPalette";
 import { useAdminUIStore } from "@/store/admin-ui-store";
 import { cn } from "@/lib/utils";
+import { usePathname } from "next/navigation";
 
 export default function AdminLayout({
   children,
@@ -13,6 +14,12 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const { isSidebarOpen } = useAdminUIStore();
+  const pathname = usePathname();
+
+  // If we're on the login page, don't show the dashboard layout
+  if (pathname === "/admin/login") {
+    return <>{children}</>;
+  }
 
   return (
     <div className="flex bg-black min-h-screen font-sans text-white bg-[url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2670&auto=format&fit=crop')] bg-cover bg-fixed relative">
