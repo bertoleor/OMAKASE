@@ -2,14 +2,15 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Loader2, CheckCircle2, ShieldCheck } from "lucide-react";
+import { Loader2, ShieldCheck, Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
 
@@ -21,122 +22,163 @@ export default function AdminLoginPage() {
     try {
       const supabase = createClient();
 
-      // Send magic link with admin redirect
-      const { error: authError } = await supabase.auth.signInWithOtp({
+      // Sign in with password
+      const { error: authError } = await supabase.auth.signInWithPassword({
         email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/admin/dashboard`,
-        },
+        password,
       });
 
       if (authError) throw authError;
-      setSent(true);
-    } catch (err) {
+
+      // Successful login - router will middleware protect the rest
+      router.push("/admin/dashboard");
+      router.refresh();
+    } catch (err: unknown) {
       console.error("Login error:", err);
-      setError("Error al enviar el enlace. Verifica tus credenciales.");
+      const errorMsg = err instanceof Error ? err.message : "Error desconocido";
+      
+      // Friendly error messages
+      if (errorMsg === "Invalid login credentials") {
+        setError("Credenciales incorrectas. Verifica tu email y contraseña.");
+      } else {
+        setError(errorMsg || "Error al iniciar sesión.");
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      {/* Background Gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-neutral-900 via-neutral-950 to-black z-0" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.03),_transparent)] z-0" />
+    <div className="min-h-screen bg-black flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      {/* Dynamic Animated Background Elements */}
+      <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-600/10 blur-[120px] rounded-full animate-pulse" />
+      <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600/10 blur-[120px] rounded-full animate-pulse [animation-delay:2s]" />
+      
+      {/* Background Pattern */}
+      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] opacity-[0.03] z-0" />
 
-      <div className="relative z-10 w-full max-w-md">
-        {/* Header */}
-        <div className="text-center mb-10">
-            <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shadow-2xl">
-                <ShieldCheck className="w-8 h-8 text-white/80" strokeWidth={1.5} />
-            </div>
-          <h1 className="text-3xl font-light tracking-[0.2em] text-white/90 uppercase mb-2">
+      <div className="relative z-10 w-full max-w-[440px]">
+        {/* Header Section */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center p-3 mb-6 rounded-2xl bg-white/5 border border-white/10 shadow-2xl backdrop-blur-sm">
+            <ShieldCheck className="w-8 h-8 text-white/90" strokeWidth={1.2} />
+          </div>
+          <h1 className="text-4xl font-extralight tracking-[0.25em] text-white uppercase mb-2">
             OMAKASE
           </h1>
-          <p className="text-xs text-white/40 uppercase tracking-widest">
-            Acceso Administrativo
+          <p className="text-[10px] text-white/40 uppercase tracking-[0.3em] font-medium">
+            Acceso Administrativo · Staff Only
           </p>
         </div>
 
-        {sent ? (
-          /* Success State */
-          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 text-center shadow-2xl">
-            <div className="w-14 h-14 mx-auto mb-6 rounded-full bg-green-500/20 flex items-center justify-center border border-green-500/30">
-              <CheckCircle2 className="w-7 h-7 text-green-400" strokeWidth={1.5} />
-            </div>
-            <h2 className="text-lg font-medium text-white mb-3 tracking-wide">
-              Enlace enviado
-            </h2>
-            <p className="text-white/60 mb-6 font-light text-sm leading-relaxed">
-              Hemos enviado un enlace de acceso seguro a <br/>
-              <strong className="text-white font-normal">{email}</strong>
-            </p>
-            <button 
-                onClick={() => setSent(false)}
-                className="text-xs text-white/30 hover:text-white uppercase tracking-widest transition-colors"
-            >
-                Intentar con otro email
-            </button>
-          </div>
-        ) : (
-          /* Login Form */
-          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <label
-                  htmlFor="email"
-                  className="block text-[10px] uppercase tracking-widest text-white/40 font-semibold pl-1"
-                >
-                  Email Corporativo
-                </label>
-                <div className="relative group">
-                  <input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="admin@omakase.restaurant"
-                    required
-                    className="w-full px-4 py-3.5 bg-black/20 border border-white/10 rounded-xl text-white placeholder-white/20 focus:border-white/30 focus:bg-black/40 focus:outline-none transition-all font-light text-sm"
-                  />
-                  <div className="absolute inset-0 rounded-xl ring-1 ring-white/0 group-focus-within:ring-white/20 transition-all pointer-events-none" />
+        {/* GLASSCARD LOGIN */}
+        <div className="bg-white/[0.03] backdrop-blur-[24px] border border-white/10 rounded-[32px] p-8 md:p-10 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.5)] relative overflow-hidden group">
+          {/* Subtle Inner Glow */}
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+          
+          <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
+            {/* Email Field */}
+            <div className="space-y-2">
+              <label htmlFor="email" className="block text-[10px] uppercase tracking-widest text-white/50 font-semibold pl-1">
+                Email Corporativo
+              </label>
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20">
+                  <Mail className="w-4 h-4" />
                 </div>
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="ejemplo@omakase.restaurant"
+                  required
+                  className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-white/20 focus:border-white/30 focus:bg-white/[0.08] focus:outline-none transition-all font-light text-sm"
+                />
               </div>
+            </div>
 
-              {error && (
-                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-                    <p className="text-red-400 text-xs text-center font-medium">
-                    {error}
-                    </p>
+            {/* Password Field */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between pl-1">
+                <label htmlFor="password" className="block text-[10px] uppercase tracking-widest text-white/50 font-semibold">
+                  Contraseña
+                </label>
+              </div>
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20">
+                  <Lock className="w-4 h-4" />
                 </div>
-              )}
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-white/20 focus:border-white/30 focus:bg-white/[0.08] focus:outline-none transition-all font-light text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white/60 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
 
-              <button
-                type="submit"
-                disabled={loading || !email}
-                className="w-full flex items-center justify-center space-x-2 py-3.5 bg-white text-black font-medium rounded-xl hover:bg-white/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all uppercase tracking-widest text-xs shadow-lg hover:shadow-white/20 transform hover:-translate-y-0.5 active:translate-y-0"
-              >
+            {/* Error Message */}
+            {error && (
+              <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl animate-shake">
+                <p className="text-red-400 text-xs text-center font-medium leading-relaxed">
+                  {error}
+                </p>
+              </div>
+            )}
+
+            {/* Gradient Submit Button */}
+            <button
+              type="submit"
+              disabled={loading || !email || !password}
+              className="w-full flex items-center justify-center space-x-2 py-4 relative group/btn overflow-hidden rounded-2xl transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed shadow-[0_12px_24px_-8px_rgba(255,255,255,0.1)]"
+            >
+              {/* Button Gradient Layer */}
+              <div className="absolute inset-0 bg-white group-hover/btn:bg-neutral-100 transition-colors" />
+              
+              <span className="relative z-10 text-black text-xs font-bold uppercase tracking-[0.2em]">
                 {loading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="w-5 h-5 animate-spin" />
                 ) : (
-                  <span>Ingresar al Panel</span>
+                  "Ingresar al Panel"
                 )}
-              </button>
-            </form>
-          </div>
-        )}
+              </span>
+            </button>
+          </form>
+        </div>
 
-        {/* Footer */}
-        <div className="text-center mt-8">
+        {/* Footer Link */}
+        <div className="text-center mt-10">
           <Link
             href="/"
-            className="text-white/20 hover:text-white/60 text-xs transition-colors uppercase tracking-widest"
+            className="group inline-flex items-center space-x-2 text-white/20 hover:text-white/60 text-[10px] transition-all uppercase tracking-[0.2em] font-medium"
           >
-            Volver al sitio principal
+            <div className="w-6 h-px bg-white/10 group-hover:w-10 group-hover:bg-white/30 transition-all" />
+            <span>Volver al sitio</span>
           </Link>
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-4px); }
+          75% { transform: translateX(4px); }
+        }
+        .animate-shake {
+          animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both;
+        }
+      `}</style>
     </div>
   );
 }
