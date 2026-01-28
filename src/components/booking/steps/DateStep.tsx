@@ -55,10 +55,20 @@ export default function DateStep() {
   const [blockedReasons, setBlockedReasons] = useState<Record<string, string>>(
     {},
   );
+  const [visibleMonth, setVisibleMonth] = useState("");
 
   // Use settings or default to 30 days
   const maxAdvanceDays = settings?.max_advance_days || 30;
   const days = useMemo(() => generateDays(maxAdvanceDays), [maxAdvanceDays]);
+
+  // Initialize visible month
+  useEffect(() => {
+    if (days.length > 0) {
+      const targetDay =
+        days.find((d) => d.date === draftBooking.date) || days[0];
+      setVisibleMonth(`${targetDay.month}. ${targetDay.year}`);
+    }
+  }, [days, draftBooking.date]);
 
   // Fetch blocked dates on mount
   useEffect(() => {
@@ -92,13 +102,6 @@ export default function DateStep() {
     }
     fetchBlockedDates();
   }, [maxAdvanceDays]);
-
-  // Get current month display from first visible date or selected date
-  const currentMonthDisplay = useMemo(() => {
-    const selectedDay =
-      days.find((d) => d.date === draftBooking.date) || days[0];
-    return `${selectedDay.month}. ${selectedDay.year}`;
-  }, [draftBooking.date, days]);
 
   const handleSelect = (dayStr: string) => {
     // Don't allow selecting blocked dates
@@ -144,6 +147,19 @@ export default function DateStep() {
       const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
       setCanScrollLeft(scrollLeft > 10);
       setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
+
+      // Determine visible month based on scroll position
+      // Item width approx 68px (56px width + 12px gap)
+      const itemWidth = 68;
+      const index = Math.round(scrollLeft / itemWidth);
+      const visibleDay = days[Math.min(index, days.length - 1)];
+      
+      if (visibleDay) {
+        const newMonthDisplay = `${visibleDay.month}. ${visibleDay.year}`;
+        if (newMonthDisplay !== visibleMonth) {
+            setVisibleMonth(newMonthDisplay);
+        }
+      }
     }
   };
 
@@ -170,7 +186,7 @@ export default function DateStep() {
           Seleccionar Fecha
         </h2>
         <p className="text-white/60 text-sm uppercase tracking-wider">
-          {currentMonthDisplay}
+          {visibleMonth}
         </p>
       </div>
 
@@ -209,10 +225,6 @@ export default function DateStep() {
             <ChevronRight className="w-4 h-4" />
           </button>
         )}
-
-        {/* Gradient Fades */}
-        <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-black/40 to-transparent z-10 pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-black/40 to-transparent z-10 pointer-events-none" />
 
         {/* Scrollable Container */}
         <div
