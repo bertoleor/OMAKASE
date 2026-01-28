@@ -21,10 +21,8 @@ const variants = {
 };
 
 export default function BookingWizard() {
-  const { currentStep, fetchSettings } = useBookingStore((state) => ({
-    currentStep: state.currentStep,
-    fetchSettings: state.fetchSettings,
-  }));
+  const currentStep = useBookingStore((state) => state.currentStep);
+  const fetchSettings = useBookingStore((state) => state.fetchSettings);
 
   // Fetch settings on mount
   useEffect(() => {
