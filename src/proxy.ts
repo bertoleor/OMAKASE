@@ -46,7 +46,7 @@ export async function proxy(request: NextRequest) {
   if (isAdminRoute) {
     if (!user) {
       // Not logged in -> Redirect to login
-      return NextResponse.redirect(new URL("/mis-reservas/login", request.url));
+      return NextResponse.redirect(new URL("/admin/login", request.url));
     }
 
     // Role Check (Metadata)
