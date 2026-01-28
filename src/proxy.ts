@@ -43,7 +43,9 @@ export async function proxy(request: NextRequest) {
   const isLoginRoute = path === "/mis-reservas/login";
 
   // 1. Admin Protection
-  if (isAdminRoute) {
+  const isAdminLogin = path === "/admin/login";
+  
+  if (isAdminRoute && !isAdminLogin) {
     if (!user) {
       // Not logged in -> Redirect to login
       return NextResponse.redirect(new URL("/admin/login", request.url));
