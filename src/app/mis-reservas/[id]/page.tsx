@@ -220,88 +220,88 @@ export default function ReservationDetailPage() {
       
       {/* Header */}
       <header className="border-b border-white/5 bg-black/20 backdrop-blur-xl sticky top-0 z-50">
-        <div className="max-w-2xl mx-auto px-6 py-8 flex items-center justify-between">
+        <div className="max-w-2xl mx-auto px-6 py-4 sm:py-6 md:py-8 flex items-center justify-between">
           <button
             onClick={() => router.push("/mis-reservas")}
-            className="group flex items-center space-x-3 text-[10px] uppercase tracking-[0.3em] text-white/40 hover:text-white transition-all"
+            className="group flex items-center space-x-2 sm:space-x-3 text-[9px] sm:text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.3em] text-white/40 hover:text-white transition-all"
           >
-            <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" />
-            <span>Volver</span>
+            <ArrowLeft className="w-3 sm:w-3.5 h-3 sm:h-3.5 group-hover:-translate-x-1 transition-transform" />
+            <span className="hidden xs:inline">Volver</span>
           </button>
           <div className="text-center flex-1">
-            <h1 className="text-xl font-extralight tracking-[0.5em] uppercase text-white/90">DETALLE</h1>
+            <h1 className="text-base sm:text-lg md:text-xl font-extralight tracking-[0.3em] sm:tracking-[0.5em] uppercase text-white/90">DETALLE</h1>
           </div>
-          <div className="w-[60px]" /> {/* Spacer for centering */}
+          <div className="w-[60px] xs:w-[80px]" /> {/* Spacer for centering */}
         </div>
       </header>
 
       <main className="max-w-xl mx-auto px-6 py-12 space-y-8 relative z-10">
         {/* Main Glasscard Card */}
-        <div className="bg-white/[0.02] backdrop-blur-[40px] border border-white/10 rounded-[3rem] p-10 md:p-14 shadow-2xl relative overflow-hidden">
+        <div className="bg-white/[0.02] backdrop-blur-[40px] border border-white/10 rounded-[2.5rem] sm:rounded-[3rem] p-6 sm:p-10 md:p-14 shadow-2xl relative overflow-hidden">
           {/* Subtle Inner Glow */}
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
           {/* Status Header */}
-          <div className="flex flex-col items-center mb-16">
-            <div className={`p-5 rounded-full ${status.bg} border inline-flex items-center justify-center mb-6 transition-all border-white/10`}>
-              <StatusIcon className={`w-6 h-6 ${status.color}`} />
+          <div className="flex flex-col items-center mb-10 sm:mb-12 md:mb-16">
+            <div className={`p-4 sm:p-5 rounded-full ${status.bg} border inline-flex items-center justify-center mb-4 sm:mb-6 transition-all border-white/10`}>
+              <StatusIcon className={`w-5 h-5 sm:w-6 sm:h-6 ${status.color}`} />
             </div>
-            <p className={`text-[11px] uppercase tracking-[0.4em] font-medium ${status.color} mb-2`}>
+            <p className={`text-[9px] sm:text-[11px] uppercase tracking-[0.3em] sm:tracking-[0.4em] font-medium ${status.color} mb-2`}>
               {status.label}
             </p>
-            <div className="h-px w-8 bg-white/10 mb-2" />
-            <p className="text-[9px] text-white/30 uppercase tracking-[0.2em] leading-none">
+            <div className="h-px w-6 sm:w-8 bg-white/10 mb-2" />
+            <p className="text-[8px] sm:text-[9px] text-white/30 uppercase tracking-[0.2em] leading-none">
               Reserva #{reservation.id.slice(0, 8).toUpperCase()}
             </p>
           </div>
 
           {/* Date & Time - Visual Focus */}
-          <div className="text-center mb-16 space-y-6">
-            <p className="text-3xl md:text-4xl font-extralight text-white tracking-[0.1em] uppercase">
+          <div className="text-center mb-10 sm:mb-12 md:mb-16 space-y-4 sm:space-y-6">
+            <p className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extralight text-white tracking-[0.1em] uppercase">
               {formattedDate}
             </p>
-            <p className="text-8xl md:text-9xl font-thin text-white tracking-widest leading-none">
+            <p className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-thin text-white tracking-widest leading-none">
               {reservation.booking_time}
             </p>
           </div>
 
           {/* Details Grid - Minimalist */}
-          <div className="grid grid-cols-2 gap-px bg-white/5 rounded-[2rem] overflow-hidden border border-white/5">
-            <div className="bg-white/[0.02] p-8 flex flex-col items-center text-center space-y-3">
-              <Users className="w-5 h-5 text-white/30" />
+          <div className="grid grid-cols-2 gap-px bg-white/5 rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden border border-white/5">
+            <div className="bg-white/[0.02] p-6 sm:p-8 flex flex-col items-center text-center space-y-2 sm:space-y-3">
+              <Users className="w-4 h-4 sm:w-5 sm:h-5 text-white/30" />
               <div className="space-y-1">
-                <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">Personas</p>
-                <p className="text-2xl font-light text-white">{reservation.pax}</p>
+                <p className="text-[9px] sm:text-[10px] uppercase tracking-[0.2em] text-white/40">Personas</p>
+                <p className="text-lg sm:text-xl md:text-2xl font-light text-white">{reservation.pax}</p>
               </div>
             </div>
 
-            <div className="bg-white/[0.02] p-8 flex flex-col items-center text-center space-y-3">
-              <MapPin className="w-5 h-5 text-white/30" />
+            <div className="bg-white/[0.02] p-6 sm:p-8 flex flex-col items-center text-center space-y-2 sm:space-y-3">
+              <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-white/30" />
               <div className="space-y-1">
-                <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">Zona</p>
-                <p className="text-2xl font-light text-white truncate max-w-full">{zoneName}</p>
+                <p className="text-[9px] sm:text-[10px] uppercase tracking-[0.2em] text-white/40">Zona</p>
+                <p className="text-lg sm:text-xl md:text-2xl font-light text-white truncate max-w-full px-2">{zoneName}</p>
               </div>
             </div>
           </div>
 
           {/* Customer Info & Notes */}
-          <div className="mt-14 pt-14 border-t border-white/5 space-y-10">
+          <div className="mt-8 pt-8 sm:mt-12 sm:pt-12 md:mt-14 md:pt-14 border-t border-white/5 space-y-8 sm:space-y-10">
             {reservation.notes && (
-              <div className="space-y-3">
-                <p className="text-[10px] uppercase tracking-[0.3em] text-white/30 text-center">Notas Especiales</p>
-                <p className="text-sm text-white/70 font-light leading-relaxed text-center italic px-8">
+              <div className="space-y-2 sm:space-y-3">
+                <p className="text-[9px] sm:text-[10px] uppercase tracking-[0.3em] text-white/30 text-center">Notas Especiales</p>
+                <p className="text-xs sm:text-sm text-white/70 font-light leading-relaxed text-center italic px-4 sm:px-8">
                   &ldquo;{reservation.notes}&rdquo;
                 </p>
               </div>
             )}
 
-            <div className="flex flex-col items-center space-y-4 opacity-30">
-               <div className="flex items-center space-x-3 text-[10px] tracking-[0.2em] uppercase">
-                  <Mail className="w-3.5 h-3.5" />
+            <div className="flex flex-col items-center space-y-3 sm:space-y-4 opacity-30">
+               <div className="flex items-center space-x-2 sm:space-x-3 text-[9px] sm:text-[10px] tracking-[0.2em] uppercase">
+                  <Mail className="w-3 sm:w-3.5 h-3 sm:h-3.5" />
                   <span>{reservation.customer_email}</span>
                </div>
-               <div className="flex items-center space-x-3 text-[10px] tracking-[0.2em] uppercase">
-                  <Phone className="w-3.5 h-3.5" />
+               <div className="flex items-center space-x-2 sm:space-x-3 text-[9px] sm:text-[10px] tracking-[0.2em] uppercase">
+                  <Phone className="w-3 sm:w-3.5 h-3 sm:h-3.5" />
                   <span>{reservation.customer_phone}</span>
                </div>
             </div>
@@ -310,21 +310,21 @@ export default function ReservationDetailPage() {
 
         {/* Action Buttons - Distinct and Sleek */}
         {!isPast && (
-          <div className="space-y-6 px-4">
+          <div className="space-y-4 sm:space-y-6 px-0 sm:px-4">
             <button
               onClick={addToCalendar}
-              className="w-full flex items-center justify-center space-x-4 py-6 bg-white text-black rounded-3xl transition-all hover:bg-neutral-200 active:scale-[0.98] font-semibold text-xs uppercase tracking-[0.3em] shadow-2xl shadow-white/5"
+              className="w-full flex items-center justify-center space-x-3 sm:space-x-4 py-4 sm:py-5 md:py-6 bg-white text-black rounded-[1.5rem] sm:rounded-3xl transition-all hover:bg-neutral-200 active:scale-[0.98] font-semibold text-[10px] sm:text-xs uppercase tracking-[0.2em] sm:tracking-[0.3em] shadow-2xl shadow-white/5"
             >
-              <Calendar className="w-5 h-5" />
+              <Calendar className="w-4 h-4 sm:w-5 sm:h-5" />
               <span>Agregar al calendario</span>
             </button>
 
             {canCancel && (
               <button
                 onClick={() => setShowCancelConfirm(true)}
-                className="w-full flex items-center justify-center space-x-4 py-6 bg-transparent hover:bg-white/5 border border-white/10 text-white/40 hover:text-white transition-all rounded-3xl font-medium text-xs uppercase tracking-[0.3em]"
+                className="w-full flex items-center justify-center space-x-3 sm:space-x-4 py-4 sm:py-5 md:py-6 bg-transparent hover:bg-white/5 border border-white/10 text-white/40 hover:text-white transition-all rounded-[1.5rem] sm:rounded-3xl font-medium text-[10px] sm:text-xs uppercase tracking-[0.2em] sm:tracking-[0.3em]"
               >
-                <XCircle className="w-5 h-5" />
+                <XCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span>Cancelar mi reserva</span>
               </button>
             )}

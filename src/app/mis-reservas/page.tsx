@@ -140,23 +140,23 @@ export default function MyReservationsPage() {
       
       {/* Header */}
       <header className="border-b border-white/5 bg-black/20 backdrop-blur-xl sticky top-0 z-50">
-        <div className="max-w-4xl mx-auto px-6 py-8 flex items-center justify-between">
+        <div className="max-w-4xl mx-auto px-6 py-5 sm:py-6 md:py-8 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-extralight tracking-[0.4em] mb-1 uppercase text-white/90">OMAKASE</h1>
-            <div className="h-px w-8 bg-white/20 mb-2" />
-            <p className="text-[10px] text-white/40 uppercase tracking-[0.3em] font-medium">Gestión de reservas</p>
+            <h1 className="text-xl sm:text-2xl font-extralight tracking-[0.3em] sm:tracking-[0.4em] mb-0.5 sm:mb-1 uppercase text-white/90">OMAKASE</h1>
+            <div className="h-px w-6 sm:w-8 bg-white/20 mb-1.5 sm:mb-2" />
+            <p className="text-[9px] sm:text-[10px] text-white/40 uppercase tracking-[0.2em] sm:tracking-[0.3em] font-medium">Gestión de reservas</p>
           </div>
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-4 sm:space-x-6">
             <div className="hidden md:flex flex-col items-end">
-              <span className="text-[10px] text-white/20 uppercase tracking-[0.3em] leading-none mb-1.5">Sesión iniciada</span>
-              <span className="text-xs text-white/50 font-light tracking-widest">{user?.email}</span>
+              <span className="text-[9px] sm:text-[10px] text-white/20 uppercase tracking-[0.2em] sm:tracking-[0.3em] leading-none mb-1">Sesión iniciada</span>
+              <span className="text-xs text-white/40 font-light tracking-widest">{user?.email}</span>
             </div>
             <button
               onClick={handleLogout}
-              className="p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all group shadow-xl"
+              className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all group shadow-xl"
               title="Cerrar sesión"
             >
-              <LogOut className="w-4 h-4 text-white/40 group-hover:text-white transition-colors" />
+              <LogOut className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-white/40 group-hover:text-white transition-colors" />
             </button>
           </div>
         </div>
@@ -253,34 +253,34 @@ function ReservationCard({
   return (
     <a
       href={`/mis-reservas/${reservation.id}`}
-      className={`block bg-white/[0.02] backdrop-blur-[40px] border border-white/10 rounded-[2rem] p-8 hover:bg-white/[0.05] hover:border-white/20 transition-all group relative overflow-hidden shadow-2xl ${
+      className={`block bg-white/[0.02] backdrop-blur-[40px] border border-white/10 rounded-[1.5rem] sm:rounded-[2rem] p-5 sm:p-8 hover:bg-white/[0.05] hover:border-white/20 transition-all group relative overflow-hidden shadow-2xl ${
         isPast ? "cursor-default opacity-50 grayscale select-none" : ""
       }`}
     >
       {/* Inner glow effect */}
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-8">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center space-x-4 sm:space-x-8">
           {/* Status Indicator Bar */}
-          <div className={`w-0.5 h-14 rounded-full ${status.bg} border-l border-white/5`} title={status.label} />
+          <div className={`w-0.5 h-10 sm:h-14 rounded-full ${status.bg} border-l border-white/5`} title={status.label} />
           
-          <div className="space-y-2">
-            <p className="text-lg font-extralight text-white/90 tracking-[0.1em] uppercase">
+          <div className="space-y-1 sm:space-y-2">
+            <p className="text-base sm:text-lg font-extralight text-white/90 tracking-[0.1em] uppercase">
               {formattedDate}
             </p>
-            <div className="flex items-center space-x-6 text-[10px] text-white/40 font-light tracking-widest uppercase">
-              <div className="flex items-center space-x-2.5">
-                <Clock className="w-4 h-4 text-white/20" />
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[9px] sm:text-[10px] text-white/40 font-light tracking-widest uppercase">
+              <div className="flex items-center space-x-2">
+                <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/20" />
                 <span>{reservation.booking_time}</span>
               </div>
-              <div className="flex items-center space-x-2.5">
-                <Users className="w-4 h-4 text-white/20" />
+              <div className="flex items-center space-x-2">
+                <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/20" />
                 <span>{reservation.pax} {reservation.pax === 1 ? 'persona' : 'personas'}</span>
               </div>
-              <div className="flex items-center space-x-2.5">
-                <MapPin className="w-4 h-4 text-white/20" />
-                <span className="truncate max-w-[150px]">{zoneName}</span>
+              <div className="flex items-center space-x-2">
+                <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/20" />
+                <span className="truncate max-w-[100px] sm:max-w-[150px]">{zoneName}</span>
               </div>
             </div>
           </div>
