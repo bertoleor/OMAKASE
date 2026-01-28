@@ -34,25 +34,25 @@ const STATUS_CONFIG: Record<
 > = {
   pending: {
     label: "Pendiente",
-    color: "text-yellow-400",
-    bg: "bg-yellow-500/20",
+    color: "text-white/80",
+    bg: "bg-white/10",
   },
   confirmed: {
     label: "Confirmada",
-    color: "text-blue-400",
-    bg: "bg-blue-500/20",
+    color: "text-white/80",
+    bg: "bg-white/10",
   },
-  seated: { label: "En mesa", color: "text-green-400", bg: "bg-green-500/20" },
+  seated: { label: "En mesa", color: "text-white/80", bg: "bg-white/10" },
   completed: {
     label: "Completada",
-    color: "text-gray-400",
-    bg: "bg-gray-500/20",
+    color: "text-white/40",
+    bg: "bg-white/5",
   },
-  cancelled: { label: "Cancelada", color: "text-red-400", bg: "bg-red-500/20" },
+  cancelled: { label: "Cancelada", color: "text-white/30", bg: "bg-white/5" },
   no_show: {
     label: "No presentado",
-    color: "text-orange-400",
-    bg: "bg-orange-500/20",
+    color: "text-white/30",
+    bg: "bg-white/5",
   },
 };
 
@@ -133,28 +133,30 @@ export default function MyReservationsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black">
-      {/* Subtle background effects to match calendar identity */}
-      <div className="fixed inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.03),_transparent)] pointer-events-none" />
+    <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black font-light">
+      {/* Background Image - Same as home */}
+      <div className="fixed inset-0 bg-cover bg-center bg-[url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2670&auto=format&fit=crop')] opacity-30" />
+      <div className="fixed inset-0 bg-gradient-to-b from-black/80 via-black/50 to-black pointer-events-none" />
       
       {/* Header */}
-      <header className="border-b border-white/5 bg-black/40 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-3xl mx-auto px-6 py-5 flex items-center justify-between">
+      <header className="border-b border-white/5 bg-black/20 backdrop-blur-xl sticky top-0 z-50">
+        <div className="max-w-4xl mx-auto px-6 py-8 flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-extralight tracking-[0.2em] mb-0.5 uppercase">OMAKASE</h1>
-            <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-medium">Gestión de reservas</p>
+            <h1 className="text-2xl font-extralight tracking-[0.4em] mb-1 uppercase text-white/90">OMAKASE</h1>
+            <div className="h-px w-8 bg-white/20 mb-2" />
+            <p className="text-[10px] text-white/40 uppercase tracking-[0.3em] font-medium">Gestión de reservas</p>
           </div>
-          <div className="flex items-center space-x-5">
+          <div className="flex items-center space-x-6">
             <div className="hidden md:flex flex-col items-end">
-              <span className="text-[10px] text-white/20 uppercase tracking-widest leading-none mb-1">Sesión iniciada</span>
-              <span className="text-xs text-white/60 font-light">{user?.email}</span>
+              <span className="text-[10px] text-white/20 uppercase tracking-[0.3em] leading-none mb-1.5">Sesión iniciada</span>
+              <span className="text-xs text-white/50 font-light tracking-widest">{user?.email}</span>
             </div>
             <button
               onClick={handleLogout}
-              className="p-2.5 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 transition-all group"
+              className="p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all group shadow-xl"
               title="Cerrar sesión"
             >
-              <LogOut className="w-4 h-4 text-white/40 group-hover:text-white/80 transition-colors" />
+              <LogOut className="w-4 h-4 text-white/40 group-hover:text-white transition-colors" />
             </button>
           </div>
         </div>
@@ -251,42 +253,42 @@ function ReservationCard({
   return (
     <a
       href={`/mis-reservas/${reservation.id}`}
-      className={`block bg-white/[0.03] backdrop-blur-md border border-white/5 rounded-[24px] p-6 hover:bg-white/[0.06] hover:border-white/10 transition-all group relative overflow-hidden ${
-        isPast ? "cursor-default brightness-75" : ""
+      className={`block bg-white/[0.02] backdrop-blur-[40px] border border-white/10 rounded-[2rem] p-8 hover:bg-white/[0.05] hover:border-white/20 transition-all group relative overflow-hidden shadow-2xl ${
+        isPast ? "cursor-default opacity-50 grayscale select-none" : ""
       }`}
     >
       {/* Inner glow effect */}
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-6">
-          {/* Status Indicator */}
-          <div className={`w-1.5 h-12 rounded-full ${status.bg} shadow-lg shadow-${status.color.split('-')[1]}-500/20`} title={status.label} />
+        <div className="flex items-center space-x-8">
+          {/* Status Indicator Bar */}
+          <div className={`w-0.5 h-14 rounded-full ${status.bg} border-l border-white/5`} title={status.label} />
           
-          <div className="space-y-1.5">
-            <p className="text-base font-medium text-white/90">
+          <div className="space-y-2">
+            <p className="text-lg font-extralight text-white/90 tracking-[0.1em] uppercase">
               {formattedDate}
             </p>
-            <div className="flex items-center space-x-5 text-xs text-white/40 font-light">
-              <div className="flex items-center space-x-2">
-                <Clock className="w-3.5 h-3.5" />
+            <div className="flex items-center space-x-6 text-[10px] text-white/40 font-light tracking-widest uppercase">
+              <div className="flex items-center space-x-2.5">
+                <Clock className="w-4 h-4 text-white/20" />
                 <span>{reservation.booking_time}</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <Users className="w-3.5 h-3.5" />
+              <div className="flex items-center space-x-2.5">
+                <Users className="w-4 h-4 text-white/20" />
                 <span>{reservation.pax} {reservation.pax === 1 ? 'persona' : 'personas'}</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <MapPin className="w-3.5 h-3.5" />
-                <span className="truncate max-w-[120px]">{zoneName}</span>
+              <div className="flex items-center space-x-2.5">
+                <MapPin className="w-4 h-4 text-white/20" />
+                <span className="truncate max-w-[150px]">{zoneName}</span>
               </div>
             </div>
           </div>
         </div>
 
         <div className="flex items-center space-x-4">
-          <div className="hidden sm:flex flex-col items-end space-y-1">
-             <span className={`text-[9px] uppercase tracking-widest font-bold ${status.color}`}>
+          <div className="hidden sm:flex flex-col items-end space-y-2">
+             <span className={`text-[10px] uppercase tracking-[0.3em] font-medium ${status.color}`}>
                 {status.label}
              </span>
           </div>

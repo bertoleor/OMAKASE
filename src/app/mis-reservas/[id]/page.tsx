@@ -38,38 +38,38 @@ const STATUS_CONFIG: Record<
 > = {
   pending: {
     label: "Pendiente de confirmación",
-    color: "text-yellow-400",
-    bg: "bg-yellow-500/20",
+    color: "text-white/90",
+    bg: "bg-white/10",
     icon: Clock,
   },
   confirmed: {
     label: "Confirmada",
-    color: "text-blue-400",
-    bg: "bg-blue-500/20",
+    color: "text-white/90",
+    bg: "bg-white/10",
     icon: CheckCircle2,
   },
   seated: {
     label: "En mesa",
-    color: "text-green-400",
-    bg: "bg-green-500/20",
+    color: "text-white/90",
+    bg: "bg-white/10",
     icon: CheckCircle2,
   },
   completed: {
     label: "Completada",
-    color: "text-gray-400",
-    bg: "bg-gray-500/20",
+    color: "text-white/40",
+    bg: "bg-white/5",
     icon: CheckCircle2,
   },
   cancelled: {
     label: "Cancelada",
-    color: "text-red-400",
-    bg: "bg-red-500/20",
+    color: "text-white/30",
+    bg: "bg-white/5",
     icon: XCircle,
   },
   no_show: {
     label: "No presentado",
-    color: "text-orange-400",
-    bg: "bg-orange-500/20",
+    color: "text-white/30",
+    bg: "bg-white/5",
     icon: AlertTriangle,
   },
 };
@@ -213,22 +213,23 @@ export default function ReservationDetailPage() {
     reservation.booking_date < new Date().toISOString().split("T")[0];
 
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black">
-      {/* Background Effects */}
-      <div className="fixed inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.03),_transparent)] pointer-events-none" />
+    <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black font-light">
+      {/* Background Image - Same as home */}
+      <div className="fixed inset-0 bg-cover bg-center bg-[url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2670&auto=format&fit=crop')] opacity-40" />
+      <div className="fixed inset-0 bg-gradient-to-b from-black/80 via-black/40 to-black pointer-events-none" />
       
       {/* Header */}
-      <header className="border-b border-white/5 bg-black/40 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-2xl mx-auto px-6 py-5 flex items-center justify-between">
+      <header className="border-b border-white/5 bg-black/20 backdrop-blur-xl sticky top-0 z-50">
+        <div className="max-w-2xl mx-auto px-6 py-8 flex items-center justify-between">
           <button
             onClick={() => router.push("/mis-reservas")}
-            className="group flex items-center space-x-3 text-[10px] uppercase tracking-[0.2em] text-white/30 hover:text-white transition-all"
+            className="group flex items-center space-x-3 text-[10px] uppercase tracking-[0.3em] text-white/40 hover:text-white transition-all"
           >
             <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" />
             <span>Volver</span>
           </button>
           <div className="text-center flex-1">
-            <h1 className="text-lg font-extralight tracking-[0.3em] uppercase">Detalle</h1>
+            <h1 className="text-xl font-extralight tracking-[0.5em] uppercase text-white/90">DETALLE</h1>
           </div>
           <div className="w-[60px]" /> {/* Spacer for centering */}
         </div>
@@ -236,70 +237,71 @@ export default function ReservationDetailPage() {
 
       <main className="max-w-xl mx-auto px-6 py-12 space-y-8 relative z-10">
         {/* Main Glasscard Card */}
-        <div className="bg-white/[0.03] backdrop-blur-[24px] border border-white/10 rounded-[40px] p-8 md:p-12 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.5)] relative overflow-hidden">
+        <div className="bg-white/[0.02] backdrop-blur-[40px] border border-white/10 rounded-[3rem] p-10 md:p-14 shadow-2xl relative overflow-hidden">
           {/* Subtle Inner Glow */}
-          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
           {/* Status Header */}
-          <div className="flex flex-col items-center mb-12">
-            <div className={`p-4 rounded-3xl ${status.bg} border inline-flex items-center justify-center mb-4 transition-all border-white/5`}>
+          <div className="flex flex-col items-center mb-16">
+            <div className={`p-5 rounded-full ${status.bg} border inline-flex items-center justify-center mb-6 transition-all border-white/10`}>
               <StatusIcon className={`w-6 h-6 ${status.color}`} />
             </div>
-            <p className={`text-[10px] uppercase tracking-[0.3em] font-bold ${status.color} mb-1`}>
+            <p className={`text-[11px] uppercase tracking-[0.4em] font-medium ${status.color} mb-2`}>
               {status.label}
             </p>
-            <p className="text-[10px] text-white/20 uppercase tracking-widest leading-none">
+            <div className="h-px w-8 bg-white/10 mb-2" />
+            <p className="text-[9px] text-white/30 uppercase tracking-[0.2em] leading-none">
               Reserva #{reservation.id.slice(0, 8).toUpperCase()}
             </p>
           </div>
 
           {/* Date & Time - Visual Focus */}
-          <div className="text-center mb-12 space-y-4">
-            <p className="text-3xl font-extralight text-white tracking-wide">
+          <div className="text-center mb-16 space-y-6">
+            <p className="text-3xl md:text-4xl font-extralight text-white tracking-[0.1em] uppercase">
               {formattedDate}
             </p>
-            <p className="text-7xl font-light text-white tracking-tight">
+            <p className="text-8xl md:text-9xl font-thin text-white tracking-widest leading-none">
               {reservation.booking_time}
             </p>
           </div>
 
           {/* Details Grid - Minimalist */}
-          <div className="grid grid-cols-2 gap-px bg-white/5 rounded-3xl overflow-hidden border border-white/5">
-            <div className="bg-black/20 p-6 flex flex-col items-center text-center space-y-2">
-              <Users className="w-4 h-4 text-white/20" />
-              <div className="space-y-0.5">
-                <p className="text-[9px] uppercase tracking-widest text-white/30">Personas</p>
-                <p className="text-lg font-light text-white">{reservation.pax}</p>
+          <div className="grid grid-cols-2 gap-px bg-white/5 rounded-[2rem] overflow-hidden border border-white/5">
+            <div className="bg-white/[0.02] p-8 flex flex-col items-center text-center space-y-3">
+              <Users className="w-5 h-5 text-white/30" />
+              <div className="space-y-1">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">Personas</p>
+                <p className="text-2xl font-light text-white">{reservation.pax}</p>
               </div>
             </div>
 
-            <div className="bg-black/20 p-6 flex flex-col items-center text-center space-y-2">
-              <MapPin className="w-4 h-4 text-white/20" />
-              <div className="space-y-0.5">
-                <p className="text-[9px] uppercase tracking-widest text-white/30">Zona</p>
-                <p className="text-lg font-light text-white truncate max-w-full">{zoneName}</p>
+            <div className="bg-white/[0.02] p-8 flex flex-col items-center text-center space-y-3">
+              <MapPin className="w-5 h-5 text-white/30" />
+              <div className="space-y-1">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">Zona</p>
+                <p className="text-2xl font-light text-white truncate max-w-full">{zoneName}</p>
               </div>
             </div>
           </div>
 
           {/* Customer Info & Notes */}
-          <div className="mt-10 pt-10 border-t border-white/5 space-y-8">
+          <div className="mt-14 pt-14 border-t border-white/5 space-y-10">
             {reservation.notes && (
-              <div className="space-y-2">
-                <p className="text-[9px] uppercase tracking-widest text-white/30 text-center">Notas de la reserva</p>
-                <p className="text-xs text-white/60 font-light leading-relaxed text-center italic px-4">
+              <div className="space-y-3">
+                <p className="text-[10px] uppercase tracking-[0.3em] text-white/30 text-center">Notas Especiales</p>
+                <p className="text-sm text-white/70 font-light leading-relaxed text-center italic px-8">
                   &ldquo;{reservation.notes}&rdquo;
                 </p>
               </div>
             )}
 
-            <div className="flex flex-col items-center space-y-3 opacity-40">
-               <div className="flex items-center space-x-2 text-[10px] tracking-widest uppercase">
-                  <Mail className="w-3 h-3" />
+            <div className="flex flex-col items-center space-y-4 opacity-30">
+               <div className="flex items-center space-x-3 text-[10px] tracking-[0.2em] uppercase">
+                  <Mail className="w-3.5 h-3.5" />
                   <span>{reservation.customer_email}</span>
                </div>
-               <div className="flex items-center space-x-2 text-[10px] tracking-widest uppercase">
-                  <Phone className="w-3 h-3" />
+               <div className="flex items-center space-x-3 text-[10px] tracking-[0.2em] uppercase">
+                  <Phone className="w-3.5 h-3.5" />
                   <span>{reservation.customer_phone}</span>
                </div>
             </div>
@@ -308,21 +310,21 @@ export default function ReservationDetailPage() {
 
         {/* Action Buttons - Distinct and Sleek */}
         {!isPast && (
-          <div className="space-y-4 px-4">
+          <div className="space-y-6 px-4">
             <button
               onClick={addToCalendar}
-              className="w-full flex items-center justify-center space-x-3 py-4 bg-white text-black rounded-2xl transition-all hover:scale-[1.02] active:scale-[0.98] font-medium text-xs uppercase tracking-widest shadow-xl shadow-white/5"
+              className="w-full flex items-center justify-center space-x-4 py-6 bg-white text-black rounded-3xl transition-all hover:bg-neutral-200 active:scale-[0.98] font-semibold text-xs uppercase tracking-[0.3em] shadow-2xl shadow-white/5"
             >
-              <Calendar className="w-4 h-4" />
+              <Calendar className="w-5 h-5" />
               <span>Agregar al calendario</span>
             </button>
 
             {canCancel && (
               <button
                 onClick={() => setShowCancelConfirm(true)}
-                className="w-full flex items-center justify-center space-x-3 py-4 bg-white/5 hover:bg-red-500/10 border border-white/5 hover:border-red-500/20 text-white/40 hover:text-red-400 rounded-2xl transition-all font-medium text-xs uppercase tracking-widest"
+                className="w-full flex items-center justify-center space-x-4 py-6 bg-transparent hover:bg-white/5 border border-white/10 text-white/40 hover:text-white transition-all rounded-3xl font-medium text-xs uppercase tracking-[0.3em]"
               >
-                <XCircle className="w-4 h-4" />
+                <XCircle className="w-5 h-5" />
                 <span>Cancelar mi reserva</span>
               </button>
             )}
