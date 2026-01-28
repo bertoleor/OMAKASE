@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Plus, Search, RefreshCw, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { updateBookingStatus } from "@/app/actions/admin";
 import ReservationDetail from "@/components/admin/reservations/ReservationDetail";
 import BookingForm from "@/components/admin/reservations/BookingForm";
 
@@ -111,13 +112,9 @@ export default function ReservationsPage() {
   const handleAction = async (bookingId: string, newStatus: string) => {
     setActionLoading(true);
     try {
-      const supabase = createClient();
-      const { error } = await supabase
-        .from("bookings")
-        .update({ status: newStatus })
-        .eq("id", bookingId);
+      const { success, error } = await updateBookingStatus(bookingId, newStatus);
+      if (!success) throw new Error(error);
 
-      if (error) throw error;
       await fetchData();
 
       if (selectedBooking?.id === bookingId) {
@@ -127,7 +124,7 @@ export default function ReservationsPage() {
       }
     } catch (error) {
       console.error("Error updating booking:", error);
-      alert("Error al actualizar la reserva");
+      alert(error instanceof Error ? error.message : "Error al actualizar la reserva");
     } finally {
       setActionLoading(false);
     }

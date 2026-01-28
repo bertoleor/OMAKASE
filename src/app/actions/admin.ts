@@ -2,6 +2,7 @@
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { sendCancellationEmail, getResendClient } from "@/lib/email/resend";
 
 export interface StaffUser {
   id: string;
@@ -12,7 +13,7 @@ export interface StaffUser {
 }
 
 /**
- * Check if the current user is an admin
+ * Check if the current user is an admin or staff
  */
 async function checkAdminPermission() {
   const supabase = await createClient();
@@ -20,14 +21,13 @@ async function checkAdminPermission() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user || user.user_metadata?.role !== "admin") {
-    throw new Error("Unauthorized: Admin access required");
+  if (!user || (user.user_metadata?.role !== "admin" && user.user_metadata?.role !== "staff")) {
+    throw new Error("Unauthorized: Admin or Staff access required");
   }
 }
 
 /**
  * List all users (using Admin API)
- * Note: This might be limited by Supabase Free Tier pagination, but fine for small staff.
  */
 export async function getStaffUsers(): Promise<{
   success: boolean;
@@ -71,7 +71,10 @@ export async function updateUserRole(
   role: "admin" | "staff" | "user",
 ) {
   try {
-    await checkAdminPermission();
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user?.user_metadata?.role !== "admin") throw new Error("Only admins can update roles");
+
     const supabaseAdmin = createAdminClient();
 
     const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
@@ -83,6 +86,99 @@ export async function updateUserRole(
     return { success: true };
   } catch (error) {
     console.error("Error updating role:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}
+
+/**
+ * Centralized booking status update with email triggers
+ */
+export async function updateBookingStatus(
+  bookingId: string,
+  status: string,
+  notes?: string,
+) {
+  try {
+    await checkAdminPermission();
+    const supabase = await createClient();
+
+    // 1. Get current booking info for email details
+    const { data: booking, error: fetchError } = await supabase
+      .from("bookings")
+      .select("*")
+      .eq("id", bookingId)
+      .single();
+
+    if (fetchError || !booking) throw new Error("Booking not found");
+
+    // 2. Update status
+    const { error: updateError } = await supabase
+      .from("bookings")
+      .update({ status, notes: notes || booking.notes })
+      .eq("id", bookingId);
+
+    if (updateError) throw updateError;
+
+    // 3. Trigger cancellation email if status is 'cancelled'
+    if (status === "cancelled") {
+      sendCancellationEmail({
+        to: booking.customer_email,
+        customerName: booking.customer_name,
+        bookingDate: booking.booking_date,
+        bookingTime: booking.booking_time,
+        pax: booking.pax,
+      }).catch((e) => console.error("Error sending cancellation email:", e));
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating booking status:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}
+
+/**
+ * Send a custom quick contact email to a customer
+ */
+export async function sendQuickContactEmail(
+  to: string,
+  subject: string,
+  message: string,
+  customerName: string,
+) {
+  try {
+    await checkAdminPermission();
+    
+    const resend = getResendClient();
+    const FROM_EMAIL = process.env.EMAIL_FROM || "OMAKASE Reservations <reservas@omakase.restaurant>";
+
+    const { error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to,
+      subject,
+      html: `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #000; color: #fff; border-radius: 12px; border: 1px solid #333;">
+          <h1 style="text-align: center; color: #fff; letter-spacing: 2px;">OMAKASE</h1>
+          <p>Hola ${customerName},</p>
+          <div style="background: #111; padding: 20px; border-radius: 8px; border: 1px solid #222; margin: 20px 0;">
+            <p style="margin: 0; line-height: 1.6;">${message}</p>
+          </div>
+          <p style="color: #666; font-size: 12px; text-align: center;">Este es un mensaje directo del equipo de OMAKASE.</p>
+        </div>
+      `,
+    });
+
+    if (error) throw error;
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error sending quick contact email:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",

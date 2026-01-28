@@ -1,6 +1,7 @@
 "use client";
 
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
+import { sendQuickContactEmail } from "@/app/actions/admin";
 import {
   X,
   Clock,
@@ -101,7 +102,40 @@ export default function ReservationDetail({
   onAction,
   isLoading,
 }: ReservationDetailProps) {
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [contactSubject, setContactSubject] = useState("");
+  const [contactMessage, setContactMessage] = useState("");
+  const [isSendingContact, setIsSendingContact] = useState(false);
+
   if (!booking) return null;
+
+  const handleSendContact = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!contactMessage) return;
+
+    setIsSendingContact(true);
+    try {
+      const subject = contactSubject || `OMAKASE - Referente a tu reserva del ${booking.booking_date}`;
+      const { success, error } = await sendQuickContactEmail(
+        booking.customer_email,
+        subject,
+        contactMessage,
+        booking.customer_name
+      );
+
+      if (!success) throw new Error(error);
+
+      alert("Email enviado con éxito");
+      setShowContactModal(false);
+      setContactMessage("");
+      setContactSubject("");
+    } catch (error) {
+      console.error("Error sending contact email:", error);
+      alert(error instanceof Error ? error.message : "Error al enviar el email");
+    } finally {
+      setIsSendingContact(false);
+    }
+  };
 
   const statusConfig = STATUS_CONFIG[booking.status] || STATUS_CONFIG.pending;
   const StatusIcon = statusConfig.icon;
@@ -185,9 +219,18 @@ export default function ReservationDetail({
 
           {/* Customer Info */}
           <div className="space-y-3">
-            <h3 className="text-sm font-medium text-white/60 uppercase tracking-wider">
-              Cliente
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-medium text-white/60 uppercase tracking-wider">
+                Cliente
+              </h3>
+              <button
+                onClick={() => setShowContactModal(true)}
+                className="text-xs font-medium text-blue-400 hover:text-blue-300 transition-colors flex items-center space-x-1"
+              >
+                <Mail className="w-3 h-3" />
+                <span>Contactar</span>
+              </button>
+            </div>
             <div className="bg-white/5 rounded-xl p-4 space-y-3">
               <div className="flex items-center space-x-3">
                 <User className="w-5 h-5 text-white/40" />
@@ -384,6 +427,84 @@ export default function ReservationDetail({
           )}
         </div>
       </div>
+
+      {/* Quick Contact Modal */}
+      {showContactModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-[60] p-4">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setShowContactModal(false)} />
+          <form 
+            onSubmit={handleSendContact}
+            className="relative w-full max-w-lg bg-[#0a0a0a] border border-white/10 rounded-2xl p-6 shadow-2xl space-y-4"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-xl font-bold text-white">Contactar Cliente</h3>
+              <button 
+                type="button"
+                onClick={() => setShowContactModal(false)}
+                className="text-white/40 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-medium text-white/40 uppercase block mb-1">
+                  Asunto (Opcional)
+                </label>
+                <input
+                  type="text"
+                  value={contactSubject}
+                  onChange={(e) => setContactSubject(e.target.value)}
+                  placeholder="OMAKASE - Información sobre su reserva"
+                  className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white focus:border-blue-500 focus:outline-none placeholder:text-white/20"
+                />
+              </div>
+              
+              <div>
+                <label className="text-xs font-medium text-white/40 uppercase block mb-1">
+                  Mensaje
+                </label>
+                <textarea
+                  required
+                  value={contactMessage}
+                  onChange={(e) => setContactMessage(e.target.value)}
+                  placeholder="Escribe el mensaje para el cliente..."
+                  rows={6}
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:border-blue-500 focus:outline-none placeholder:text-white/20 resize-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowContactModal(false)}
+                className="flex-1 px-4 py-3 text-sm font-medium text-white/60 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl transition-all"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={isSendingContact || !contactMessage}
+                className="flex-3 px-6 py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-900/50 disabled:text-white/40 text-white font-semibold rounded-xl transition-all flex items-center justify-center space-x-2"
+              >
+                {isSendingContact ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Enviando...</span>
+                  </>
+                ) : (
+                  <>
+                    <Mail className="w-4 h-4" />
+                    <span>Enviar Email</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </Fragment>
   );
 }

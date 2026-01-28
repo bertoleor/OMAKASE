@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Clock, MapPin, Users, CheckCircle2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { updateBookingStatus } from "@/app/actions/admin";
 
 interface Booking {
   id: string;
@@ -84,13 +85,13 @@ export default function ReservationsTable({
     }
 
     try {
-      const supabase = createClient();
-      const { error } = await supabase
-        .from("bookings")
-        .update({ status: "completed", notes: "Admin force-complete" })
-        .eq("id", bookingId);
+      const { success, error: actionError } = await updateBookingStatus(
+        bookingId,
+        "completed",
+        "Admin force-complete"
+      );
 
-      if (error) throw error;
+      if (!success) throw new Error(actionError);
 
       // Refresh data
       setBookings((prev) =>
@@ -100,7 +101,7 @@ export default function ReservationsTable({
       );
     } catch (error) {
       console.error("Error completing booking:", error);
-      alert("Error al completar la reserva");
+      alert(error instanceof Error ? error.message : "Error al completar la reserva");
     }
   };
 

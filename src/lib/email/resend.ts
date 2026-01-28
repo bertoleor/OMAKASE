@@ -3,7 +3,7 @@ import { Resend } from "resend";
 // Lazy initialize Resend client to avoid build-time errors
 let resend: Resend | null = null;
 
-function getResendClient(): Resend {
+export function getResendClient(): Resend {
   if (!resend) {
     const apiKey = process.env.RESEND_API_KEY;
     if (!apiKey) {

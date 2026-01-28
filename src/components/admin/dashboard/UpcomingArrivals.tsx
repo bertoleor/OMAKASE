@@ -12,6 +12,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { updateBookingStatus } from "@/app/actions/admin";
 
 interface Booking {
   id: string;
@@ -147,13 +148,16 @@ export default function UpcomingArrivals({
 
   const handleQuickAction = async (bookingId: string, newStatus: string) => {
     try {
-      const supabase = createClient();
-      await supabase
-        .from("bookings")
-        .update({ status: newStatus })
-        .eq("id", bookingId);
+      const { success, error } = await updateBookingStatus(bookingId, newStatus);
+      if (!success) throw new Error(error);
+      
+      // Update local state for immediate feedback
+      setBookings((prev) =>
+        prev.map((b) => (b.id === bookingId ? { ...b, status: newStatus as Booking["status"] } : b))
+      );
     } catch (error) {
       console.error("Error updating booking:", error);
+      alert(error instanceof Error ? error.message : "Error al actualizar reserva");
     }
   };
 

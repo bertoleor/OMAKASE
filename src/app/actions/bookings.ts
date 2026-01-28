@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { sendConfirmationEmail } from "@/lib/email/resend";
 import type { TableZoneDb } from "@/types/database.types";
 
 interface CreateBookingData {
@@ -52,6 +53,16 @@ export async function createBooking(data: CreateBookingData) {
   if (error) {
     return { success: false, error: error.message };
   }
+
+  // Send confirmation email (async, don't block response)
+  sendConfirmationEmail({
+    to: data.customerEmail,
+    customerName: data.customerName,
+    bookingDate: data.date,
+    bookingTime: data.timeSlot,
+    pax: data.pax,
+    zoneName: data.zone,
+  }).catch((e) => console.error("Error sending confirmation email:", e));
 
   return { success: true, booking: result };
 }
