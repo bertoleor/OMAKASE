@@ -220,66 +220,66 @@ export default function ReservationDetailPage() {
       
       {/* Header */}
       <header className="border-b border-white/5 bg-black/20 backdrop-blur-xl sticky top-0 z-50">
-        <div className="max-w-2xl mx-auto px-6 py-4 sm:py-6 md:py-8 flex items-center justify-between">
+        <div className="max-w-xl mx-auto px-4 py-3 sm:py-4 flex items-center justify-between">
           <button
             onClick={() => router.push("/mis-reservas")}
-            className="group flex items-center space-x-2 sm:space-x-3 text-[9px] sm:text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.3em] text-white/40 hover:text-white transition-all"
+            className="group flex items-center space-x-2 text-[9px] uppercase tracking-[0.2em] text-white/40 hover:text-white transition-all"
           >
-            <ArrowLeft className="w-3 sm:w-3.5 h-3 sm:h-3.5 group-hover:-translate-x-1 transition-transform" />
-            <span className="hidden xs:inline">Volver</span>
+            <ArrowLeft className="w-3 h-3 group-hover:-translate-x-1 transition-transform" />
+            <span>Volver</span>
           </button>
           <div className="text-center flex-1">
-            <h1 className="text-base sm:text-lg md:text-xl font-extralight tracking-[0.3em] sm:tracking-[0.5em] uppercase text-white/90">DETALLE</h1>
+            <h1 className="text-sm sm:text-base font-extralight tracking-[0.4em] uppercase text-white/90">DETALLE</h1>
           </div>
-          <div className="w-[60px] xs:w-[80px]" /> {/* Spacer for centering */}
+          <div className="w-[60px]" /> 
         </div>
       </header>
 
-      <main className="max-w-xl mx-auto px-6 py-12 space-y-8 relative z-10">
+      <main className="max-w-md mx-auto px-4 py-8 sm:py-12 space-y-6 relative z-10">
         {/* Main Glasscard Card */}
-        <div className="bg-white/[0.02] backdrop-blur-[40px] border border-white/10 rounded-[2.5rem] sm:rounded-[3rem] p-6 sm:p-10 md:p-14 shadow-2xl relative overflow-hidden">
+        <div className="bg-white/[0.02] backdrop-blur-[40px] border border-white/10 rounded-[2rem] p-6 sm:p-10 shadow-2xl relative overflow-hidden">
           {/* Subtle Inner Glow */}
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
           {/* Status Header */}
-          <div className="flex flex-col items-center mb-10 sm:mb-12 md:mb-16">
-            <div className={`p-4 sm:p-5 rounded-full ${status.bg} border inline-flex items-center justify-center mb-4 sm:mb-6 transition-all border-white/10`}>
-              <StatusIcon className={`w-5 h-5 sm:w-6 sm:h-6 ${status.color}`} />
+          <div className="flex flex-col items-center mb-8">
+            <div className={`p-4 rounded-full ${status.bg} border inline-flex items-center justify-center mb-4 transition-all border-white/10`}>
+              <StatusIcon className={`w-4 h-4 sm:w-5 sm:h-5 ${status.color}`} />
             </div>
-            <p className={`text-[9px] sm:text-[11px] uppercase tracking-[0.3em] sm:tracking-[0.4em] font-medium ${status.color} mb-2`}>
+            <p className={`text-[9px] sm:text-[10px] uppercase tracking-[0.3em] font-medium ${status.color} mb-2`}>
               {status.label}
             </p>
-            <div className="h-px w-6 sm:w-8 bg-white/10 mb-2" />
-            <p className="text-[8px] sm:text-[9px] text-white/30 uppercase tracking-[0.2em] leading-none">
+            <div className="h-px w-6 bg-white/10 mb-2" />
+            <p className="text-[8px] text-white/20 uppercase tracking-[0.1em] leading-none">
               Reserva #{reservation.id.slice(0, 8).toUpperCase()}
             </p>
           </div>
 
           {/* Date & Time - Visual Focus */}
-          <div className="text-center mb-10 sm:mb-12 md:mb-16 space-y-4 sm:space-y-6">
-            <p className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extralight text-white tracking-[0.1em] uppercase">
+          <div className="text-center mb-10 space-y-3">
+            <p className="text-lg sm:text-xl font-extralight text-white tracking-[0.15em] uppercase opacity-80">
               {formattedDate}
             </p>
-            <p className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-thin text-white tracking-widest leading-none">
+            <p className="text-5xl sm:text-6xl md:text-7xl font-thin text-white tracking-widest leading-tight">
               {reservation.booking_time}
             </p>
           </div>
 
           {/* Details Grid - Minimalist */}
-          <div className="grid grid-cols-2 gap-px bg-white/5 rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden border border-white/5">
-            <div className="bg-white/[0.02] p-6 sm:p-8 flex flex-col items-center text-center space-y-2 sm:space-y-3">
-              <Users className="w-4 h-4 sm:w-5 sm:h-5 text-white/30" />
-              <div className="space-y-1">
-                <p className="text-[9px] sm:text-[10px] uppercase tracking-[0.2em] text-white/40">Personas</p>
-                <p className="text-lg sm:text-xl md:text-2xl font-light text-white">{reservation.pax}</p>
+          <div className="grid grid-cols-2 gap-px bg-white/5 rounded-2xl overflow-hidden border border-white/5">
+            <div className="bg-white/[0.01] p-5 sm:p-6 flex flex-col items-center text-center space-y-2">
+              <Users className="w-4 h-4 text-white/20" />
+              <div className="space-y-0.5">
+                <p className="text-[9px] uppercase tracking-[0.2em] text-white/30">Personas</p>
+                <p className="text-lg font-light text-white">{reservation.pax}</p>
               </div>
             </div>
 
-            <div className="bg-white/[0.02] p-6 sm:p-8 flex flex-col items-center text-center space-y-2 sm:space-y-3">
-              <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-white/30" />
-              <div className="space-y-1">
-                <p className="text-[9px] sm:text-[10px] uppercase tracking-[0.2em] text-white/40">Zona</p>
-                <p className="text-lg sm:text-xl md:text-2xl font-light text-white truncate max-w-full px-2">{zoneName}</p>
+            <div className="bg-white/[0.01] p-5 sm:p-6 flex flex-col items-center text-center space-y-2">
+              <MapPin className="w-4 h-4 text-white/20" />
+              <div className="space-y-0.5">
+                <p className="text-[9px] uppercase tracking-[0.2em] text-white/30">Zona</p>
+                <p className="text-lg font-light text-white truncate max-w-full px-2">{zoneName}</p>
               </div>
             </div>
           </div>
@@ -310,21 +310,21 @@ export default function ReservationDetailPage() {
 
         {/* Action Buttons - Distinct and Sleek */}
         {!isPast && (
-          <div className="space-y-4 sm:space-y-6 px-0 sm:px-4">
+          <div className="space-y-3 px-0 sm:px-4">
             <button
               onClick={addToCalendar}
-              className="w-full flex items-center justify-center space-x-3 sm:space-x-4 py-4 sm:py-5 md:py-6 bg-white text-black rounded-[1.5rem] sm:rounded-3xl transition-all hover:bg-neutral-200 active:scale-[0.98] font-semibold text-[10px] sm:text-xs uppercase tracking-[0.2em] sm:tracking-[0.3em] shadow-2xl shadow-white/5"
+              className="w-full flex items-center justify-center space-x-3 py-4 bg-white text-black rounded-2xl transition-all hover:bg-neutral-200 active:scale-[0.98] font-semibold text-[10px] uppercase tracking-[0.2em] shadow-xl"
             >
-              <Calendar className="w-4 h-4 sm:w-5 sm:h-5" />
+              <Calendar className="w-4 h-4" />
               <span>Agregar al calendario</span>
             </button>
 
             {canCancel && (
               <button
                 onClick={() => setShowCancelConfirm(true)}
-                className="w-full flex items-center justify-center space-x-3 sm:space-x-4 py-4 sm:py-5 md:py-6 bg-transparent hover:bg-white/5 border border-white/10 text-white/40 hover:text-white transition-all rounded-[1.5rem] sm:rounded-3xl font-medium text-[10px] sm:text-xs uppercase tracking-[0.2em] sm:tracking-[0.3em]"
+                className="w-full flex items-center justify-center space-x-3 py-4 bg-transparent hover:bg-white/5 border border-white/10 text-white/30 hover:text-white transition-all rounded-2xl font-medium text-[10px] uppercase tracking-[0.2em]"
               >
-                <XCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+                <XCircle className="w-4 h-4" />
                 <span>Cancelar mi reserva</span>
               </button>
             )}
