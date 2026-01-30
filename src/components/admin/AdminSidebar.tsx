@@ -10,7 +10,6 @@ import {
   BarChart3,
   Layout,
   LogOut,
-  Shield,
   Menu,
   PartyPopper,
 } from "lucide-react";
@@ -40,7 +39,6 @@ const menuItems = [
   { icon: Layout, label: "Plano", href: "/admin/floorplan", role: "all" },
   { icon: PartyPopper, label: "Eventos", href: "/admin/events", role: "admin" },
   { icon: BarChart3, label: "Reportes", href: "/admin/reports", role: "admin" },
-  { icon: Shield, label: "Equipo", href: "/admin/staff", role: "admin" },
   {
     icon: Settings,
     label: "Configuración",
