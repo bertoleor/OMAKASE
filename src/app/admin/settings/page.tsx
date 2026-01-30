@@ -163,29 +163,39 @@ export default function SettingsPage() {
       </div>
 
       {/* Navigation Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {menuItems.map((item) => (
           <Link
             key={item.href}
             href={item.href}
-            className="group flex items-center p-4 bg-black/30 backdrop-blur-md border border-white/10 rounded-xl hover:bg-white/5 transition-all"
+            className="group relative flex items-center p-6 bg-neutral-900/50 backdrop-blur-xl border border-white/5 rounded-2xl hover:border-white/20 hover:bg-white/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl overflow-hidden"
           >
-            <div className={`p-3 rounded-lg mr-4 ${item.bgColor}`}>
-              <item.icon className={`w-6 h-6 ${item.color}`} />
+            <div
+              className={`absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-500 bg-gradient-to-r from-transparent via-white to-transparent -skew-x-12 translate-x-[-100%] group-hover:animate-shine`}
+            />
+            
+            <div className={`p-4 rounded-xl mr-5 ${item.bgColor} ring-1 ring-white/10 group-hover:scale-110 transition-transform duration-300`}>
+              <item.icon className={`w-8 h-8 ${item.color}`} />
             </div>
-            <div className="flex-1">
-              <h3 className="text-white font-medium group-hover:text-blue-400 transition-colors">
+            
+            <div className="flex-1 relative z-10">
+              <h3 className="text-lg font-semibold text-white group-hover:text-blue-400 transition-colors mb-1">
                 {item.label}
               </h3>
-              <p className="text-sm text-white/40">{item.description}</p>
+              <p className="text-sm text-white/40 group-hover:text-white/60 transition-colors">
+                {item.description}
+              </p>
             </div>
-            <ChevronRight className="w-5 h-5 text-white/20 group-hover:text-white/60 transition-colors" />
+            
+            <div className="p-2 rounded-full bg-white/5 group-hover:bg-white/10 text-white/20 group-hover:text-white transition-all duration-300 -mr-2 group-hover:mr-0">
+              <ChevronRight className="w-5 h-5" />
+            </div>
           </Link>
         ))}
       </div>
 
       {/* Business Info Section */}
-      <div className="bg-black/30 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden">
+      <div className="bg-neutral-900/50 backdrop-blur-xl border border-white/5 rounded-2xl overflow-hidden shadow-xl">
         <div className="p-4 border-b border-white/10 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="p-2 rounded-lg bg-pink-500/10">

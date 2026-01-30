@@ -132,22 +132,28 @@ export default function AdminSidebar() {
                     href={item.href}
                     title={item.label}
                     onClick={() => setSidebarOpen(false)}
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    title={item.label}
+                    onClick={() => setSidebarOpen(false)}
                     className={cn(
-                      "flex items-center px-4 py-3 rounded-xl transition-all duration-200 group whitespace-nowrap space-x-3",
+                      "group flex items-center px-4 py-3 mx-2 rounded-xl transition-all duration-300 relative overflow-hidden",
                       isActive
-                        ? "bg-white text-black font-medium shadow-[0_0_15px_rgba(255,255,255,0.1)]"
-                        : "text-white/60 hover:text-white hover:bg-white/5",
+                        ? "bg-white/10 text-white shadow-[0_0_20px_rgba(255,255,255,0.05)]"
+                        : "text-white/50 hover:text-white hover:bg-white/5",
                     )}
                   >
+                    {isActive && (
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2 h-8 w-1 bg-blue-500 rounded-r-full shadow-[0_0_10px_#3b82f6]" />
+                    )}
                     <item.icon
                       className={cn(
-                        "w-5 h-5 flex-shrink-0",
-                        isActive
-                          ? "text-black"
-                          : "text-white/60 group-hover:text-white",
+                        "w-5 h-5 flex-shrink-0 transition-transform duration-300 group-hover:scale-110",
+                        isActive ? "text-blue-400" : "text-white/50 group-hover:text-white",
                       )}
                     />
-                    <span>{item.label}</span>
+                    <span className="ml-3 font-medium tracking-wide">{item.label}</span>
                   </Link>
                 );
               })}

@@ -22,6 +22,7 @@ interface Zone {
   id: string;
   name: string;
   slug: string;
+  description?: string;
   capacity_pax: number;
   is_active: boolean;
   display_order: number;
@@ -40,6 +41,7 @@ export default function ZonesPage() {
   const [formData, setFormData] = useState({
     name: "",
     slug: "",
+    description: "",
     capacity_pax: 10,
     is_active: true,
   });
@@ -79,6 +81,7 @@ export default function ZonesPage() {
     setFormData({
       name: zone.name,
       slug: zone.slug,
+      description: zone.description || "",
       capacity_pax: zone.capacity_pax,
       is_active: zone.is_active,
     });
@@ -91,6 +94,7 @@ export default function ZonesPage() {
     setFormData({
       name: "",
       slug: "",
+      description: "",
       capacity_pax: 10,
       is_active: true,
     });
@@ -99,7 +103,7 @@ export default function ZonesPage() {
   const handleCancel = () => {
     setEditingZone(null);
     setIsCreating(false);
-    setFormData({ name: "", slug: "", capacity_pax: 10, is_active: true });
+    setFormData({ name: "", slug: "", description: "", capacity_pax: 10, is_active: true });
   };
 
   const handleSave = async () => {
@@ -114,6 +118,7 @@ export default function ZonesPage() {
         const { error } = await supabase.from("zones").insert({
           name: formData.name,
           slug: formData.slug.toLowerCase().replace(/\s+/g, "-"),
+          description: formData.description,
           capacity_pax: formData.capacity_pax,
           is_active: formData.is_active,
           display_order: zones.length + 1,
@@ -127,6 +132,7 @@ export default function ZonesPage() {
           .update({
             name: formData.name,
             slug: formData.slug.toLowerCase().replace(/\s+/g, "-"),
+            description: formData.description,
             capacity_pax: formData.capacity_pax,
             is_active: formData.is_active,
           })
@@ -247,6 +253,19 @@ export default function ZonesPage() {
                 }
                 placeholder="Ej: salon"
                 className="w-full px-4 py-3 bg-black/30 border border-white/10 rounded-xl text-white placeholder-white/30 focus:border-blue-500 focus:outline-none"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-white/60 mb-2">
+                Descripción (Opcional)
+              </label>
+              <textarea
+                value={formData.description}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
+                placeholder="Descripción breve de la zona para mostrar en reservas..."
+                className="w-full px-4 py-3 bg-black/30 border border-white/10 rounded-xl text-white placeholder-white/30 focus:border-blue-500 focus:outline-none resize-none h-24"
               />
             </div>
             <div>
