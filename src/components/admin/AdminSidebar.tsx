@@ -15,7 +15,6 @@ import {
   Menu,
   ChevronLeft,
   ChevronRight,
-  ChefHat,
   Table2,
   Clock,
   PartyPopper,
@@ -50,7 +49,7 @@ const menuItems = [
   { icon: PartyPopper, label: "Eventos", href: "/admin/events", role: "admin" },
   { icon: BarChart3, label: "Reportes", href: "/admin/reports", role: "admin" },
   { icon: Shield, label: "Equipo", href: "/admin/staff", role: "admin" },
-  { icon: ChefHat, label: "Cocina", href: "/admin/kitchen", role: "all" }, // Staff might need kitchen view? Assuming yes.
+  { icon: Shield, label: "Equipo", href: "/admin/staff", role: "admin" },
   {
     icon: Settings,
     label: "Configuración",

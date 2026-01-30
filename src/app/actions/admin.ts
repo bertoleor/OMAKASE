@@ -2,7 +2,11 @@
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { sendCancellationEmail, getResendClient, sendMagicLinkEmail } from "@/lib/email/resend";
+import {
+  sendCancellationEmail,
+  getResendClient,
+  sendMagicLinkEmail,
+} from "@/lib/email/resend";
 
 export interface StaffUser {
   id: string;
@@ -21,7 +25,7 @@ export interface StaffUser {
 async function checkAdminPermission() {
   // MOCK: Allow access without checks
   return;
-  
+
   /* 
   // Original security check - DISABLED
   const supabase = await createClient();
@@ -81,8 +85,11 @@ export async function updateUserRole(
 ) {
   try {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user?.user_metadata?.role !== "admin") throw new Error("Only admins can update roles");
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (user?.user_metadata?.role !== "admin")
+      throw new Error("Only admins can update roles");
 
     const supabaseAdmin = createAdminClient();
 
@@ -163,9 +170,11 @@ export async function sendQuickContactEmail(
 ) {
   try {
     await checkAdminPermission();
-    
+
     const resend = getResendClient();
-    const FROM_EMAIL = process.env.EMAIL_FROM || "OMAKASE Reservations <reservas@omakase.restaurant>";
+    const FROM_EMAIL =
+      process.env.EMAIL_FROM ||
+      "OMAKASE Reservations <reservas@omakase.restaurant>";
 
     const { error } = await resend.emails.send({
       from: FROM_EMAIL,
@@ -201,27 +210,31 @@ export async function sendQuickContactEmail(
 export async function sendAuthMagicLink(email: string, redirectTo: string) {
   try {
     const supabase = createAdminClient();
-    
+
     // Generate the magic link
     const { data, error: genError } = await supabase.auth.admin.generateLink({
-      type: 'magiclink',
+      type: "magiclink",
       email: email,
       options: {
-        redirectTo: redirectTo
-      }
+        redirectTo: redirectTo,
+      },
     });
 
     if (genError) throw genError;
 
     // Send the link via Resend
-    const { success, error: sendError } = await sendMagicLinkEmail(email, data.properties.action_link);
-    
+    const { success, error: sendError } = await sendMagicLinkEmail(
+      email,
+      data.properties.action_link,
+    );
+
     if (!success) throw new Error(sendError);
 
     return { success: true };
   } catch (error: unknown) {
     console.error("Error in sendAuthMagicLink:", error);
-    const errorMsg = error instanceof Error ? error.message : "Error desconocido";
+    const errorMsg =
+      error instanceof Error ? error.message : "Error desconocido";
     return { success: false, error: errorMsg || "Error al enviar el enlace." };
   }
 }

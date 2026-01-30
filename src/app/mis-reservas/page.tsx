@@ -137,19 +137,27 @@ export default function MyReservationsPage() {
       {/* Background Image - Same as home */}
       <div className="fixed inset-0 bg-cover bg-center bg-[url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2670&auto=format&fit=crop')] opacity-30" />
       <div className="fixed inset-0 bg-gradient-to-b from-black/80 via-black/50 to-black pointer-events-none" />
-      
+
       {/* Header */}
       <header className="border-b border-white/5 bg-black/20 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-2xl mx-auto px-4 py-4 sm:py-6 flex items-center justify-between">
           <div>
-            <h1 className="text-lg sm:text-xl font-extralight tracking-[0.3em] mb-0.5 uppercase text-white/90">OMAKASE</h1>
+            <h1 className="text-lg sm:text-xl font-extralight tracking-[0.3em] mb-0.5 uppercase text-white/90">
+              OMAKASE
+            </h1>
             <div className="h-px w-6 bg-white/20 mb-1" />
-            <p className="text-[9px] text-white/40 uppercase tracking-[0.2em] font-medium">Mis Reservas</p>
+            <p className="text-[9px] text-white/40 uppercase tracking-[0.2em] font-medium">
+              Mis Reservas
+            </p>
           </div>
           <div className="flex items-center space-x-4">
             <div className="hidden sm:flex flex-col items-end">
-              <span className="text-[9px] text-white/20 uppercase tracking-[0.2em] leading-none mb-1">Sesión</span>
-              <span className="text-[10px] text-white/40 font-light tracking-widest">{user?.email}</span>
+              <span className="text-[9px] text-white/20 uppercase tracking-[0.2em] leading-none mb-1">
+                Sesión
+              </span>
+              <span className="text-[10px] text-white/40 font-light tracking-widest">
+                {user?.email}
+              </span>
             </div>
             <button
               onClick={handleLogout}
@@ -174,7 +182,7 @@ export default function MyReservationsPage() {
                 Próximas reservas
               </h2>
             </div>
-            
+
             <a
               href="/reservar"
               className="inline-flex items-center space-x-2 text-[10px] uppercase tracking-widest text-white/40 hover:text-white transition-all group"
@@ -186,8 +194,10 @@ export default function MyReservationsPage() {
 
           {upcoming.length === 0 ? (
             <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-12 text-center backdrop-blur-sm">
-              <p className="text-white/30 font-light text-sm tracking-wide">No tienes reservas activas en este momento</p>
-              <Link 
+              <p className="text-white/30 font-light text-sm tracking-wide">
+                No tienes reservas activas en este momento
+              </p>
+              <Link
                 href="/reservar"
                 className="inline-block mt-6 px-8 py-3 bg-white text-black rounded-full text-[10px] uppercase tracking-[0.2em] font-bold hover:scale-105 transition-transform"
               >
@@ -214,7 +224,7 @@ export default function MyReservationsPage() {
                 Historial
               </h2>
             </div>
-            
+
             <div className="space-y-4 opacity-40 hover:opacity-100 transition-opacity">
               {past.slice(0, 5).map((res) => (
                 <ReservationCard key={res.id} reservation={res} isPast />
@@ -226,7 +236,9 @@ export default function MyReservationsPage() {
 
       {/* Footer Branding */}
       <footer className="max-w-3xl mx-auto px-6 py-12 text-center">
-         <p className="text-[10px] text-white/10 uppercase tracking-[0.4em]">OMAKASE · Experience</p>
+        <p className="text-[10px] text-white/10 uppercase tracking-[0.4em]">
+          OMAKASE · Experience
+        </p>
       </footer>
     </div>
   );
@@ -263,8 +275,11 @@ function ReservationCard({
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center space-x-4 sm:space-x-6">
           {/* Status Indicator Bar */}
-          <div className={`w-0.5 h-8 sm:h-10 rounded-full ${status.bg} border-l border-white/5 opacity-40`} title={status.label} />
-          
+          <div
+            className={`w-0.5 h-8 sm:h-10 rounded-full ${status.bg} border-l border-white/5 opacity-40`}
+            title={status.label}
+          />
+
           <div className="space-y-1">
             <p className="text-sm sm:text-base font-extralight text-white tracking-wide uppercase">
               {formattedDate}
@@ -276,11 +291,15 @@ function ReservationCard({
               </div>
               <div className="flex items-center space-x-1.5">
                 <Users className="w-3 h-3 text-white/20" />
-                <span>{reservation.pax} {reservation.pax === 1 ? 'p' : 'p'}</span>
+                <span>
+                  {reservation.pax} {reservation.pax === 1 ? "p" : "p"}
+                </span>
               </div>
               <div className="flex items-center space-x-1.5">
                 <MapPin className="w-3 h-3 text-white/20" />
-                <span className="truncate max-w-[80px] sm:max-w-[120px]">{zoneName}</span>
+                <span className="truncate max-w-[80px] sm:max-w-[120px]">
+                  {zoneName}
+                </span>
               </div>
             </div>
           </div>
@@ -288,9 +307,11 @@ function ReservationCard({
 
         <div className="flex items-center space-x-4">
           <div className="hidden sm:flex flex-col items-end space-y-2">
-             <span className={`text-[10px] uppercase tracking-[0.3em] font-medium ${status.color}`}>
-                {status.label}
-             </span>
+            <span
+              className={`text-[10px] uppercase tracking-[0.3em] font-medium ${status.color}`}
+            >
+              {status.label}
+            </span>
           </div>
 
           {!isPast && (

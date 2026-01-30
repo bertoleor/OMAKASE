@@ -82,7 +82,6 @@ export default function ReservationDetailPage() {
   const [cancelling, setCancelling] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
-
   useEffect(() => {
     checkAuthAndFetch();
     checkAuthAndFetch();
@@ -217,7 +216,7 @@ export default function ReservationDetailPage() {
       {/* Background Image - Same as home */}
       <div className="fixed inset-0 bg-cover bg-center bg-[url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2670&auto=format&fit=crop')] opacity-40" />
       <div className="fixed inset-0 bg-gradient-to-b from-black/80 via-black/40 to-black pointer-events-none" />
-      
+
       {/* Header */}
       <header className="border-b border-white/5 bg-black/20 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-xl mx-auto px-4 py-3 sm:py-4 flex items-center justify-between">
@@ -229,9 +228,11 @@ export default function ReservationDetailPage() {
             <span>Volver</span>
           </button>
           <div className="text-center flex-1">
-            <h1 className="text-sm sm:text-base font-extralight tracking-[0.4em] uppercase text-white/90">DETALLE</h1>
+            <h1 className="text-sm sm:text-base font-extralight tracking-[0.4em] uppercase text-white/90">
+              DETALLE
+            </h1>
           </div>
-          <div className="w-[60px]" /> 
+          <div className="w-[60px]" />
         </div>
       </header>
 
@@ -243,10 +244,14 @@ export default function ReservationDetailPage() {
 
           {/* Status Header */}
           <div className="flex flex-col items-center mb-8">
-            <div className={`p-4 rounded-full ${status.bg} border inline-flex items-center justify-center mb-4 transition-all border-white/10`}>
+            <div
+              className={`p-4 rounded-full ${status.bg} border inline-flex items-center justify-center mb-4 transition-all border-white/10`}
+            >
               <StatusIcon className={`w-4 h-4 sm:w-5 sm:h-5 ${status.color}`} />
             </div>
-            <p className={`text-[9px] sm:text-[10px] uppercase tracking-[0.3em] font-medium ${status.color} mb-2`}>
+            <p
+              className={`text-[9px] sm:text-[10px] uppercase tracking-[0.3em] font-medium ${status.color} mb-2`}
+            >
               {status.label}
             </p>
             <div className="h-px w-6 bg-white/10 mb-2" />
@@ -270,16 +275,24 @@ export default function ReservationDetailPage() {
             <div className="bg-white/[0.01] p-5 sm:p-6 flex flex-col items-center text-center space-y-2">
               <Users className="w-4 h-4 text-white/20" />
               <div className="space-y-0.5">
-                <p className="text-[9px] uppercase tracking-[0.2em] text-white/30">Personas</p>
-                <p className="text-lg font-light text-white">{reservation.pax}</p>
+                <p className="text-[9px] uppercase tracking-[0.2em] text-white/30">
+                  Personas
+                </p>
+                <p className="text-lg font-light text-white">
+                  {reservation.pax}
+                </p>
               </div>
             </div>
 
             <div className="bg-white/[0.01] p-5 sm:p-6 flex flex-col items-center text-center space-y-2">
               <MapPin className="w-4 h-4 text-white/20" />
               <div className="space-y-0.5">
-                <p className="text-[9px] uppercase tracking-[0.2em] text-white/30">Zona</p>
-                <p className="text-lg font-light text-white truncate max-w-full px-2">{zoneName}</p>
+                <p className="text-[9px] uppercase tracking-[0.2em] text-white/30">
+                  Zona
+                </p>
+                <p className="text-lg font-light text-white truncate max-w-full px-2">
+                  {zoneName}
+                </p>
               </div>
             </div>
           </div>
@@ -288,7 +301,9 @@ export default function ReservationDetailPage() {
           <div className="mt-8 pt-8 sm:mt-12 sm:pt-12 md:mt-14 md:pt-14 border-t border-white/5 space-y-8 sm:space-y-10">
             {reservation.notes && (
               <div className="space-y-2 sm:space-y-3">
-                <p className="text-[9px] sm:text-[10px] uppercase tracking-[0.3em] text-white/30 text-center">Notas Especiales</p>
+                <p className="text-[9px] sm:text-[10px] uppercase tracking-[0.3em] text-white/30 text-center">
+                  Notas Especiales
+                </p>
                 <p className="text-xs sm:text-sm text-white/70 font-light leading-relaxed text-center italic px-4 sm:px-8">
                   &ldquo;{reservation.notes}&rdquo;
                 </p>
@@ -296,14 +311,14 @@ export default function ReservationDetailPage() {
             )}
 
             <div className="flex flex-col items-center space-y-3 sm:space-y-4 opacity-30">
-               <div className="flex items-center space-x-2 sm:space-x-3 text-[9px] sm:text-[10px] tracking-[0.2em] uppercase">
-                  <Mail className="w-3 sm:w-3.5 h-3 sm:h-3.5" />
-                  <span>{reservation.customer_email}</span>
-               </div>
-               <div className="flex items-center space-x-2 sm:space-x-3 text-[9px] sm:text-[10px] tracking-[0.2em] uppercase">
-                  <Phone className="w-3 sm:w-3.5 h-3 sm:h-3.5" />
-                  <span>{reservation.customer_phone}</span>
-               </div>
+              <div className="flex items-center space-x-2 sm:space-x-3 text-[9px] sm:text-[10px] tracking-[0.2em] uppercase">
+                <Mail className="w-3 sm:w-3.5 h-3 sm:h-3.5" />
+                <span>{reservation.customer_email}</span>
+              </div>
+              <div className="flex items-center space-x-2 sm:space-x-3 text-[9px] sm:text-[10px] tracking-[0.2em] uppercase">
+                <Phone className="w-3 sm:w-3.5 h-3 sm:h-3.5" />
+                <span>{reservation.customer_phone}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -333,9 +348,10 @@ export default function ReservationDetailPage() {
 
         {/* Help Link */}
         <div className="text-center pt-8">
-           <p className="text-[10px] text-white/20 uppercase tracking-[0.3em]">
-             ¿Necesitas ayuda? <span className="text-white/40">soporte@omakase.restaurant</span>
-           </p>
+          <p className="text-[10px] text-white/20 uppercase tracking-[0.3em]">
+            ¿Necesitas ayuda?{" "}
+            <span className="text-white/40">soporte@omakase.restaurant</span>
+          </p>
         </div>
       </main>
 
@@ -355,7 +371,8 @@ export default function ReservationDetailPage() {
                 ¿Confirmas la cancelación?
               </h3>
               <p className="text-xs text-white/40 mb-8 font-light leading-relaxed">
-                Esta acción cancelará tu reserva permanentemente y el espacio quedará disponible para otros clientes.
+                Esta acción cancelará tu reserva permanentemente y el espacio
+                quedará disponible para otros clientes.
               </p>
               <div className="flex flex-col space-y-3">
                 <button

@@ -44,7 +44,7 @@ export async function proxy(request: NextRequest) {
 
   // 1. Admin Protection
   const isAdminLogin = path === "/admin/login";
-  
+
   // MOCK: Disable middleware protection for admin
   /*
   if (isAdminRoute && !isAdminLogin) {

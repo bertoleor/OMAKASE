@@ -153,11 +153,11 @@ export default function DateStep() {
       const itemWidth = 68;
       const index = Math.round(scrollLeft / itemWidth);
       const visibleDay = days[Math.min(index, days.length - 1)];
-      
+
       if (visibleDay) {
         const newMonthDisplay = `${visibleDay.month}. ${visibleDay.year}`;
         if (newMonthDisplay !== visibleMonth) {
-            setVisibleMonth(newMonthDisplay);
+          setVisibleMonth(newMonthDisplay);
         }
       }
     }

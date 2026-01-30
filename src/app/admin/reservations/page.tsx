@@ -55,8 +55,6 @@ export default function ReservationsPage() {
     search: "",
   });
 
-
-
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
@@ -112,7 +110,10 @@ export default function ReservationsPage() {
   const handleAction = async (bookingId: string, newStatus: string) => {
     setActionLoading(true);
     try {
-      const { success, error } = await updateBookingStatus(bookingId, newStatus);
+      const { success, error } = await updateBookingStatus(
+        bookingId,
+        newStatus,
+      );
       if (!success) throw new Error(error);
 
       await fetchData();
@@ -124,7 +125,11 @@ export default function ReservationsPage() {
       }
     } catch (error) {
       console.error("Error updating booking:", error);
-      alert(error instanceof Error ? error.message : "Error al actualizar la reserva");
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Error al actualizar la reserva",
+      );
     } finally {
       setActionLoading(false);
     }

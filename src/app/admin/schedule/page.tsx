@@ -277,7 +277,6 @@ export default function SchedulePage() {
                           parseInt(e.target.value) || 0,
                         )
                       }
-                      disabled={!day.is_open}
                       min={0}
                       className="w-20 px-2 py-1 bg-black/30 border border-white/10 rounded text-white text-sm disabled:opacity-50"
                       title="Precio de reserva"

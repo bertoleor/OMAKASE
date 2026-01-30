@@ -115,12 +115,14 @@ export default function ReservationDetail({
 
     setIsSendingContact(true);
     try {
-      const subject = contactSubject || `OMAKASE - Referente a tu reserva del ${booking.booking_date}`;
+      const subject =
+        contactSubject ||
+        `OMAKASE - Referente a tu reserva del ${booking.booking_date}`;
       const { success, error } = await sendQuickContactEmail(
         booking.customer_email,
         subject,
         contactMessage,
-        booking.customer_name
+        booking.customer_name,
       );
 
       if (!success) throw new Error(error);
@@ -131,7 +133,9 @@ export default function ReservationDetail({
       setContactSubject("");
     } catch (error) {
       console.error("Error sending contact email:", error);
-      alert(error instanceof Error ? error.message : "Error al enviar el email");
+      alert(
+        error instanceof Error ? error.message : "Error al enviar el email",
+      );
     } finally {
       setIsSendingContact(false);
     }
@@ -431,14 +435,19 @@ export default function ReservationDetail({
       {/* Quick Contact Modal */}
       {showContactModal && (
         <div className="fixed inset-0 flex items-center justify-center z-[60] p-4">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setShowContactModal(false)} />
-          <form 
+          <div
+            className="absolute inset-0 bg-black/80 backdrop-blur-md"
+            onClick={() => setShowContactModal(false)}
+          />
+          <form
             onSubmit={handleSendContact}
             className="relative w-full max-w-lg bg-[#0a0a0a] border border-white/10 rounded-2xl p-6 shadow-2xl space-y-4"
           >
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xl font-bold text-white">Contactar Cliente</h3>
-              <button 
+              <h3 className="text-xl font-bold text-white">
+                Contactar Cliente
+              </h3>
+              <button
                 type="button"
                 onClick={() => setShowContactModal(false)}
                 className="text-white/40 hover:text-white"
@@ -460,7 +469,7 @@ export default function ReservationDetail({
                   className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white focus:border-blue-500 focus:outline-none placeholder:text-white/20"
                 />
               </div>
-              
+
               <div>
                 <label className="text-xs font-medium text-white/40 uppercase block mb-1">
                   Mensaje

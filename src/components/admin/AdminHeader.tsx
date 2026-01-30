@@ -28,8 +28,8 @@ export default function AdminHeader() {
 
         <div className="flex items-center space-x-3 text-sm border-l border-white/10 pl-4">
           <div className="text-right hidden md:block">
-            <div className="text-white font-medium">Lucía M.</div>
-            <div className="text-white/40 text-xs">Maître Manager</div>
+            <div className="text-white font-medium">Admin</div>
+            <div className="text-white/40 text-xs">Administrador</div>
           </div>
           <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-neutral-800 to-neutral-600 border border-white/10 flex items-center justify-center">
             <User className="w-5 h-5 text-white/80" />

@@ -20,7 +20,7 @@ export default function MyReservationsLoginPage() {
       // Use the manual Resend-based magic link flow
       const { success, error: authError } = await sendAuthMagicLink(
         email,
-        `${window.location.origin}/mis-reservas`
+        `${window.location.origin}/mis-reservas`,
       );
 
       if (!success) throw new Error(authError);
@@ -28,7 +28,9 @@ export default function MyReservationsLoginPage() {
     } catch (err: unknown) {
       console.error("Login error:", err);
       const errorMsg = err instanceof Error ? err.message : "Error desconocido";
-      setError(errorMsg || "Error al enviar el enlace. Por favor intenta de nuevo.");
+      setError(
+        errorMsg || "Error al enviar el enlace. Por favor intenta de nuevo.",
+      );
     } finally {
       setLoading(false);
     }

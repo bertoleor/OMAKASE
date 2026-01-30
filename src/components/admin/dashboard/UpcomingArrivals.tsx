@@ -148,16 +148,25 @@ export default function UpcomingArrivals({
 
   const handleQuickAction = async (bookingId: string, newStatus: string) => {
     try {
-      const { success, error } = await updateBookingStatus(bookingId, newStatus);
+      const { success, error } = await updateBookingStatus(
+        bookingId,
+        newStatus,
+      );
       if (!success) throw new Error(error);
-      
+
       // Update local state for immediate feedback
       setBookings((prev) =>
-        prev.map((b) => (b.id === bookingId ? { ...b, status: newStatus as Booking["status"] } : b))
+        prev.map((b) =>
+          b.id === bookingId
+            ? { ...b, status: newStatus as Booking["status"] }
+            : b,
+        ),
       );
     } catch (error) {
       console.error("Error updating booking:", error);
-      alert(error instanceof Error ? error.message : "Error al actualizar reserva");
+      alert(
+        error instanceof Error ? error.message : "Error al actualizar reserva",
+      );
     }
   };
 

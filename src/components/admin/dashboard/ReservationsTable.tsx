@@ -88,7 +88,7 @@ export default function ReservationsTable({
       const { success, error: actionError } = await updateBookingStatus(
         bookingId,
         "completed",
-        "Admin force-complete"
+        "Admin force-complete",
       );
 
       if (!success) throw new Error(actionError);
@@ -101,7 +101,11 @@ export default function ReservationsTable({
       );
     } catch (error) {
       console.error("Error completing booking:", error);
-      alert(error instanceof Error ? error.message : "Error al completar la reserva");
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Error al completar la reserva",
+      );
     }
   };
 
