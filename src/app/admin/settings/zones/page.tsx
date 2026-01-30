@@ -18,6 +18,14 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
+// UI Components
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+
 interface Zone {
   id: string;
   name: string;
@@ -56,8 +64,8 @@ export default function ZonesPage() {
     }
   }, [isAdmin, roleLoading, router]);
 
-  if (roleLoading) return null; // Or a loading spinner
-  if (!isAdmin) return null; // Should redirect by now
+  if (roleLoading) return null;
+  if (!isAdmin) return null;
 
   async function fetchZones() {
     try {
@@ -103,7 +111,13 @@ export default function ZonesPage() {
   const handleCancel = () => {
     setEditingZone(null);
     setIsCreating(false);
-    setFormData({ name: "", slug: "", description: "", capacity_pax: 10, is_active: true });
+    setFormData({
+      name: "",
+      slug: "",
+      description: "",
+      capacity_pax: 10,
+      is_active: true,
+    });
   };
 
   const handleSave = async () => {
@@ -114,7 +128,6 @@ export default function ZonesPage() {
       const supabase = createClient();
 
       if (isCreating) {
-        // Create new zone
         const { error } = await supabase.from("zones").insert({
           name: formData.name,
           slug: formData.slug.toLowerCase().replace(/\s+/g, "-"),
@@ -126,7 +139,6 @@ export default function ZonesPage() {
 
         if (error) throw error;
       } else if (editingZone) {
-        // Update existing zone
         const { error } = await supabase
           .from("zones")
           .update({
@@ -154,7 +166,7 @@ export default function ZonesPage() {
   const handleDelete = async (zoneId: string) => {
     if (
       !confirm(
-        "¿Estás seguro de eliminar esta zona? Las reservas existentes podrían verse afectadas.",
+        "¿Estás seguro de eliminar esta zona? Las reservas existentes podrían verse afectadas."
       )
     ) {
       return;
@@ -195,211 +207,206 @@ export default function ZonesPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-5xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <Link
             href="/admin/settings"
             className="inline-flex items-center text-sm text-white/60 hover:text-white mb-2 transition-colors"
           >
             <ArrowLeft className="w-4 h-4 mr-1" />
-            Volver
+            Volver a Configuración
           </Link>
           <h1 className="text-3xl font-bold text-white">Gestión de Zonas</h1>
           <p className="text-white/40 mt-1">
             Configura las zonas y capacidad del restaurante
           </p>
         </div>
-        <button
-          onClick={handleCreate}
-          className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-xl transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Nueva Zona</span>
-        </button>
+        <Button onClick={handleCreate} className="bg-blue-600 hover:bg-blue-500 text-white">
+          <Plus className="w-4 h-4 mr-2" />
+          Nueva Zona
+        </Button>
       </div>
 
       {/* Create/Edit Form */}
       {(isCreating || editingZone) && (
-        <div className="bg-black/30 backdrop-blur-md border border-blue-500/20 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">
-            {isCreating ? "Crear Nueva Zona" : "Editar Zona"}
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium text-white/60 mb-2">
-                Nombre
-              </label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                placeholder="Ej: Interior - Salón Principal"
-                className="w-full px-4 py-3 bg-black/30 border border-white/10 rounded-xl text-white placeholder-white/30 focus:border-blue-500 focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-white/60 mb-2">
-                Slug
-              </label>
-              <input
-                type="text"
-                value={formData.slug}
-                onChange={(e) =>
-                  setFormData({ ...formData, slug: e.target.value })
-                }
-                placeholder="Ej: salon"
-                className="w-full px-4 py-3 bg-black/30 border border-white/10 rounded-xl text-white placeholder-white/30 focus:border-blue-500 focus:outline-none"
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-white/60 mb-2">
-                Descripción (Opcional)
-              </label>
-              <textarea
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                placeholder="Descripción breve de la zona para mostrar en reservas..."
-                className="w-full px-4 py-3 bg-black/30 border border-white/10 rounded-xl text-white placeholder-white/30 focus:border-blue-500 focus:outline-none resize-none h-24"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="capacity_pax"
-                className="block text-sm font-medium text-white/60 mb-2"
-              >
-                Capacidad (PAX)
-              </label>
-              <input
-                id="capacity_pax"
-                type="number"
-                min={1}
-                value={formData.capacity_pax}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    capacity_pax: Number.parseInt(e.target.value) || 1,
-                  })
-                }
-                title="Capacidad en personas"
-                className="w-full px-4 py-3 bg-black/30 border border-white/10 rounded-xl text-white focus:border-blue-500 focus:outline-none"
-              />
-            </div>
-            <div className="flex items-center">
-              <label className="flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.is_active}
+        <Card className="border-blue-500/20 bg-blue-500/5">
+          <CardHeader>
+            <CardTitle>
+              {isCreating ? "Crear Nueva Zona" : "Editar Zona"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label>Nombre</Label>
+                <Input
+                  value={formData.name}
                   onChange={(e) =>
-                    setFormData({ ...formData, is_active: e.target.checked })
+                    setFormData({ ...formData, name: e.target.value })
                   }
-                  className="sr-only"
+                  placeholder="Ej: Interior - Salón Principal"
                 />
-                <div
-                  className={`w-12 h-6 rounded-full transition-colors ${formData.is_active ? "bg-green-500" : "bg-gray-600"}`}
-                >
-                  <div
-                    className={`w-5 h-5 rounded-full bg-white shadow transform transition-transform ${formData.is_active ? "translate-x-6" : "translate-x-0.5"} mt-0.5`}
+              </div>
+              <div className="space-y-2">
+                <Label>Slug</Label>
+                <Input
+                  value={formData.slug}
+                  onChange={(e) =>
+                    setFormData({ ...formData, slug: e.target.value })
+                  }
+                  placeholder="Ej: salon"
+                />
+              </div>
+              <div className="md:col-span-2 space-y-2">
+                <Label>Descripción (Opcional)</Label>
+                <Textarea
+                  value={formData.description}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
+                  placeholder="Descripción breve de la zona para mostrar en reservas..."
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="capacity_pax">Capacidad (PAX)</Label>
+                <Input
+                  id="capacity_pax"
+                  type="number"
+                  min={1}
+                  value={formData.capacity_pax}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      capacity_pax: Number.parseInt(e.target.value) || 1,
+                    })
+                  }
+                />
+              </div>
+              <div className="flex items-center space-x-3 pt-8">
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.is_active}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        is_active: e.target.checked,
+                      })
+                    }
+                    className="sr-only"
                   />
-                </div>
-                <span className="ml-3 text-white/60">
-                  {formData.is_active ? "Activa" : "Inactiva"}
-                </span>
-              </label>
+                  <div
+                    className={`w-12 h-6 rounded-full transition-colors ${
+                      formData.is_active ? "bg-green-500" : "bg-white/20"
+                    }`}
+                  >
+                    <div
+                      className={`w-5 h-5 rounded-full bg-white shadow transform transition-transform ${
+                        formData.is_active ? "translate-x-6" : "translate-x-0.5"
+                      } mt-0.5`}
+                    />
+                  </div>
+                  <span className="ml-3 text-white/60 font-medium">
+                    {formData.is_active ? "Activa" : "Inactiva"}
+                  </span>
+                </label>
+              </div>
             </div>
-          </div>
-          <div className="flex space-x-3">
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white font-medium rounded-lg transition-colors"
-            >
-              {saving ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Save className="w-4 h-4" />
-              )}
-              <span>Guardar</span>
-            </button>
-            <button
-              onClick={handleCancel}
-              className="flex items-center space-x-2 px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white font-medium rounded-lg transition-colors"
-            >
-              <X className="w-4 h-4" />
-              <span>Cancelar</span>
-            </button>
-          </div>
-        </div>
+
+            <div className="flex space-x-3 pt-4">
+              <Button
+                onClick={handleSave}
+                disabled={saving}
+                className="bg-green-600 hover:bg-green-500 text-white"
+              >
+                {saving ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4 mr-2" />
+                )}
+                Guardar
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={handleCancel}
+                className="hover:bg-white/10"
+              >
+                Cancelar
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Zones List */}
-      <div className="bg-black/30 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden">
+      <Card>
         <div className="divide-y divide-white/10">
           {zones.map((zone) => (
             <div
               key={zone.id}
-              className={`p-4 flex items-center justify-between hover:bg-white/5 transition-colors ${
+              className={`p-4 flex flex-col md:flex-row md:items-center justify-between hover:bg-white/5 transition-colors gap-4 ${
                 !zone.is_active ? "opacity-50" : ""
               }`}
             >
               <div className="flex items-center space-x-4">
                 <GripVertical className="w-5 h-5 text-white/20 cursor-grab" />
-                <div className="p-3 rounded-lg bg-white/5">
+                <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
                   <MapPin className="w-5 h-5 text-blue-400" />
                 </div>
                 <div>
-                  <h3 className="font-medium text-white">{zone.name}</h3>
-                  <div className="flex items-center space-x-3 mt-1">
-                    <code className="text-xs bg-black/30 px-2 py-0.5 rounded text-white/40">
+                  <h3 className="font-semibold text-white text-lg">
+                    {zone.name}
+                  </h3>
+                  <div className="flex flex-wrap items-center gap-2 mt-1">
+                    <Badge variant="secondary" className="font-mono text-xs">
                       {zone.slug}
-                    </code>
-                    <div className="flex items-center space-x-1 text-white/60">
+                    </Badge>
+                    <div className="flex items-center space-x-1 text-white/60 text-sm">
                       <Users className="w-3 h-3" />
-                      <span className="text-sm">{zone.capacity_pax} pax</span>
+                      <span>{zone.capacity_pax} pax</span>
                     </div>
                     {!zone.is_active && (
-                      <span className="text-xs px-2 py-0.5 bg-red-500/20 text-red-400 rounded">
-                        Inactiva
-                      </span>
+                      <Badge variant="destructive">Inactiva</Badge>
                     )}
                   </div>
                 </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <button
+              <div className="flex items-center space-x-2 pl-9 md:pl-0">
+                <Button
+                  size="icon"
+                  variant="ghost"
                   onClick={() => toggleActive(zone)}
-                  className={`p-2 rounded-lg transition-colors ${
+                  className={
                     zone.is_active
-                      ? "text-green-400 hover:bg-green-500/10"
-                      : "text-gray-400 hover:bg-gray-500/10"
-                  }`}
+                      ? "text-green-400 hover:text-green-300 hover:bg-green-500/10"
+                      : "text-white/40 hover:text-white"
+                  }
                   title={zone.is_active ? "Desactivar" : "Activar"}
                 >
                   <div
-                    className={`w-4 h-4 rounded-full border-2 ${zone.is_active ? "border-green-400 bg-green-400" : "border-gray-400"}`}
+                    className={`w-3 h-3 rounded-full ${
+                      zone.is_active ? "bg-green-500" : "bg-white/20"
+                    }`}
                   />
-                </button>
-                <button
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
                   onClick={() => handleEdit(zone)}
-                  className="p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors"
-                  title="Editar zona"
-                  aria-label="Editar zona"
+                  className="text-white/60 hover:text-white"
                 >
                   <Edit2 className="w-4 h-4" />
-                </button>
-                <button
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
                   onClick={() => handleDelete(zone.id)}
-                  className="p-2 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors"
-                  title="Eliminar zona"
-                  aria-label="Eliminar zona"
+                  className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
                 >
                   <Trash2 className="w-4 h-4" />
-                </button>
+                </Button>
               </div>
             </div>
           ))}
@@ -407,17 +414,22 @@ export default function ZonesPage() {
 
         {zones.length === 0 && (
           <div className="p-12 text-center">
-            <MapPin className="w-12 h-12 text-white/20 mx-auto mb-3" />
-            <p className="text-white/60">No hay zonas configuradas</p>
-            <button
-              onClick={handleCreate}
-              className="mt-4 text-blue-400 hover:underline"
-            >
+            <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
+              <MapPin className="w-8 h-8 text-white/20" />
+            </div>
+            <h3 className="text-xl font-medium text-white mb-2">
+              No hay zonas configuradas
+            </h3>
+            <p className="text-white/40 mb-6">
+              Crea tu primera zona para comenzar a asignar mesas.
+            </p>
+            <Button onClick={handleCreate} className="bg-white text-black hover:bg-white/90">
+              <Plus className="w-4 h-4 mr-2" />
               Crear primera zona
-            </button>
+            </Button>
           </div>
         )}
-      </div>
+      </Card>
     </div>
   );
 }

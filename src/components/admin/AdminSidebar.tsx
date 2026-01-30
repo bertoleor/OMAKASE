@@ -112,9 +112,9 @@ export default function AdminSidebar() {
         <nav className="flex-1 px-4 py-8 space-y-2 overflow-y-auto overflow-x-hidden">
           {loading
             ? // Loading Skeletons
-              Array.from({ length: 6 }).map((_, i) => (
+              [0, 1, 2, 3, 4, 5].map((id) => (
                 <div
-                  key={`skeleton-${i}`}
+                  key={`skeleton-${id}`}
                   className="h-10 w-full bg-white/5 rounded-xl animate-pulse"
                 />
               ))

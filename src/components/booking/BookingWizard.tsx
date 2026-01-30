@@ -13,6 +13,7 @@ import PersonalizeStep from "./steps/PersonalizeStep";
 import AuthStep from "./steps/AuthStep";
 import GuaranteeStep from "./steps/GuaranteeStep";
 import ConfirmationStep from "./steps/ConfirmationStep";
+import { PageBackground } from "@/components/ui/page-background";
 
 const variants = {
   enter: { x: 20, opacity: 0 },
@@ -55,11 +56,7 @@ export default function BookingWizard() {
   return (
     <>
       {/* Global Background */}
-      <div className="fixed inset-0 z-[-1]">
-        {/* Placeholder Dark Restaurant Image */}
-        <div className="absolute inset-0 bg-cover bg-center bg-[url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2670&auto=format&fit=crop')]" />
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" />
-      </div>
+      <PageBackground />
 
       {/* The Stage / Card */}
       <div className="min-h-screen flex items-center justify-center p-4">

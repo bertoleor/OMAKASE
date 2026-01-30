@@ -8,10 +8,21 @@ import {
   RefreshCw,
   ZoomIn,
   ZoomOut,
-  X,
-  Check,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import {
+  DndContext,
+  DragOverlay,
+  useSensor,
+  useSensors,
+  MouseSensor,
+  TouchSensor,
+  DragEndEvent,
+  DragStartEvent,
+} from "@dnd-kit/core";
+
+import { DraggableBooking } from "@/components/admin/floorplan/DraggableBooking";
+import { DroppableTable } from "@/components/admin/floorplan/DroppableTable";
 
 interface Zone {
   id: string;
@@ -51,9 +62,16 @@ export default function FloorPlanPage() {
   const [selectedZone, setSelectedZone] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [zoom, setZoom] = useState(1);
-  const [selectedTable, setSelectedTable] = useState<Table | null>(null);
-  const [showAssignModal, setShowAssignModal] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Drag State
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [activeBooking, setActiveBooking] = useState<Booking | null>(null);
+
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 10 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } })
+  );
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -101,6 +119,73 @@ export default function FloorPlanPage() {
     return () => clearInterval(interval);
   }, [fetchData]);
 
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    setActiveId(active.id as string);
+    setActiveBooking(active.data.current?.booking || null);
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveId(null);
+    setActiveBooking(null);
+
+    if (!over) return;
+
+    // active.id is bookingId, over.id is tableId
+    const bookingId = active.id as string;
+    const tableId = over.id as string;
+
+    await assignBookingToTable(bookingId, tableId);
+  };
+
+  const assignBookingToTable = async (bookingId: string, tableId: string) => {
+    // Optimistic update
+    const updatedBookings = bookings.map((b) =>
+      b.id === bookingId ? { ...b, table_id: tableId } : b
+    );
+    setBookings(updatedBookings);
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from("bookings")
+        .update({ table_id: tableId })
+        .eq("id", bookingId);
+
+      if (error) throw error;
+      await fetchData(); // Re-fetch to confirm
+    } catch (error) {
+      console.error("Error assigning table:", error);
+      // Revert if error
+      await fetchData();
+    }
+  };
+
+  const removeBookingFromTable = async (bookingId: string) => {
+    if(!confirm("¿Liberar esta mesa?")) return;
+
+    // Optimistic update
+    const updatedBookings = bookings.map((b) =>
+      b.id === bookingId ? { ...b, table_id: null } : b
+    );
+    setBookings(updatedBookings);
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from("bookings")
+        .update({ table_id: null })
+        .eq("id", bookingId);
+
+      if (error) throw error;
+      await fetchData();
+    } catch (error) {
+      console.error("Error removing table assignment:", error);
+      await fetchData();
+    }
+  };
+
   // Get tables for selected zone
   const zoneTables = tables.filter((t) => t.zone_id === selectedZone);
   const currentZone = zones.find((z) => z.id === selectedZone);
@@ -121,55 +206,6 @@ export default function FloorPlanPage() {
   const occupancyPercent =
     capacity > 0 ? Math.round((occupiedPax / capacity) * 100) : 0;
 
-  // Assign booking to table
-  const assignBookingToTable = async (bookingId: string, tableId: string) => {
-    try {
-      const supabase = createClient();
-      const { error } = await supabase
-        .from("bookings")
-        .update({ table_id: tableId })
-        .eq("id", bookingId);
-
-      if (error) throw error;
-      await fetchData();
-      setShowAssignModal(false);
-      setSelectedTable(null);
-    } catch (error) {
-      console.error("Error assigning table:", error);
-    }
-  };
-
-  // Remove booking from table
-  const removeBookingFromTable = async (bookingId: string) => {
-    try {
-      const supabase = createClient();
-      const { error } = await supabase
-        .from("bookings")
-        .update({ table_id: null })
-        .eq("id", bookingId);
-
-      if (error) throw error;
-      await fetchData();
-    } catch (error) {
-      console.error("Error removing table assignment:", error);
-    }
-  };
-
-  // Handle table click
-  const handleTableClick = (table: Table) => {
-    const booking = getTableBooking(table.id);
-    if (booking) {
-      // Table is occupied - show option to remove
-      if (confirm(`¿Liberar ${table.name}? (${booking.customer_name})`)) {
-        removeBookingFromTable(booking.id);
-      }
-    } else {
-      // Table is free - show assignment modal
-      setSelectedTable(table);
-      setShowAssignModal(true);
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -179,306 +215,181 @@ export default function FloorPlanPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-white">
-            Plano del Restaurante
-          </h1>
-          <p className="text-white/40 mt-1">
-            Gestión de mesas y asignaciones en tiempo real
-          </p>
-        </div>
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => setZoom((z) => Math.max(0.5, z - 0.1))}
-            className="p-2 rounded-lg bg-black/30 border border-white/10 text-white/60 hover:text-white transition-colors"
-            aria-label="Alejar"
-          >
-            <ZoomOut className="w-4 h-4" />
-          </button>
-          <span className="px-3 py-1 text-sm text-white/60">
-            {Math.round(zoom * 100)}%
-          </span>
-          <button
-            onClick={() => setZoom((z) => Math.min(2, z + 0.1))}
-            className="p-2 rounded-lg bg-black/30 border border-white/10 text-white/60 hover:text-white transition-colors"
-            aria-label="Acercar"
-          >
-            <ZoomIn className="w-4 h-4" />
-          </button>
-          <button
-            onClick={fetchData}
-            className="p-2 rounded-lg bg-black/30 border border-white/10 text-white/60 hover:text-white transition-colors"
-            aria-label="Refrescar"
-          >
-            <RefreshCw className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-
-      {/* Zone Tabs */}
-      <div className="flex space-x-2 overflow-x-auto pb-2">
-        {zones.map((zone) => {
-          const zoneBookingCount = bookings.filter(
-            (b) => b.zone_id === zone.id,
-          ).length;
-          return (
+    <DndContext
+      sensors={sensors}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="space-y-6 h-[calc(100vh-100px)] flex flex-col">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 flex-shrink-0">
+          <div>
+            <h1 className="text-3xl font-bold text-white">
+              Plano de Sala
+            </h1>
+            <p className="text-white/40 mt-1">
+              Arrastra las reservas a las mesas para asignarlas
+            </p>
+          </div>
+          <div className="flex items-center space-x-2">
             <button
-              key={zone.id}
-              onClick={() => setSelectedZone(zone.id)}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-all whitespace-nowrap ${
-                selectedZone === zone.id
-                  ? "bg-blue-600 text-white"
-                  : "bg-black/30 border border-white/10 text-white/60 hover:text-white hover:bg-white/5"
-              }`}
+              onClick={() => setZoom((z) => Math.max(0.5, z - 0.1))}
+              className="p-2 rounded-lg bg-black/30 border border-white/10 text-white/60 hover:text-white transition-colors"
+              aria-label="Alejar"
             >
-              <MapPin className="w-4 h-4" />
-              <span>{zone.name}</span>
-              {zoneBookingCount > 0 && (
-                <span
-                  className={`px-2 py-0.5 text-xs rounded-full ${
-                    selectedZone === zone.id
-                      ? "bg-white/20"
-                      : "bg-blue-500/20 text-blue-400"
-                  }`}
-                >
-                  {zoneBookingCount}
-                </span>
-              )}
+              <ZoomOut className="w-4 h-4" />
             </button>
-          );
-        })}
-      </div>
-
-      {/* Zone Stats */}
-      <div className="bg-black/30 backdrop-blur-md border border-white/10 rounded-xl p-4">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <Users className="w-5 h-5 text-blue-400" />
-              <span className="text-white font-medium">
-                {occupiedPax} / {capacity} PAX
-              </span>
-            </div>
-            <div className="h-2 w-32 bg-white/10 rounded-full overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all progress-bar ${
-                  occupancyPercent >= 80
-                    ? "bg-red-500"
-                    : occupancyPercent >= 50
-                      ? "bg-amber-500"
-                      : "bg-green-500"
-                }`}
-                style={
-                  {
-                    "--progress": `${occupancyPercent}%`,
-                  } as React.CSSProperties
-                }
-              />
-            </div>
-            <span className="text-white/60">{occupancyPercent}%</span>
-          </div>
-          {/* Legend */}
-          <div className="flex items-center space-x-4 text-sm">
-            <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 rounded bg-green-500/20 border border-green-500" />
-              <span className="text-white/60">Libre</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 rounded bg-red-500/20 border border-red-500" />
-              <span className="text-white/60">Ocupada</span>
-            </div>
+            <span className="px-3 py-1 text-sm text-white/60">
+              {Math.round(zoom * 100)}%
+            </span>
+            <button
+              onClick={() => setZoom((z) => Math.min(2, z + 0.1))}
+              className="p-2 rounded-lg bg-black/30 border border-white/10 text-white/60 hover:text-white transition-colors"
+              aria-label="Acercar"
+            >
+              <ZoomIn className="w-4 h-4" />
+            </button>
+            <button
+              onClick={fetchData}
+              className="p-2 rounded-lg bg-black/30 border border-white/10 text-white/60 hover:text-white transition-colors"
+              aria-label="Refrescar"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </button>
           </div>
         </div>
-      </div>
 
-      {/* Floor Plan Canvas */}
-      <div
-        ref={containerRef}
-        className="bg-black/30 backdrop-blur-md border border-white/10 rounded-xl p-6 overflow-auto min-h-floorplan"
-      >
-        <div
-          className="relative mx-auto floorplan-canvas"
-          style={
-            {
-              "--canvas-width": `${450 * zoom}px`,
-              "--canvas-height": `${300 * zoom}px`,
-              "--zoom": zoom,
-            } as React.CSSProperties
-          }
-        >
-          {/* Tables */}
-          {zoneTables.map((table) => {
-            const booking = getTableBooking(table.id);
-            const isOccupied = !!booking;
-
-            const tableStyle = {
-              "--x": `${table.position_x}px`,
-              "--y": `${table.position_y}px`,
-              "--w": `${table.width}px`,
-              "--h": `${table.height}px`,
-              "--rotation": `${table.rotation}deg`,
-            } as React.CSSProperties;
-
+        {/* Zone Tabs */}
+        <div className="flex space-x-2 overflow-x-auto pb-2 flex-shrink-0">
+          {zones.map((zone) => {
+            const zoneBookingCount = bookings.filter(
+              (b) => b.zone_id === zone.id,
+            ).length;
+            const unassignedCount = bookings.filter(
+              (b) => b.zone_id === zone.id && !b.table_id
+            ).length;
+            
             return (
               <button
-                key={table.id}
-                type="button"
-                onClick={() => handleTableClick(table)}
-                className={`position-dynamic flex flex-col items-center justify-center transition-all cursor-pointer ${
-                  isOccupied
-                    ? "bg-red-500/30 border-2 border-red-500 text-red-300 hover:bg-red-500/40"
-                    : "bg-green-500/20 border-2 border-green-500/50 text-green-300 hover:bg-green-500/30"
-                } ${table.shape === "circle" ? "rounded-full" : "rounded-lg"}`}
-                style={tableStyle}
-                title={
-                  isOccupied
-                    ? `${booking?.customer_name} (${booking?.pax}p) - Click para liberar`
-                    : `${table.name} - ${table.seats} asientos - Click para asignar`
-                }
+                key={zone.id}
+                onClick={() => setSelectedZone(zone.id)}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-all whitespace-nowrap ${
+                  selectedZone === zone.id
+                    ? "bg-blue-600 text-white"
+                    : "bg-black/30 border border-white/10 text-white/60 hover:text-white hover:bg-white/5"
+                }`}
               >
-                <span className="text-xs font-semibold">{table.name}</span>
-                <span className="text-xs opacity-60">{table.seats}p</span>
-                {isOccupied && booking && (
-                  <span className="text-xs mt-1 max-w-full truncate px-1">
-                    {booking.customer_name.split(" ")[0]}
+                <MapPin className="w-4 h-4" />
+                <span>{zone.name}</span>
+                {unassignedCount > 0 && (
+                  <span className="px-2 py-0.5 text-xs rounded-full bg-amber-500/20 text-amber-400 font-bold">
+                    {unassignedCount}
                   </span>
                 )}
               </button>
             );
           })}
         </div>
-      </div>
-
-      {/* Unassigned Bookings */}
-      {unassignedBookings.length > 0 && (
-        <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4">
-          <h3 className="font-medium text-yellow-400 mb-3">
-            ⚠️ Reservas sin mesa asignada ({unassignedBookings.length})
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {unassignedBookings.map((booking) => (
-              <div
-                key={booking.id}
-                className="px-3 py-2 bg-black/30 rounded-lg text-sm text-white/80"
-              >
-                <span className="font-medium">{booking.customer_name}</span>
-                <span className="text-white/40 ml-2">
-                  {booking.pax}p • {booking.booking_time}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Assigned Bookings List */}
-      <div className="bg-black/30 backdrop-blur-md border border-white/10 rounded-xl">
-        <div className="p-4 border-b border-white/10">
-          <h3 className="font-medium text-white">
-            Mesas Asignadas - {currentZone?.name}
-          </h3>
-        </div>
-        <div className="divide-y divide-white/5">
-          {zoneBookings.filter((b) => b.table_id).length === 0 ? (
-            <div className="p-8 text-center text-white/40">
-              No hay mesas asignadas en esta zona
-            </div>
-          ) : (
-            zoneBookings
-              .filter((b) => b.table_id)
-              .map((booking) => {
-                const table = tables.find((t) => t.id === booking.table_id);
-                return (
-                  <div
-                    key={booking.id}
-                    className="p-4 flex items-center justify-between hover:bg-white/5 transition-colors"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="p-2 rounded-lg bg-green-500/10">
-                        <Users className="w-4 h-4 text-green-400" />
-                      </div>
-                      <div>
-                        <p className="text-white font-medium">
-                          {booking.customer_name}
-                        </p>
-                        <p className="text-sm text-white/60">
-                          {table?.name} • {booking.pax}p •{" "}
-                          {booking.booking_time}
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => removeBookingFromTable(booking.id)}
-                      className="p-2 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors"
-                      title="Liberar mesa"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
+        
+        {/* Main Content Area */}
+        <div className="flex flex-col lg:flex-row gap-6 flex-1 min-h-0">
+          
+          {/* LEFT COLUMN: Sidebar with List */}
+          <div className="w-full lg:w-80 flex flex-col gap-4 flex-shrink-0">
+            {/* Stats Card */}
+            <div className="bg-black/30 backdrop-blur-md border border-white/10 rounded-xl p-4 flex-shrink-0">
+               <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Users className="w-5 h-5 text-blue-400" />
+                    <span className="text-white font-medium">
+                      {occupiedPax} / {capacity} PAX
+                    </span>
                   </div>
-                );
-              })
-          )}
+                  <span className={`text-sm font-bold ${
+                    occupancyPercent >= 80 ? "text-red-400" : "text-green-400"
+                  }`}>
+                    {occupancyPercent}%
+                  </span>
+               </div>
+               <div className="h-1.5 w-full bg-white/10 rounded-full mt-3 overflow-hidden">
+                  <div 
+                    className={`h-full transition-all duration-500 ${
+                      occupancyPercent >= 80 ? "bg-red-500" : "bg-green-500"
+                    }`}
+                    style={{ width: `${occupancyPercent}%` } as React.CSSProperties} 
+                  />
+               </div>
+            </div>
+
+            {/* Draggable List */}
+            <div className="flex-1 bg-black/30 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden flex flex-col min-h-0">
+              <div className="p-4 border-b border-white/10">
+                <h3 className="font-medium text-white flex items-center justify-between">
+                  <span>Por Asignar</span>
+                  <span className="bg-white/10 px-2 py-0.5 rounded text-xs text-white/60">
+                    {unassignedBookings.length}
+                  </span>
+                </h3>
+              </div>
+              <div className="overflow-y-auto p-3 space-y-2 flex-1">
+                {unassignedBookings.length === 0 ? (
+                  <p className="text-white/30 text-center text-sm py-8">
+                    No hay reservas pendientes
+                  </p>
+                ) : (
+                  unassignedBookings.map((booking) => (
+                    <DraggableBooking key={booking.id} booking={booking} />
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT COLUMN: Canvas */}
+          <div 
+            ref={containerRef}
+            className="flex-1 bg-black/30 backdrop-blur-md border border-white/10 rounded-xl relative overflow-hidden flex items-center justify-center p-8"
+          >
+             {/* Canvas Container */}
+             <div
+                className="relative transition-transform duration-200 ease-out origin-center"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  transform: `scale(${zoom})`,
+                } as React.CSSProperties}
+              >
+                {/* Tables Layer */}
+                {zoneTables.map((table) => {
+                   const booking = getTableBooking(table.id);
+                   return (
+                     <DroppableTable 
+                        key={table.id} 
+                        table={table} 
+                        booking={booking} 
+                        onRemoveBooking={removeBookingFromTable}
+                     />
+                   );
+                })}
+             </div>
+          </div>
         </div>
       </div>
 
-      {/* Assignment Modal */}
-      {showAssignModal && selectedTable && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 w-full max-w-md mx-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-white">
-                Asignar {selectedTable.name}
-              </h3>
-              <button
-                onClick={() => {
-                  setShowAssignModal(false);
-                  setSelectedTable(null);
-                }}
-                className="p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/10"
-                aria-label="Cerrar modal"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <p className="text-white/60 text-sm mb-4">
-              Selecciona una reserva para asignar a esta mesa (
-              {selectedTable.seats} asientos)
-            </p>
-
-            {unassignedBookings.length === 0 ? (
-              <p className="text-white/40 text-center py-4">
-                No hay reservas sin asignar en esta zona
+      {/* Drag Portal */}
+      <DragOverlay>
+        {activeBooking ? (
+           <div className="p-3 rounded-xl bg-blue-600 border border-blue-500 shadow-2xl w-64 opacity-90 cursor-grabbing">
+              <p className="text-sm font-medium text-white truncate">
+                {activeBooking.customer_name}
               </p>
-            ) : (
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {unassignedBookings.map((booking) => (
-                  <button
-                    key={booking.id}
-                    onClick={() =>
-                      assignBookingToTable(booking.id, selectedTable.id)
-                    }
-                    className="w-full flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors text-left"
-                  >
-                    <div>
-                      <p className="font-medium text-white">
-                        {booking.customer_name}
-                      </p>
-                      <p className="text-sm text-white/60">
-                        {booking.pax} personas • {booking.booking_time}
-                      </p>
-                    </div>
-                    <Check className="w-5 h-5 text-green-400" />
-                  </button>
-                ))}
+              <div className="flex items-center gap-3 text-xs text-white/70 mt-1">
+                 <span>{activeBooking.pax}p</span>
+                 <span>{activeBooking.booking_time}</span>
               </div>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
+           </div>
+        ) : null}
+      </DragOverlay>
+    </DndContext>
   );
 }

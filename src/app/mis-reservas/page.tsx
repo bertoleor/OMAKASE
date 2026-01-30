@@ -13,6 +13,7 @@ import {
   Loader2,
   ChevronRight,
 } from "lucide-react";
+import { PageBackground } from "@/components/ui/page-background";
 import { createClient } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
 
@@ -98,7 +99,7 @@ export default function MyReservationsPage() {
     }
 
     setUser(session.user);
-    await fetchReservations(session.user.email!);
+    await fetchReservations(session.user.email || "");
   }, [router, fetchReservations]);
 
   useEffect(() => {
@@ -134,9 +135,8 @@ export default function MyReservationsPage() {
 
   return (
     <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black font-light">
-      {/* Background Image - Same as home */}
-      <div className="fixed inset-0 bg-cover bg-center bg-[url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2670&auto=format&fit=crop')] opacity-30" />
-      <div className="fixed inset-0 bg-gradient-to-b from-black/80 via-black/50 to-black pointer-events-none" />
+      {/* Background Image - Shared Component */}
+      <PageBackground />
 
       {/* Header */}
       <header className="border-b border-white/5 bg-black/20 backdrop-blur-xl sticky top-0 z-50">
@@ -247,10 +247,10 @@ export default function MyReservationsPage() {
 function ReservationCard({
   reservation,
   isPast,
-}: {
+}: Readonly<{
   reservation: Reservation;
   isPast?: boolean;
-}) {
+}>) {
   const status = STATUS_CONFIG[reservation.status] || STATUS_CONFIG.pending;
   const zoneName = reservation.zones?.name || "Mesa asignada al llegar";
 
@@ -292,7 +292,7 @@ function ReservationCard({
               <div className="flex items-center space-x-1.5">
                 <Users className="w-3 h-3 text-white/20" />
                 <span>
-                  {reservation.pax} {reservation.pax === 1 ? "p" : "p"}
+                  {reservation.pax} {reservation.pax === 1 ? "persona" : "personas"}
                 </span>
               </div>
               <div className="flex items-center space-x-1.5">
