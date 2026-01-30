@@ -29,12 +29,7 @@ export default function AdminLayout({
       <AdminSidebar />
 
       {/* Main Content Wrapper */}
-      <div
-        className={cn(
-          "flex-1 flex flex-col relative z-10 transition-all duration-300",
-          isSidebarOpen ? "md:pl-64" : "md:pl-20",
-        )}
-      >
+      <div className="flex-1 flex flex-col relative z-10 w-full">
         <AdminHeader />
 
         {/* Page Content */}

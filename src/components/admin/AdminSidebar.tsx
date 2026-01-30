@@ -7,16 +7,11 @@ import {
   CalendarDays,
   UtensilsCrossed,
   Settings,
-  MapPin,
   BarChart3,
   Layout,
   LogOut,
   Shield,
   Menu,
-  ChevronLeft,
-  ChevronRight,
-  Table2,
-  Clock,
   PartyPopper,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -43,12 +38,8 @@ const menuItems = [
     role: "all",
   },
   { icon: Layout, label: "Plano", href: "/admin/floorplan", role: "all" },
-  { icon: MapPin, label: "Zonas", href: "/admin/zones", role: "admin" },
-  { icon: Table2, label: "Mesas", href: "/admin/tables", role: "admin" },
-  { icon: Clock, label: "Horarios", href: "/admin/schedule", role: "admin" },
   { icon: PartyPopper, label: "Eventos", href: "/admin/events", role: "admin" },
   { icon: BarChart3, label: "Reportes", href: "/admin/reports", role: "admin" },
-  { icon: Shield, label: "Equipo", href: "/admin/staff", role: "admin" },
   { icon: Shield, label: "Equipo", href: "/admin/staff", role: "admin" },
   {
     icon: Settings,
@@ -60,7 +51,7 @@ const menuItems = [
 
 export default function AdminSidebar() {
   const pathname = usePathname();
-  const { isSidebarOpen, toggleSidebar, setSidebarOpen } = useAdminUIStore();
+  const { isSidebarOpen, setSidebarOpen } = useAdminUIStore();
   const { isAdmin, loading } = useUserRole();
 
   // Filter items based on role
@@ -83,10 +74,10 @@ export default function AdminSidebar() {
         <Menu className="w-6 h-6" />
       </button>
 
-      {/* Sidebar Overlay (Mobile) */}
+      {/* Sidebar Overlay */}
       <div
         className={cn(
-          "fixed inset-0 bg-black/80 backdrop-blur-sm z-[55] md:hidden transition-opacity duration-300",
+          "fixed inset-0 bg-black/80 backdrop-blur-sm z-[55] transition-opacity duration-300",
           isSidebarOpen
             ? "opacity-100 pointer-events-auto"
             : "opacity-0 pointer-events-none",
@@ -104,62 +95,29 @@ export default function AdminSidebar() {
 
       <aside
         className={cn(
-          "fixed left-0 top-0 h-full border-r border-white/10 bg-black/90 backdrop-blur-xl flex flex-col z-[60] transition-all duration-300",
-          isSidebarOpen ? "md:w-64" : "md:w-20",
-          isSidebarOpen
-            ? "translate-x-0 w-64"
-            : "-translate-x-full md:translate-x-0",
+          "fixed left-0 top-0 h-full w-72 border-r border-white/10 bg-black/95 backdrop-blur-2xl flex flex-col z-[60] transition-transform duration-300 shadow-2xl",
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
-        {/* Branding & Toggle */}
-        <div className="h-20 flex items-center justify-between px-4 border-b border-white/5 relative">
-          <div
-            className={cn(
-              "flex items-center justify-center w-full transition-opacity duration-300",
-              !isSidebarOpen && "md:opacity-0 hidden md:flex",
+        {/* Branding */}
+        <div className="h-20 flex items-center justify-between px-6 border-b border-white/5">
+          <h1 className="text-xl font-bold tracking-[0.2em] text-white whitespace-nowrap">
+            OMAKASE
+            {isAdmin && (
+              <span className="text-[10px] bg-red-500 px-1 rounded ml-2 align-top">
+                ADMIN
+              </span>
             )}
-          >
-            <h1 className="text-xl font-bold tracking-[0.2em] text-white whitespace-nowrap">
-              OMAKASE
-              {isAdmin && (
-                <span className="text-[10px] bg-red-500 px-1 rounded ml-2 align-top">
-                  ADMIN
-                </span>
-              )}
-              {!isAdmin && !loading && (
-                <span className="text-[10px] bg-blue-500 px-1 rounded ml-2 align-top">
-                  STAFF
-                </span>
-              )}
-            </h1>
-          </div>
-
-          <div
-            className={cn(
-              "absolute left-0 right-0 flex items-center justify-center transition-opacity duration-300",
-              isSidebarOpen ? "opacity-0 pointer-events-none" : "opacity-100",
-              "hidden md:flex",
+            {!isAdmin && !loading && (
+              <span className="text-[10px] bg-blue-500 px-1 rounded ml-2 align-top">
+                STAFF
+              </span>
             )}
-          >
-            <h1 className="text-xl font-bold tracking-[0.2em] text-white">M</h1>
-          </div>
-
-          <button
-            onClick={toggleSidebar}
-            className="hidden md:flex absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-neutral-800 border border-white/10 rounded-full items-center justify-center text-white/60 hover:text-white transition-colors"
-            aria-label={isSidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
-            title={isSidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
-          >
-            {isSidebarOpen ? (
-              <ChevronLeft className="w-3 h-3" />
-            ) : (
-              <ChevronRight className="w-3 h-3" />
-            )}
-          </button>
+          </h1>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-4 py-8 space-y-2 overflow-y-auto overflow-x-hidden relative">
+        <nav className="flex-1 px-4 py-8 space-y-2 overflow-y-auto overflow-x-hidden">
           {loading
             ? // Loading Skeletons
               [...Array(6)].map((_, i) => (
@@ -175,11 +133,9 @@ export default function AdminSidebar() {
                     key={item.href}
                     href={item.href}
                     title={item.label}
+                    onClick={() => setSidebarOpen(false)}
                     className={cn(
-                      "flex items-center px-4 py-3 rounded-xl transition-all duration-200 group whitespace-nowrap",
-                      isSidebarOpen
-                        ? "justify-start space-x-3"
-                        : "justify-center",
+                      "flex items-center px-4 py-3 rounded-xl transition-all duration-200 group whitespace-nowrap space-x-3",
                       isActive
                         ? "bg-white text-black font-medium shadow-[0_0_15px_rgba(255,255,255,0.1)]"
                         : "text-white/60 hover:text-white hover:bg-white/5",
@@ -193,14 +149,7 @@ export default function AdminSidebar() {
                           : "text-white/60 group-hover:text-white",
                       )}
                     />
-                    <span
-                      className={cn(
-                        "transition-opacity duration-300",
-                        isSidebarOpen ? "opacity-100" : "opacity-0 md:hidden",
-                      )}
-                    >
-                      {item.label}
-                    </span>
+                    <span>{item.label}</span>
                   </Link>
                 );
               })}
@@ -209,21 +158,11 @@ export default function AdminSidebar() {
         {/* Footer / User */}
         <div className="p-4 border-t border-white/5">
           <button
-            className={cn(
-              "flex items-center w-full px-4 py-3 rounded-xl text-white/40 hover:text-red-400 hover:bg-red-500/10 transition-colors whitespace-nowrap",
-              isSidebarOpen ? "justify-start space-x-3" : "justify-center",
-            )}
+            className="flex items-center w-full px-4 py-3 rounded-xl text-white/40 hover:text-red-400 hover:bg-red-500/10 transition-colors whitespace-nowrap space-x-3"
             title="Cerrar Sesión"
           >
             <LogOut className="w-5 h-5 flex-shrink-0" />
-            <span
-              className={cn(
-                "transition-opacity duration-300",
-                isSidebarOpen ? "opacity-100" : "opacity-0 md:hidden",
-              )}
-            >
-              Cerrar Sesión
-            </span>
+            <span>Cerrar Sesión</span>
           </button>
         </div>
       </aside>

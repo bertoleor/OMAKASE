@@ -11,10 +11,12 @@ import {
   Loader2,
   MapPin,
   Users,
+  ArrowLeft,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 interface Zone {
   id: string;
@@ -191,6 +193,13 @@ export default function ZonesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
+          <Link
+            href="/admin/settings"
+            className="inline-flex items-center text-sm text-white/60 hover:text-white mb-2 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4 mr-1" />
+            Volver
+          </Link>
           <h1 className="text-3xl font-bold text-white">Gestión de Zonas</h1>
           <p className="text-white/40 mt-1">
             Configura las zonas y capacidad del restaurante

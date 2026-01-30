@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Users, Shield, ShieldAlert, Loader2 } from "lucide-react";
+import { Users, Shield, ShieldAlert, Loader2, ArrowLeft } from "lucide-react";
 import {
   getStaffUsers,
   updateUserRole,
@@ -10,6 +10,7 @@ import {
 
 import { useUserRole } from "@/hooks/useUserRole";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function StaffPage() {
   const { isAdmin, loading: roleLoading } = useUserRole();
@@ -81,6 +82,13 @@ export default function StaffPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
+        <Link
+          href="/admin/settings"
+          className="inline-flex items-center text-sm text-white/60 hover:text-white mb-2 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4 mr-1" />
+          Volver
+        </Link>
         <h1 className="text-3xl font-bold text-white">Equipo & Permisos</h1>
         <p className="text-white/40 mt-1">
           Gestiona los accesos y roles del personal

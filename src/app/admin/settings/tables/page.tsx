@@ -13,8 +13,10 @@ import {
   Square,
   Circle,
   RectangleHorizontal,
+  ArrowLeft,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import Link from "next/link";
 
 interface Zone {
   id: string;
@@ -236,6 +238,13 @@ export default function TablesPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
+          <Link
+            href="/admin/settings"
+            className="inline-flex items-center text-sm text-white/60 hover:text-white mb-2 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4 mr-1" />
+            Volver
+          </Link>
           <h1 className="text-3xl font-bold text-white">Gestión de Mesas</h1>
           <p className="text-white/40 mt-1">
             Configura las mesas de cada zona del restaurante

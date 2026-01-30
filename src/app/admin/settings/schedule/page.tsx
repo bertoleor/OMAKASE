@@ -10,8 +10,10 @@ import {
   ToggleLeft,
   ToggleRight,
   AlertCircle,
+  ArrowLeft,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import Link from "next/link";
 
 interface DaySchedule {
   id: string;
@@ -135,6 +137,13 @@ export default function SchedulePage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
+          <Link
+            href="/admin/settings"
+            className="inline-flex items-center text-sm text-white/60 hover:text-white mb-2 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4 mr-1" />
+            Volver a Configuración
+          </Link>
           <h1 className="text-3xl font-bold text-white">
             Configuración Semanal
           </h1>
