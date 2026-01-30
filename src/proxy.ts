@@ -45,6 +45,8 @@ export async function proxy(request: NextRequest) {
   // 1. Admin Protection
   const isAdminLogin = path === "/admin/login";
   
+  // MOCK: Disable middleware protection for admin
+  /*
   if (isAdminRoute && !isAdminLogin) {
     if (!user) {
       // Not logged in -> Redirect to login
@@ -61,6 +63,7 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(url);
     }
   }
+  */
 
   // 2. Customer Portal Protection
   if (isCustomerRoute && !isLoginRoute && !isAdminRoute) {
