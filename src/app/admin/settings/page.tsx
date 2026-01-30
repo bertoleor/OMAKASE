@@ -4,13 +4,16 @@ import { useEffect, useState } from "react";
 import {
   Save,
   Clock,
-  MapPin,
-  Facebook,
-  Instagram,
-  LogOut,
-  ChevronRight,
   Table2,
   Shield,
+  Loader2,
+  Store,
+  Mail,
+  Phone,
+  Globe,
+  MapPin,
+  ChevronRight,
+  LogOut,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -278,7 +281,7 @@ export default function SettingsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                 <div>
                   <label className="block text-xs font-medium text-white/40 mb-1 flex items-center gap-1">
-                    <Instagram className="w-3 h-3" /> Instagram URL
+                    <Globe className="w-3 h-3" /> Instagram URL
                   </label>
                   <input
                     type="text"
@@ -292,7 +295,7 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-white/40 mb-1 flex items-center gap-1">
-                    <Facebook className="w-3 h-3" /> Facebook URL
+                    <Globe className="w-3 h-3" /> Facebook URL
                   </label>
                   <input
                     type="text"

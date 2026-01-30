@@ -73,21 +73,15 @@ export default function AdminSidebar() {
       </button>
 
       {/* Sidebar Overlay */}
-      <div
+      <button
+        type="button"
         className={cn(
-          "fixed inset-0 bg-black/80 backdrop-blur-sm z-[55] transition-opacity duration-300",
+          "fixed inset-0 bg-black/80 backdrop-blur-sm z-[55] transition-opacity duration-300 w-full h-full border-0 cursor-default",
           isSidebarOpen
             ? "opacity-100 pointer-events-auto"
             : "opacity-0 pointer-events-none",
         )}
         onClick={() => setSidebarOpen(false)}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            setSidebarOpen(false);
-          }
-        }}
         aria-label="Close Sidebar Helper"
       />
 
@@ -118,20 +112,15 @@ export default function AdminSidebar() {
         <nav className="flex-1 px-4 py-8 space-y-2 overflow-y-auto overflow-x-hidden">
           {loading
             ? // Loading Skeletons
-              [...Array(6)].map((_, i) => (
+              Array.from({ length: 6 }).map((_, i) => (
                 <div
-                  key={i}
+                  key={`skeleton-${i}`}
                   className="h-10 w-full bg-white/5 rounded-xl animate-pulse"
                 />
               ))
             : filteredItems.map((item) => {
                 const isActive = pathname.startsWith(item.href);
                 return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    title={item.label}
-                    onClick={() => setSidebarOpen(false)}
                   <Link
                     key={item.href}
                     href={item.href}
@@ -150,10 +139,14 @@ export default function AdminSidebar() {
                     <item.icon
                       className={cn(
                         "w-5 h-5 flex-shrink-0 transition-transform duration-300 group-hover:scale-110",
-                        isActive ? "text-blue-400" : "text-white/50 group-hover:text-white",
+                        isActive
+                          ? "text-blue-400"
+                          : "text-white/50 group-hover:text-white",
                       )}
                     />
-                    <span className="ml-3 font-medium tracking-wide">{item.label}</span>
+                    <span className="ml-3 font-medium tracking-wide">
+                      {item.label}
+                    </span>
                   </Link>
                 );
               })}
