@@ -64,7 +64,7 @@ export function DroppableTable({
     >
       {({ isOver }) => (
         <div
-          style={tableStyle} // Apply styles to the inner div to avoid wrapper issues
+          style={tableStyle as React.CSSProperties} // Apply styles to the inner div to avoid wrapper issues
           className={`
             flex flex-col items-center justify-center transition-all duration-300
             border-2 backdrop-blur-sm

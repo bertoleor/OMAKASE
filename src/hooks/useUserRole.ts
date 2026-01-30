@@ -1,7 +1,6 @@
 "use client";
 
-// import { useEffect, useState } from "react";
-// import { createClient } from "@/lib/supabase/client";
+
 
 export type UserRole = "admin" | "manager" | "staff" | "cashier" | null;
 

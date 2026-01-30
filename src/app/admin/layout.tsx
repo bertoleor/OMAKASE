@@ -4,16 +4,13 @@ import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminHeader from "@/components/admin/AdminHeader";
 import NotificationToast from "@/components/admin/NotificationToast";
 import CommandPalette from "@/components/admin/CommandPalette";
-import { useAdminUIStore } from "@/store/admin-ui-store";
-import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 
 export default function AdminLayout({
   children,
 }: {
-  children: React.ReactNode;
+  readonly children: React.ReactNode;
 }) {
-  const { isSidebarOpen } = useAdminUIStore();
   const pathname = usePathname();
 
   // If we're on the login page, don't show the dashboard layout

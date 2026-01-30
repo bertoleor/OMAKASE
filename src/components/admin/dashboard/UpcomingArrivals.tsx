@@ -13,23 +13,14 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { updateBookingStatus } from "@/app/actions/admin";
-
-interface Booking {
-  id: string;
-  customer_name: string;
-  customer_phone: string;
-  booking_time: string;
-  pax: number;
-  zone_id: string;
-  status:
-    | "pending"
-    | "confirmed"
-    | "seated"
-    | "completed"
-    | "cancelled"
-    | "no_show";
-  notes?: string;
-}
+import {
+  Booking,
+  useRealtimeBookings,
+} from "@/hooks/useRealtimeBookings";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface Zone {
   id: string;
@@ -38,48 +29,42 @@ interface Zone {
 }
 
 interface UpcomingArrivalsProps {
-  date: string;
-  onBookingClick?: (booking: Booking) => void;
+  readonly date: string;
+  readonly onBookingClick?: (booking: Booking) => void;
 }
 
 const STATUS_CONFIG: Record<
   string,
-  { label: string; color: string; bgColor: string; icon: React.ElementType }
+  { label: string; variant: "default" | "secondary" | "destructive" | "outline" | "success" | "warning"; icon: React.ElementType }
 > = {
   pending: {
     label: "Pendiente",
-    color: "text-yellow-400",
-    bgColor: "bg-yellow-500/20",
+    variant: "warning",
     icon: Clock,
   },
   confirmed: {
     label: "Confirmada",
-    color: "text-blue-400",
-    bgColor: "bg-blue-500/20",
+    variant: "default", // Blue/Primary usually
     icon: CheckCircle2,
   },
   seated: {
     label: "Sentado",
-    color: "text-green-400",
-    bgColor: "bg-green-500/20",
+    variant: "success",
     icon: UserCheck,
   },
   completed: {
     label: "Completada",
-    color: "text-gray-400",
-    bgColor: "bg-gray-500/20",
+    variant: "outline",
     icon: CheckCircle2,
   },
   cancelled: {
     label: "Cancelada",
-    color: "text-red-400",
-    bgColor: "bg-red-500/20",
+    variant: "destructive",
     icon: XCircle,
   },
   no_show: {
     label: "No Show",
-    color: "text-red-400",
-    bgColor: "bg-red-500/20",
+    variant: "destructive",
     icon: XCircle,
   },
 };
@@ -88,60 +73,21 @@ export default function UpcomingArrivals({
   date,
   onBookingClick,
 }: UpcomingArrivalsProps) {
-  const [bookings, setBookings] = useState<Booking[]>([]);
+  // Use the shared hook - only fetches active bookings
+  const { bookings, loading } = useRealtimeBookings(date);
   const [zones, setZones] = useState<Zone[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const supabase = createClient();
-
-        const [{ data: zonesData }, { data: bookingsData }] = await Promise.all(
-          [
-            supabase.from("zones").select("*").eq("is_active", true),
-            supabase
-              .from("bookings")
-              .select("*")
-              .eq("booking_date", date)
-              .in("status", ["pending", "confirmed", "seated"])
-              .order("booking_time"),
-          ],
-        );
-
-        setZones(zonesData || []);
-        setBookings(bookingsData || []);
-      } catch (error) {
-        console.error("Error fetching arrivals:", error);
-      } finally {
-        setLoading(false);
-      }
+    async function fetchZones() {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("zones")
+        .select("id, name, slug")
+        .eq("is_active", true);
+      if (data) setZones(data);
     }
-
-    fetchData();
-
-    // Realtime subscription
-    const supabase = createClient();
-    const channel = supabase
-      .channel("arrivals-updates")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "bookings",
-          filter: `booking_date=eq.${date}`,
-        },
-        () => {
-          fetchData();
-        },
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [date]);
+    fetchZones();
+  }, []);
 
   const getZoneName = (zoneId: string) =>
     zones.find((z) => z.id === zoneId)?.name || "Unknown";
@@ -153,15 +99,7 @@ export default function UpcomingArrivals({
         newStatus,
       );
       if (!success) throw new Error(error);
-
-      // Update local state for immediate feedback
-      setBookings((prev) =>
-        prev.map((b) =>
-          b.id === bookingId
-            ? { ...b, status: newStatus as Booking["status"] }
-            : b,
-        ),
-      );
+      // Realtime hook will update the UI automatically via Supabase subscription
     } catch (error) {
       console.error("Error updating booking:", error);
       alert(
@@ -173,71 +111,62 @@ export default function UpcomingArrivals({
   if (loading) {
     return (
       <div className="space-y-3">
-        {[...Array(4)].map((_, i) => (
-          <div
-            key={i}
-            className="bg-black/30 backdrop-blur-md border border-white/10 rounded-xl p-4 animate-pulse"
-          >
-            <div className="h-16 bg-white/5 rounded-lg"></div>
-          </div>
+        {new Array(3).fill(null).map((_, i) => (
+          <Card key={`skeleton-${i}`} className="bg-black/40 border-white/10 animate-pulse">
+            <CardContent className="p-4 h-24" />
+          </Card>
         ))}
       </div>
     );
   }
 
-  if (bookings.length === 0) {
+  // Filter relevant bookings for the "Stream" (Pending, Confirmed, Seated)
+  // No cancelled or completed in the arrival stream typically, unless for history, 
+  // but "UpcomingArrivals" implies active items.
+  const activeBookings = bookings.filter((b) =>
+    ["pending", "confirmed", "seated"].includes(b.status),
+  );
+
+  if (activeBookings.length === 0) {
     return (
-      <div className="bg-black/30 backdrop-blur-md border border-white/10 rounded-xl p-8 text-center">
-        <Clock className="w-12 h-12 text-white/20 mx-auto mb-3" />
-        <p className="text-white/60">No hay llegadas programadas</p>
-      </div>
+      <Card className="bg-black/40 border-white/10 border-dashed">
+        <CardContent className="p-8 text-center flex flex-col items-center justify-center">
+          <Clock className="w-10 h-10 text-white/20 mb-3" />
+          <p className="text-white/60 font-medium">No hay llegadas programadas</p>
+        </CardContent>
+      </Card>
     );
   }
 
-  // Group bookings by upcoming (next 30 min), soon, later
+  // Group bookings
   const now = new Date();
   const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 
   const grouped = {
-    now: bookings.filter((b) => b.status === "seated"),
-    upcoming: bookings.filter(
+    seated: activeBookings.filter((b) => b.status === "seated"),
+    // Urgent: Confirmed/Pending bookings that are due now or in the past (late)
+    urgent: activeBookings.filter(
       (b) => b.status !== "seated" && b.booking_time <= currentTime,
     ),
-    later: bookings.filter(
+    // Upcoming: Future bookings
+    upcoming: activeBookings.filter(
       (b) => b.status !== "seated" && b.booking_time > currentTime,
     ),
   };
 
   return (
-    <div className="space-y-4">
-      {/* Currently Seated */}
-      {grouped.now.length > 0 && (
-        <div>
-          <h3 className="text-sm font-medium text-green-400 uppercase tracking-wider mb-2 px-1">
-            Sentados Ahora ({grouped.now.length})
-          </h3>
-          <div className="space-y-2">
-            {grouped.now.map((booking) => (
-              <BookingCard
-                key={booking.id}
-                booking={booking}
-                zoneName={getZoneName(booking.zone_id)}
-                onAction={handleQuickAction}
-                onClick={onBookingClick}
-              />
-            ))}
+    <div className="space-y-6">
+      {/* SECCION 1: URGENTE (Llegando ahora o tarde) */}
+      {grouped.urgent.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center space-x-2 px-1">
+            <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+            <h3 className="text-sm font-semibold text-amber-400 uppercase tracking-wider">
+              Llegando Ahora / Tarde ({grouped.urgent.length})
+            </h3>
           </div>
-        </div>
-      )}
-
-      {/* Arriving Now / Late */}
-      {grouped.upcoming.length > 0 && (
-        <div>
-          <h3 className="text-sm font-medium text-yellow-400 uppercase tracking-wider mb-2 px-1">
-            Llegando Ahora ({grouped.upcoming.length})
-          </h3>
-          <div className="space-y-2">
-            {grouped.upcoming.map((booking) => (
+          <div className="space-y-3">
+            {grouped.urgent.map((booking) => (
               <BookingCard
                 key={booking.id}
                 booking={booking}
@@ -251,14 +180,40 @@ export default function UpcomingArrivals({
         </div>
       )}
 
-      {/* Later */}
-      {grouped.later.length > 0 && (
-        <div>
-          <h3 className="text-sm font-medium text-white/60 uppercase tracking-wider mb-2 px-1">
-            Próximas ({grouped.later.length})
-          </h3>
-          <div className="space-y-2">
-            {grouped.later.map((booking) => (
+      {/* SECCION 2: SENTADOS (Activos) */}
+      {grouped.seated.length > 0 && (
+        <div className="space-y-3">
+           <div className="flex items-center space-x-2 px-1">
+            <div className="w-2 h-2 rounded-full bg-green-500" />
+            <h3 className="text-sm font-semibold text-green-400 uppercase tracking-wider">
+              En Servicio ({grouped.seated.length})
+            </h3>
+          </div>
+          <div className="space-y-3">
+            {grouped.seated.map((booking) => (
+              <BookingCard
+                key={booking.id}
+                booking={booking}
+                zoneName={getZoneName(booking.zone_id)}
+                onAction={handleQuickAction}
+                onClick={onBookingClick}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* SECCION 3: PRÓXIMAS */}
+      {grouped.upcoming.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center space-x-2 px-1">
+            <div className="w-2 h-2 rounded-full bg-white/20" />
+            <h3 className="text-sm font-semibold text-white/50 uppercase tracking-wider">
+              Próximas Llegadas ({grouped.upcoming.length})
+            </h3>
+          </div>
+          <div className="space-y-3">
+            {grouped.upcoming.map((booking) => (
               <BookingCard
                 key={booking.id}
                 booking={booking}
@@ -275,11 +230,11 @@ export default function UpcomingArrivals({
 }
 
 interface BookingCardProps {
-  booking: Booking;
-  zoneName: string;
-  onAction: (id: string, status: string) => void;
-  onClick?: (booking: Booking) => void;
-  isUrgent?: boolean;
+  readonly booking: Booking;
+  readonly zoneName: string;
+  readonly onAction: (id: string, status: string) => void;
+  readonly onClick?: (booking: Booking) => void;
+  readonly isUrgent?: boolean;
 }
 
 function BookingCard({
@@ -289,101 +244,122 @@ function BookingCard({
   onClick,
   isUrgent,
 }: BookingCardProps) {
-  const statusConfig = STATUS_CONFIG[booking.status];
+  const statusConfig = STATUS_CONFIG[booking.status] || STATUS_CONFIG.pending;
   const StatusIcon = statusConfig.icon;
 
   return (
-    <div
-      className={`bg-black/30 backdrop-blur-md border rounded-xl overflow-hidden transition-all ${
+    <Card
+      className={cn(
+        "bg-black/40 backdrop-blur-md transition-all duration-300 group",
         isUrgent
-          ? "border-yellow-500/40 ring-1 ring-yellow-500/20"
-          : "border-white/10 hover:border-white/20"
-      }`}
+          ? "border-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.1)]"
+          : "border-white/10 hover:border-white/20 hover:bg-white/5",
+      )}
     >
-      <div className="p-4">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center space-x-3">
-            <div className={`p-2 rounded-lg ${statusConfig.bgColor}`}>
-              <StatusIcon className={`w-4 h-4 ${statusConfig.color}`} />
-            </div>
-            <div>
-              <span className="text-xl font-bold text-white">
-                {booking.booking_time}
-              </span>
-              <span
-                className={`ml-2 text-xs px-2 py-0.5 rounded-full ${statusConfig.bgColor} ${statusConfig.color}`}
+      <CardContent className="p-4 relative">
+        {/* Urgent Indicator Strip */}
+        {isUrgent && (
+          <div className="absolute left-0 top-0 bottom-0 w-1 bg-amber-500" />
+        )}
+
+        <div className="flex flex-col gap-3">
+          {/* Top Row: Time & Status */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div
+                className={cn(
+                  "px-2.5 py-1 rounded-md text-lg font-bold font-mono tracking-tight",
+                  isUrgent
+                    ? "bg-amber-500/10 text-amber-400"
+                    : "bg-white/5 text-white",
+                )}
               >
+                {booking.booking_time}
+              </div>
+              <Badge variant={statusConfig.variant as "default" | "secondary" | "destructive" | "outline"} className="pl-1.5 pr-2.5">
+                <StatusIcon className="w-3.5 h-3.5 mr-1" />
                 {statusConfig.label}
-              </span>
+              </Badge>
             </div>
+            
+            <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 text-white/40 hover:text-white"
+                onClick={() => onClick?.(booking)}
+            >
+                <ChevronRight className="w-4 h-4" />
+            </Button>
           </div>
-          <button
-            onClick={() => onClick?.(booking)}
-            className="p-2 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-colors"
-            aria-label="Ver detalles"
-            title="Ver detalles"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-        </div>
 
-        {/* Customer Info */}
-        <div className="flex items-center space-x-4 mb-3">
-          <div className="flex items-center space-x-2">
-            <User className="w-4 h-4 text-white/40" />
-            <span className="text-sm font-medium text-white">
-              {booking.customer_name}
-            </span>
+          {/* Middle Row: Customer & Details */}
+          <div className="flex items-center justify-between pl-1">
+             <div className="space-y-1">
+                <div className="flex items-center space-x-2">
+                    <User className="w-4 h-4 text-white/40" />
+                    <span className="font-semibold text-white">
+                        {booking.customer_name}
+                    </span>
+                </div>
+                <div className="flex items-center space-x-4 text-xs text-white/50 pl-6">
+                    <span className="flex items-center">
+                        <Users className="w-3 h-3 mr-1" />
+                        {booking.pax} pax
+                    </span>
+                    <span className="flex items-center">
+                        <MapPin className="w-3 h-3 mr-1" />
+                        {zoneName}
+                    </span>
+                </div>
+             </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <Users className="w-4 h-4 text-white/40" />
-            <span className="text-sm text-white/80">{booking.pax} pax</span>
+
+          {/* Bottom Row: Quick Actions */}
+          {/* Show actions only for active states to keep card clean */}
+          <div className="pt-2 border-t border-white/5 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+            {booking.status === "pending" && (
+                <Button 
+                    size="sm" 
+                    className="flex-1 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-600/30 h-8 text-xs"
+                    onClick={() => onAction(booking.id, "confirmed")}
+                >
+                    Confirmar
+                </Button>
+            )}
+            {booking.status === "confirmed" && (
+                <Button 
+                    size="sm" 
+                    className="flex-1 bg-green-600/20 hover:bg-green-600/30 text-green-400 border border-green-600/30 h-8 text-xs"
+                    onClick={() => onAction(booking.id, "seated")}
+                >
+                    Sentar
+                </Button>
+            )}
+            {booking.status === "seated" && (
+                <Button 
+                    size="sm" 
+                    className="flex-1 bg-white/5 hover:bg-white/10 text-white/60 border border-white/10 h-8 text-xs"
+                    onClick={() => onAction(booking.id, "completed")}
+                >
+                    Completar
+                </Button>
+            )}
+            
+            {/* Destructive actions always available but smaller */}
+            {booking.status !== "seated" && (
+                <Button 
+                    size="sm" 
+                    variant="ghost"
+                    className="h-8 w-8 px-0 text-red-400/60 hover:text-red-400 hover:bg-red-500/10"
+                    onClick={() => onAction(booking.id, "no_show")}
+                    title="No Show"
+                >
+                   <XCircle className="w-4 h-4" />
+                </Button>
+            )}
           </div>
         </div>
-
-        {/* Zone */}
-        <div className="flex items-center space-x-2 mb-4">
-          <MapPin className="w-4 h-4 text-white/40" />
-          <span className="text-sm text-white/60">{zoneName}</span>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="flex space-x-2">
-          {booking.status === "pending" && (
-            <button
-              onClick={() => onAction(booking.id, "confirmed")}
-              className="flex-1 py-2 px-3 text-sm font-medium text-blue-400 bg-blue-500/10 border border-blue-500/20 rounded-lg hover:bg-blue-500/20 transition-colors"
-            >
-              Confirmar
-            </button>
-          )}
-          {booking.status === "confirmed" && (
-            <button
-              onClick={() => onAction(booking.id, "seated")}
-              className="flex-1 py-2 px-3 text-sm font-medium text-green-400 bg-green-500/10 border border-green-500/20 rounded-lg hover:bg-green-500/20 transition-colors"
-            >
-              Sentar
-            </button>
-          )}
-          {booking.status === "seated" && (
-            <button
-              onClick={() => onAction(booking.id, "completed")}
-              className="flex-1 py-2 px-3 text-sm font-medium text-gray-400 bg-gray-500/10 border border-gray-500/20 rounded-lg hover:bg-gray-500/20 transition-colors"
-            >
-              Completar
-            </button>
-          )}
-          {booking.status !== "seated" && booking.status !== "completed" && (
-            <button
-              onClick={() => onAction(booking.id, "no_show")}
-              className="py-2 px-3 text-sm font-medium text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg hover:bg-red-500/20 transition-colors"
-            >
-              No Show
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

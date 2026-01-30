@@ -43,7 +43,6 @@ export async function proxy(request: NextRequest) {
   const isLoginRoute = path === "/mis-reservas/login";
 
   // 1. Admin Protection
-  const isAdminLogin = path === "/admin/login";
 
   // MOCK: Disable middleware protection for admin
   /*

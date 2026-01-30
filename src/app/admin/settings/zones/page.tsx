@@ -7,7 +7,6 @@ import {
   Trash2,
   GripVertical,
   Save,
-  X,
   Loader2,
   MapPin,
   Users,
@@ -130,7 +129,7 @@ export default function ZonesPage() {
       if (isCreating) {
         const { error } = await supabase.from("zones").insert({
           name: formData.name,
-          slug: formData.slug.toLowerCase().replace(/\s+/g, "-"),
+          slug: formData.slug.toLowerCase().replaceAll(/\s+/g, "-"),
           description: formData.description,
           capacity_pax: formData.capacity_pax,
           is_active: formData.is_active,
@@ -143,7 +142,7 @@ export default function ZonesPage() {
           .from("zones")
           .update({
             name: formData.name,
-            slug: formData.slug.toLowerCase().replace(/\s+/g, "-"),
+            slug: formData.slug.toLowerCase().replaceAll(/\s+/g, "-"),
             description: formData.description,
             capacity_pax: formData.capacity_pax,
             is_active: formData.is_active,
@@ -347,7 +346,7 @@ export default function ZonesPage() {
             <div
               key={zone.id}
               className={`p-4 flex flex-col md:flex-row md:items-center justify-between hover:bg-white/5 transition-colors gap-4 ${
-                !zone.is_active ? "opacity-50" : ""
+                zone.is_active ? "" : "opacity-50"
               }`}
             >
               <div className="flex items-center space-x-4">

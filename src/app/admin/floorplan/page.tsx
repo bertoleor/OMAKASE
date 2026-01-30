@@ -65,7 +65,7 @@ export default function FloorPlanPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   
   // Drag State
-  const [activeId, setActiveId] = useState<string | null>(null);
+  // activeId removed as it was unused
   const [activeBooking, setActiveBooking] = useState<Booking | null>(null);
 
   const sensors = useSensors(
@@ -121,13 +121,11 @@ export default function FloorPlanPage() {
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
-    setActiveId(active.id as string);
     setActiveBooking(active.data.current?.booking || null);
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
-    setActiveId(null);
     setActiveBooking(null);
 
     if (!over) return;
@@ -262,9 +260,6 @@ export default function FloorPlanPage() {
         {/* Zone Tabs */}
         <div className="flex space-x-2 overflow-x-auto pb-2 flex-shrink-0">
           {zones.map((zone) => {
-            const zoneBookingCount = bookings.filter(
-              (b) => b.zone_id === zone.id,
-            ).length;
             const unassignedCount = bookings.filter(
               (b) => b.zone_id === zone.id && !b.table_id
             ).length;

@@ -66,8 +66,12 @@ export default function DateStep() {
     if (days.length > 0) {
       const targetDay =
         days.find((d) => d.date === draftBooking.date) || days[0];
-      setVisibleMonth(`${targetDay.month}. ${targetDay.year}`);
+      const newLabel = `${targetDay.month}. ${targetDay.year}`;
+      if (visibleMonth !== newLabel) {
+        setVisibleMonth(newLabel);
+      }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [days, draftBooking.date]);
 
   // Fetch blocked dates on mount
@@ -138,8 +142,8 @@ export default function DateStep() {
         handleContinue();
       }
     };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    globalThis.addEventListener("keydown", handleKeyDown);
+    return () => globalThis.removeEventListener("keydown", handleKeyDown);
   }, [draftBooking.date, blockedDates, handleContinue]);
 
   const handleScroll = () => {
@@ -177,6 +181,24 @@ export default function DateStep() {
   const isSelectedBlocked = Boolean(
     draftBooking.date && blockedDates.has(draftBooking.date),
   );
+  
+  const getDateButtonClasses = (isBlocked: boolean, isSelected: boolean) => {
+    if (isBlocked) return "bg-red-500/10 border-red-500/20 text-red-400/50 cursor-not-allowed line-through";
+    if (isSelected) return "bg-white border-white text-black";
+    return "bg-white/5 border-white/20 text-white hover:bg-white/10 hover:border-white/50";
+  };
+
+  const getWeekdayClasses = (isBlocked: boolean, isSelected: boolean) => {
+    if (isBlocked) return "text-red-400/40";
+    if (isSelected) return "text-black/60";
+    return "text-white/50";
+  };
+  
+  const getDayNumberClasses = (isBlocked: boolean, isSelected: boolean) => {
+    if (isBlocked) return "text-red-400/50";
+    if (isSelected) return "text-black";
+    return "text-white";
+  };
 
   return (
     <div className="space-y-6 pt-4">
@@ -249,22 +271,14 @@ export default function DateStep() {
                 }
                 className={cn(
                   "flex-shrink-0 flex flex-col items-center justify-center w-14 h-20 rounded-2xl border transition-all duration-300 snap-center",
-                  isBlocked
-                    ? "bg-red-500/10 border-red-500/20 text-red-400/50 cursor-not-allowed line-through"
-                    : isSelected
-                      ? "bg-white border-white text-black"
-                      : "bg-white/5 border-white/20 text-white hover:bg-white/10 hover:border-white/50",
+                  getDateButtonClasses(isBlocked, isSelected),
                   isToday && !isSelected && !isBlocked && "border-white/30",
                 )}
               >
                 <span
                   className={cn(
                     "text-[10px] uppercase tracking-wider font-medium mb-1",
-                    isBlocked
-                      ? "text-red-400/40"
-                      : isSelected
-                        ? "text-black/60"
-                        : "text-white/50",
+                    getWeekdayClasses(isBlocked, isSelected)
                   )}
                 >
                   {d.weekday}
@@ -272,11 +286,7 @@ export default function DateStep() {
                 <span
                   className={cn(
                     "text-xl font-semibold",
-                    isBlocked
-                      ? "text-red-400/50"
-                      : isSelected
-                        ? "text-black"
-                        : "text-white",
+                    getDayNumberClasses(isBlocked, isSelected)
                   )}
                 >
                   {d.day}
