@@ -10,7 +10,6 @@ import {
   ZoomOut,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-// @ts-expect-error - Ignore missing dnd-kit types warning if any
 import {
   DndContext,
   DragOverlay,
