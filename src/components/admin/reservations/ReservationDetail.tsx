@@ -46,11 +46,11 @@ interface Zone {
 }
 
 interface ReservationDetailProps {
-  booking: Booking | null;
-  zones: Zone[];
-  onClose: () => void;
-  onAction: (id: string, status: string) => Promise<void>;
-  isLoading?: boolean;
+  readonly booking: Booking | null;
+  readonly zones: Zone[];
+  readonly onClose: () => void;
+  readonly onAction: (id: string, status: string) => Promise<void>;
+  readonly isLoading?: boolean;
 }
 
 const STATUS_CONFIG: Record<
@@ -158,9 +158,12 @@ export default function ReservationDetail({
   return (
     <Fragment>
       {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+      <button
+        type="button"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 cursor-default w-full h-full border-none"
         onClick={onClose}
+        aria-label="Cerrar detalle"
+        title="Cerrar detalle"
       />
 
       {/* Slide-over Panel */}
@@ -435,9 +438,12 @@ export default function ReservationDetail({
       {/* Quick Contact Modal */}
       {showContactModal && (
         <div className="fixed inset-0 flex items-center justify-center z-[60] p-4">
-          <div
-            className="absolute inset-0 bg-black/80 backdrop-blur-md"
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/80 backdrop-blur-md cursor-default"
             onClick={() => setShowContactModal(false)}
+            aria-label="Cerrar modal"
+            title="Cerrar modal"
           />
           <form
             onSubmit={handleSendContact}
@@ -451,6 +457,8 @@ export default function ReservationDetail({
                 type="button"
                 onClick={() => setShowContactModal(false)}
                 className="text-white/40 hover:text-white"
+                aria-label="Cerrar modal"
+                title="Cerrar modal"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -458,10 +466,14 @@ export default function ReservationDetail({
 
             <div className="space-y-3">
               <div>
-                <label className="text-xs font-medium text-white/40 uppercase block mb-1">
+                <label
+                  htmlFor="contact-subject"
+                  className="text-xs font-medium text-white/40 uppercase block mb-1"
+                >
                   Asunto (Opcional)
                 </label>
                 <input
+                  id="contact-subject"
                   type="text"
                   value={contactSubject}
                   onChange={(e) => setContactSubject(e.target.value)}
@@ -471,10 +483,14 @@ export default function ReservationDetail({
               </div>
 
               <div>
-                <label className="text-xs font-medium text-white/40 uppercase block mb-1">
+                <label
+                  htmlFor="contact-message"
+                  className="text-xs font-medium text-white/40 uppercase block mb-1"
+                >
                   Mensaje
                 </label>
                 <textarea
+                  id="contact-message"
                   required
                   value={contactMessage}
                   onChange={(e) => setContactMessage(e.target.value)}

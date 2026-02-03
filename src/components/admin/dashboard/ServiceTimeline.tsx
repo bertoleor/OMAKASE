@@ -28,7 +28,7 @@ interface Zone {
 }
 
 interface ServiceTimelineProps {
-  date: string;
+  readonly date: string;
 }
 
 const STATUS_COLORS: Record<
@@ -134,11 +134,12 @@ export default function ServiceTimeline({ date }: ServiceTimelineProps) {
         },
         (payload: { eventType: string; new: unknown; old: unknown }) => {
           if (payload.eventType === "INSERT") {
-            setBookings((prev) =>
-              [...prev, payload.new as Booking].sort((a, b) =>
+            setBookings((prev) => {
+              const newBookings = [...prev, payload.new as Booking];
+              return newBookings.sort((a, b) =>
                 a.booking_time.localeCompare(b.booking_time),
-              ),
-            );
+              );
+            });
           } else if (payload.eventType === "UPDATE") {
             setBookings((prev) =>
               prev.map((b) =>
@@ -242,21 +243,18 @@ export default function ServiceTimeline({ date }: ServiceTimelineProps) {
 
               {/* Current time indicator */}
               {/* Current time indicator */}
-              {isToday &&
-                currentTimePosition !== null &&
-                (() => {
-                  const indicatorStyle = {
-                    "--position": `${currentTimePosition}%`,
-                  } as React.CSSProperties;
-                  return (
-                    <div
-                      className="absolute top-0 bottom-0 w-0.5 bg-red-500 z-10 timeline-indicator"
-                      style={indicatorStyle}
-                    >
-                      <div className="absolute -top-1 -left-1.5 w-3 h-3 rounded-full bg-red-500"></div>
-                    </div>
-                  );
-                })()}
+                  {isToday &&
+                    currentTimePosition !== null &&
+                    (
+                      <div
+                        ref={(el) => {
+                          if (el) el.style.setProperty("--position", `${currentTimePosition}%`);
+                        }}
+                        className="absolute top-0 bottom-0 w-0.5 bg-red-500 z-10 timeline-indicator"
+                      >
+                        <div className="absolute -top-1 -left-1.5 w-3 h-3 rounded-full bg-red-500"></div>
+                      </div>
+                    )}
             </div>
           </div>
 

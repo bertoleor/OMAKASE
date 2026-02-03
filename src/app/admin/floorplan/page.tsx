@@ -10,6 +10,7 @@ import {
   ZoomOut,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+// @ts-expect-error - Ignore missing dnd-kit types warning if any
 import {
   DndContext,
   DragOverlay,
@@ -62,7 +63,10 @@ export default function FloorPlanPage() {
   const [selectedZone, setSelectedZone] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [zoom, setZoom] = useState(1);
-  const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Refs for dynamic styles to avoid "no inline styles" warning
+  const progressRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLDivElement>(null);
   
   // Drag State
   // activeId removed as it was unused
@@ -118,6 +122,19 @@ export default function FloorPlanPage() {
     const interval = setInterval(fetchData, 30000);
     return () => clearInterval(interval);
   }, [fetchData]);
+
+  // Update dynamic styles via refs
+  useEffect(() => {
+    if (progressRef.current) {
+      progressRef.current.style.setProperty("--progress", `${occupancyPercent}%`);
+    }
+  }, [occupancyPercent]);
+
+  useEffect(() => {
+    if (canvasRef.current) {
+      canvasRef.current.style.setProperty("--zoom", zoom.toString());
+    }
+  }, [zoom]);
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
@@ -306,14 +323,14 @@ export default function FloorPlanPage() {
                     {occupancyPercent}%
                   </span>
                </div>
-               <div className="h-1.5 w-full bg-white/10 rounded-full mt-3 overflow-hidden">
-                  <div 
-                    className={`h-full transition-all duration-500 ${
-                      occupancyPercent >= 80 ? "bg-red-500" : "bg-green-500"
-                    }`}
-                    style={{ width: `${occupancyPercent}%` } as React.CSSProperties} 
-                  />
-               </div>
+                  <div className="h-1.5 w-full bg-white/10 rounded-full mt-3 overflow-hidden">
+                    <div
+                      ref={progressRef}
+                      className={`h-full transition-all duration-500 progress-bar ${
+                        occupancyPercent >= 80 ? "bg-red-500" : "bg-green-500"
+                      }`}
+                    />
+                  </div>
             </div>
 
             {/* Draggable List */}
@@ -346,13 +363,9 @@ export default function FloorPlanPage() {
             className="flex-1 bg-black/30 backdrop-blur-md border border-white/10 rounded-xl relative overflow-hidden flex items-center justify-center p-8"
           >
              {/* Canvas Container */}
-             <div
-                className="relative transition-transform duration-200 ease-out origin-center"
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  transform: `scale(${zoom})`,
-                } as React.CSSProperties}
+              <div
+                ref={canvasRef}
+                className="relative transition-transform duration-200 ease-out origin-center w-full h-full floorplan-canvas"
               >
                 {/* Tables Layer */}
                 {zoneTables.map((table) => {

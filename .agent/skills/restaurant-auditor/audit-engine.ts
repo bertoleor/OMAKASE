@@ -1,5 +1,5 @@
-import fs from "fs";
-import { execSync } from "child_process";
+import fs from "node:fs";
+import { execSync } from "node:child_process";
 
 const FORBIDDEN_WORDS = [
   "data",
@@ -18,7 +18,7 @@ const validateSeniority = (path: string) => {
   if (file.match(/\/\/ .+/g)) violations.push("Redundant comments detected");
 
   FORBIDDEN_WORDS.forEach((word) => {
-    const regex = new RegExp(`\\b${word}\\b`, "g");
+    const regex = new RegExp(String.raw`\b${word}\b`, "g");
     if (file.match(regex)) violations.push(`Generic naming found: ${word}`);
   });
 

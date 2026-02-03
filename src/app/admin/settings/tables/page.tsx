@@ -296,8 +296,11 @@ export default function TablesPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Name */}
             <div>
-              <label className="block text-sm text-white/60 mb-1">Nombre</label>
+              <label htmlFor="table-name" className="block text-sm text-white/60 mb-1">
+                Nombre de la Mesa
+              </label>
               <input
+                id="table-name"
                 type="text"
                 value={formData.name}
                 onChange={(e) =>
@@ -311,8 +314,9 @@ export default function TablesPage() {
 
             {/* Zone */}
             <div>
-              <label className="block text-sm text-white/60 mb-1">Zona</label>
+              <label htmlFor="table-zone" className="block text-sm text-white/60 mb-1">Zona</label>
               <select
+                id="table-zone"
                 value={formData.zone_id}
                 onChange={(e) =>
                   setFormData({ ...formData, zone_id: e.target.value })
@@ -330,16 +334,17 @@ export default function TablesPage() {
 
             {/* Seats */}
             <div>
-              <label className="block text-sm text-white/60 mb-1">
+              <label htmlFor="table-seats" className="block text-sm text-white/60 mb-1">
                 Asientos
               </label>
               <input
+                id="table-seats"
                 type="number"
                 value={formData.seats}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    seats: parseInt(e.target.value) || 1,
+                    seats: Number.parseInt(e.target.value) || 1,
                   })
                 }
                 min={1}
@@ -372,16 +377,17 @@ export default function TablesPage() {
 
             {/* Position X */}
             <div>
-              <label className="block text-sm text-white/60 mb-1">
+              <label htmlFor="table-x" className="block text-sm text-white/60 mb-1">
                 Posición X
               </label>
               <input
+                id="table-x"
                 type="number"
                 value={formData.position_x}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    position_x: parseInt(e.target.value) || 0,
+                    position_x: Number.parseInt(e.target.value) || 0,
                   })
                 }
                 min={0}
@@ -392,16 +398,17 @@ export default function TablesPage() {
 
             {/* Position Y */}
             <div>
-              <label className="block text-sm text-white/60 mb-1">
+              <label htmlFor="table-y" className="block text-sm text-white/60 mb-1">
                 Posición Y
               </label>
               <input
+                id="table-y"
                 type="number"
                 value={formData.position_y}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    position_y: parseInt(e.target.value) || 0,
+                    position_y: Number.parseInt(e.target.value) || 0,
                   })
                 }
                 min={0}
@@ -412,16 +419,17 @@ export default function TablesPage() {
 
             {/* Width */}
             <div>
-              <label className="block text-sm text-white/60 mb-1">
+              <label htmlFor="table-width" className="block text-sm text-white/60 mb-1">
                 Ancho (px)
               </label>
               <input
+                id="table-width"
                 type="number"
                 value={formData.width}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    width: parseInt(e.target.value) || 60,
+                    width: Number.parseInt(e.target.value) || 60,
                   })
                 }
                 min={40}
@@ -433,16 +441,17 @@ export default function TablesPage() {
 
             {/* Height */}
             <div>
-              <label className="block text-sm text-white/60 mb-1">
+              <label htmlFor="table-height" className="block text-sm text-white/60 mb-1">
                 Alto (px)
               </label>
               <input
+                id="table-height"
                 type="number"
                 value={formData.height}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    height: parseInt(e.target.value) || 60,
+                    height: Number.parseInt(e.target.value) || 60,
                   })
                 }
                 min={40}
@@ -568,17 +577,19 @@ export default function TablesPage() {
           {zoneTables.map((table) => (
             <div
               key={table.id}
-              className={`absolute flex items-center justify-center text-xs font-medium transition-all ${
+              ref={(el) => {
+                if (el) {
+                  el.style.setProperty("--x", `${table.position_x}px`);
+                  el.style.setProperty("--y", `${table.position_y}px`);
+                  el.style.setProperty("--w", `${table.width}px`);
+                  el.style.setProperty("--h", `${table.height}px`);
+                }
+              }}
+              className={`absolute flex items-center justify-center text-xs font-medium transition-all position-dynamic ${
                 table.is_active
                   ? "bg-blue-500/20 border-2 border-blue-500/50 text-blue-300"
                   : "bg-white/10 border border-white/20 text-white/40"
               } ${table.shape === "circle" ? "rounded-full" : "rounded-lg"}`}
-              style={{
-                left: table.position_x,
-                top: table.position_y,
-                width: table.width,
-                height: table.height,
-              }}
             >
               <span>{table.name}</span>
             </div>

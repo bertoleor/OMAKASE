@@ -359,18 +359,10 @@ export default function ReportsPage() {
                       </div>
                       <div className="h-2 bg-white/10 rounded-full overflow-hidden">
                         <div
-                          className={`h-full rounded-full progress-bar ${
-                            i === 0
-                              ? "bg-orange-400"
-                              : i === 1
-                                ? "bg-blue-400"
-                                : "bg-gray-400"
-                          }`}
-                          style={
-                            {
-                              "--progress": `${percentage}%`,
-                            } as React.CSSProperties
-                          }
+                          ref={(el) => {
+                            if (el) el.style.setProperty("--progress", `${percentage}%`);
+                          }}
+                          className={`h-full rounded-full progress-bar ${getZoneBarColor(i)}`}
                         />
                       </div>
                     </div>
@@ -422,20 +414,16 @@ export default function ReportsPage() {
                   >
                     <div className="w-full flex items-end justify-center space-x-0.5 mb-2 chart-container">
                       <div
+                        ref={(el) => {
+                          if (el) el.style.setProperty("--bar-height", `${heightBookings}%`);
+                        }}
                         className="w-2 bg-blue-400 rounded-t chart-bar hover:bg-blue-300"
-                        style={
-                          {
-                            "--bar-height": `${heightBookings}%`,
-                          } as React.CSSProperties
-                        }
                       />
                       <div
+                        ref={(el) => {
+                          if (el) el.style.setProperty("--bar-height", `${heightPax}%`);
+                        }}
                         className="w-2 bg-green-400 rounded-t chart-bar hover:bg-green-300"
-                        style={
-                          {
-                            "--bar-height": `${heightPax}%`,
-                          } as React.CSSProperties
-                        }
                       />
                     </div>
                     <span
@@ -509,12 +497,12 @@ export default function ReportsPage() {
 }
 
 interface MetricCardProps {
-  icon: React.ElementType;
-  label: string;
-  value: number | string;
-  subtitle?: string;
-  color: "blue" | "green" | "emerald" | "red" | "purple" | "orange";
-  trend?: "up" | "down";
+  readonly icon: React.ElementType;
+  readonly label: string;
+  readonly value: string | number;
+  readonly subtitle?: string;
+  readonly color: "blue" | "green" | "emerald" | "red" | "purple" | "orange";
+  readonly trend?: "up" | "down";
 }
 
 function MetricCard({
@@ -525,7 +513,7 @@ function MetricCard({
   color,
   trend,
 }: MetricCardProps) {
-  const colorClasses = {
+  const colorClasses: Record<MetricCardProps["color"], string> = {
     blue: "text-blue-400 bg-blue-500/10",
     green: "text-green-400 bg-green-500/10",
     emerald: "text-emerald-400 bg-emerald-500/10",
@@ -563,10 +551,10 @@ function StatusBlock({
   total,
   color,
 }: {
-  label: string;
-  value: number;
-  total: number;
-  color: string;
+  readonly label: string;
+  readonly value: number;
+  readonly total: number;
+  readonly color: string;
 }) {
   const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
 

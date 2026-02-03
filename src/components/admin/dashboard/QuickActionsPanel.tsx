@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import {
   Clock,
   Users,
@@ -37,7 +37,7 @@ interface Zone {
 }
 
 interface QuickActionsPanelProps {
-  date: string;
+  readonly date: string;
 }
 
 export default function QuickActionsPanel({ date }: QuickActionsPanelProps) {
@@ -107,7 +107,7 @@ export default function QuickActionsPanel({ date }: QuickActionsPanelProps) {
   }, [date]);
 
   // Map zone enum to zone object (supports both zone_id and zone enum)
-  const getZoneForBooking = (booking: Booking): Zone | undefined => {
+  const getZoneForBooking = useCallback((booking: Booking): Zone | undefined => {
     // First try zone_id (new format)
     if (booking.zone_id) {
       return zones.find((z) => z.id === booking.zone_id);
@@ -120,7 +120,7 @@ export default function QuickActionsPanel({ date }: QuickActionsPanelProps) {
     };
     const slug = zoneMap[booking.zone] || booking.zone;
     return zones.find((z) => z.slug === slug);
-  };
+  }, [zones]);
 
   // Calculate zone occupancy
   const zoneOccupancy = useMemo(() => {
@@ -144,8 +144,13 @@ export default function QuickActionsPanel({ date }: QuickActionsPanelProps) {
         percentage: Math.min(100, (occupiedPax / zone.capacity_pax) * 100),
       };
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [zones, bookings]);
+  }, [zones, bookings, getZoneForBooking]);
+
+  const getOccupancyColor = (percentage: number) => {
+    if (percentage >= 80) return "bg-red-500";
+    if (percentage >= 50) return "bg-amber-500";
+    return "bg-green-500";
+  };
 
   const totalCapacity = zones.reduce((sum, z) => sum + z.capacity_pax, 0);
   // Same logic for total occupied
@@ -162,7 +167,7 @@ export default function QuickActionsPanel({ date }: QuickActionsPanelProps) {
 
   // WhatsApp link
   const getWhatsAppLink = (phone: string, name: string, time: string) => {
-    const cleanPhone = phone.replace(/\D/g, "");
+    const cleanPhone = phone.replaceAll(/\D/g, "");
     const message = encodeURIComponent(
       `Hola ${name}, te escribimos de Suhi para confirmar tu reserva de hoy a las ${time}. ¿Todo bien?`,
     );
@@ -334,18 +339,10 @@ export default function QuickActionsPanel({ date }: QuickActionsPanelProps) {
                   </div>
                   <div className="h-2 bg-white/10 rounded-full overflow-hidden">
                     <div
-                      className={`h-full rounded-full transition-all duration-300 progress-bar ${
-                        zone.percentage >= 80
-                          ? "bg-red-500"
-                          : zone.percentage >= 50
-                            ? "bg-amber-500" // amber-500 is close to #f59e0b
-                            : "bg-green-500"
-                      }`}
-                      style={
-                        {
-                          "--progress": `${zone.percentage}%`,
-                        } as React.CSSProperties
-                      }
+                      ref={(el) => {
+                        if (el) el.style.setProperty("--progress", `${zone.percentage}%`);
+                      }}
+                      className={`h-full rounded-full transition-all duration-300 progress-bar ${getOccupancyColor(zone.percentage)}`}
                     />
                   </div>
                 </div>
@@ -362,18 +359,10 @@ export default function QuickActionsPanel({ date }: QuickActionsPanelProps) {
                 </div>
                 <div className="h-3 bg-white/10 rounded-full overflow-hidden">
                   <div
-                    className={`h-full rounded-full transition-all duration-300 progress-bar ${
-                      totalPercentage >= 80
-                        ? "bg-red-500"
-                        : totalPercentage >= 50
-                          ? "bg-amber-500"
-                          : "bg-green-500"
-                    }`}
-                    style={
-                      {
-                        "--progress": `${Math.min(100, totalPercentage)}%`,
-                      } as React.CSSProperties
-                    }
+                    ref={(el) => {
+                      if (el) el.style.setProperty("--progress", `${Math.min(100, totalPercentage)}%`);
+                    }}
+                    className={`h-full rounded-full transition-all duration-300 progress-bar ${getOccupancyColor(totalPercentage)}`}
                   />
                 </div>
               </div>
@@ -403,10 +392,14 @@ export default function QuickActionsPanel({ date }: QuickActionsPanelProps) {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm text-white/60 mb-1">
+                <label 
+                  htmlFor="walkin-name"
+                  className="block text-sm text-white/60 mb-1"
+                >
                   Nombre (Opcional)
                 </label>
                 <input
+                  id="walkin-name"
                   type="text"
                   value={walkInName}
                   onChange={(e) => setWalkInName(e.target.value)}
@@ -418,26 +411,34 @@ export default function QuickActionsPanel({ date }: QuickActionsPanelProps) {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm text-white/60 mb-1">
+                  <label 
+                    htmlFor="walkin-pax"
+                    className="block text-sm text-white/60 mb-1"
+                  >
                     Personas (PAX)
                   </label>
                   <input
+                    id="walkin-pax"
                     type="number"
                     min={1}
                     max={20}
                     value={walkInPax}
                     onChange={(e) =>
-                      setWalkInPax(parseInt(e.target.value) || 1)
+                      setWalkInPax(Number.parseInt(e.target.value) || 1)
                     }
                     className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:border-green-500"
                     title="Número de personas"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-white/60 mb-1">
+                  <label 
+                    htmlFor="walkin-zone"
+                    className="block text-sm text-white/60 mb-1"
+                  >
                     Zona
                   </label>
                   <select
+                    id="walkin-zone"
                     value={walkInZone}
                     onChange={(e) => setWalkInZone(e.target.value)}
                     className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:border-green-500"

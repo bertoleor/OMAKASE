@@ -13,6 +13,7 @@ La aplicación está construida sobre tecnologías de vanguardia enfocadas en re
 - **Framework:** [Next.js 16.1.4](https://nextjs.org/) (App Router) - Renderizado híbrido y optimización.
 - **Librería UI:** [React 19.2.3](https://react.dev/) - Componentes interactivos.
 - **Estilos:** [Tailwind CSS v4](https://tailwindcss.com/) - Diseño utilitario y performante.
+- **Animaciones:** Framer Motion - Micro-interacciones y transiciones fluidas.
 - **Lenguaje:** TypeScript - Tipado estático para robustez y mantenimiento.
 
 ### Backend & Base de Datos
@@ -29,6 +30,7 @@ La aplicación está construida sobre tecnologías de vanguardia enfocadas en re
 - **Email:** [Resend](https://resend.com/) + React Email - Envío de correos transaccionales.
 - **Iconos:** Lucide React.
 - **Estado Global:** Zustand.
+- **Validación de Pagos:** card-validator.
 
 ## 3. Estructura del Proyecto
 
@@ -98,6 +100,11 @@ Dirigido al staff del restaurante para la gestión operativa.
   - Análisis de tendencias de reservas y pasajeros (PAX).
   - Estadísticas de ocupación.
 
+- **Automatizaciones (Supabase Functions):**
+  - **Recordatorios:** Envío automático de notificaciones 24h y 2h antes de la reserva.
+  - **Auto-confirmación:** Procesamiento automático de reservas según disponibilidad.
+  - **Gestión de No-Show:** Marcado automático de inasistencias para liberar mesas.
+
 ## 5. Funcionalidades: Portal Cliente
 
 Experiencia fluida para el usuario final.
@@ -109,8 +116,12 @@ Experiencia fluida para el usuario final.
 
 - **Mis Reservas (`/mis-reservas`):**
   - **Acceso Seguro:** Login mediante "Magic Link" enviado al correo (sin contraseñas).
-  - **Gestión:** Visualización de reservas activas e historial.
-  - **Autogestión:** Posibilidad de cancelar reservas (sujeto a políticas).
+  - **Gestión:** Visualización de reservas activas e historial con estética refinada ("dark glasscard").
+  - **Autogestión:** Posibilidad de cancelar reservas y agregar eventos al calendario.
+
+- **Garantía de Reserva:**
+  - **Validación de Tarjeta:** Integración de validación de tarjetas de crédito/débito en tiempo real.
+  - **Política de Cancelación:** Aceptación explícita de términos antes de confirmar.
 
 ## 6. Estado Actual del Proyecto
 
@@ -118,6 +129,7 @@ El proyecto se encuentra en una fase **avanzada y estable**.
 
 - ✅ **Seguridad Robusta:** Implementación de RBAC (Role-Based Access Control) protegiendo configuración y datos sensibles.
 - ✅ **Operativa Real-Time:** Soporte completo para Walk-ins y Liberación Manual de mesas.
+- ✅ **Refinamiento UI/UX:** Interfaz de cliente actualizada con una estética premium, consistente y libre de datos de prueba ("mockups").
 - ✅ **Clean Code:** Se ha realizado una limpieza profunda del código, eliminando deuda técnica, estilos inline innecesarios y dependencias no utilizadas.
 - ✅ **Type Safety:** El proyecto cumple con estándares estrictos de TypeScript, minimizando errores en tiempo de ejecución.
 - ✅ **Optimizado:** Configuración de build optimizada para producción.
