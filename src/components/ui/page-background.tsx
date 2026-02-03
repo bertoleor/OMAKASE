@@ -8,7 +8,7 @@ export const PageBackground = () => {
       <div className="absolute inset-0 bg-black" />
       
       {/* Hero Image with Overlay */}
-      <div className="absolute inset-0 opacity-30">
+      <div className="absolute inset-0 opacity-60">
         <Image 
           src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2670&auto=format&fit=crop"
           alt="Restaurant Background"
@@ -19,7 +19,7 @@ export const PageBackground = () => {
       </div>
       
       {/* Gradient Overlay for Readability */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/50 to-black" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black" />
       
       {/* Optional: Noise Texture */}
       <div className="absolute inset-0 opacity-[0.03] bg-[url('/noise.png')] pointer-events-none" />
