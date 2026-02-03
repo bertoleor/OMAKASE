@@ -1,35 +1,37 @@
 # Informe de Funcionalidades Pendientes y Estrategia
 
-## 1. UX & Accesibilidad (Completada)
+## 1. Calidad de Código y Accesibilidad (Completado)
 
-- [x] **Auditoría Móvil:**
-  - [x] Verificar desplazamiento (scroll) y redimensionamiento.
-  - [x] Navegación por teclado (Siguiente/Enter).
-  - [x] Legibilidad (tamaño de fuente y contraste).
+- [x] **Calidad de Código (Strict Audit):**
+  - [x] Eliminación total de estilos inline (`style={{...}}`) en favor de variables CSS.
+  - [x] Extracción de ternarios anidados para mejorar la legibilidad.
+  - [x] Uso de `refs` para actualizaciones dinámicas de estilo (Zoom, Progress bars).
+  - [x] Marcado de props como `readonly` para inmutabilidad.
 - [x] **Accesibilidad (a11y):**
-  - [x] Soporte para lectores de pantalla.
-  - [x] Opciones de alto contraste (labels y titles agregados).
+  - [x] Asociación correcta de labels e inputs (`htmlFor` / `id`).
+  - [x] Atributos `aria-label` y `title` en elementos interactivos.
+  - [x] Navegación semántica mejorada.
 - [x] **Refinamiento Estético:**
-  - [x] Eliminación de mockups y datos de prueba.
-  - [x] Consistencia visual en "Mis Reservas" (Glasscard style).
+  - [x] Eliminación completa de mockups y placeholders.
+  - [x] Unificación de interfaz "Mis Reservas" con estética Glasscard Dark.
 
 ## 2. Mejoras Admin & Automatizaciones
 
 - [x] **Dashboard - Acciones Rápidas:**
-  - [x] **Panel de Disponibilidad:** Vista rápida para el staff.
-  - [x] **Contacto Rápido:** Botones de WhatsApp y Email para reservas del día.
-- [x] **Gestión de Zonas:**
-  - [x] Agregar/Quitar zonas.
-  - [x] Configurar cubiertos por mesa/zona.
-- [x] **Configuración:**
-  - [x] Límite global de comensales por mesa (ej: máx 10).
+  - [x] Panel de Disponibilidad operativa.
+  - [x] Integración de contacto rápido (WhatsApp/Email).
+- [x] **Gestión de Zonas y Mesas:**
+  - [x] Gestión dinámica de zonas y asignación de mesas.
+  - [x] Previsualización interactiva de plano de sala.
 - [/] **Automatizaciones:**
-  - [/] **Email Service:** Integrar envío real de emails en Supabase Functions (actualmente solo lógica en DB).
+  - [x] Lógica de recordatorios y confirmaciones automática en DB.
+  - [ ] Integración final de API de envío para notificaciones transaccionales.
 
 ## 3. Próximos Pasos (Estrategia)
 
-- [x] **Seguridad (RBAC):** ✅ COMPLETADO
-- [ ] **Idiomas (i18n):** Soporte EN/PT (Selector en formulario).
+- [x] **Seguridad (RBAC):** Sistema de roles y permisos 100% operativo.
+- [ ] **Idiomas (i18n):** Traducción a Inglés y Portugués para comensales extranjeros.
 - [/] **Pagos (MercadoPago):**
-  - [x] Interfaz de Garantía integrada en Wizard (Paso 7).
-  - [ ] Integración de tokenización real y procesamiento de señas.
+  - [x] Interfaz de validación de tarjetas integrada.
+  - [ ] Procesamiento real de señas y reembolsos automáticos.
+- [ ] **Optimización de Build:** Resolución de conflictos WASM en entorno de compilación local.
