@@ -58,6 +58,17 @@ const PERIOD_OPTIONS = [
 import { useUserRole } from "@/hooks/useUserRole";
 import { useRouter } from "next/navigation";
 
+const getZoneBarColor = (index: number) => {
+  const colors = [
+    "bg-blue-500",
+    "bg-purple-500",
+    "bg-emerald-500",
+    "bg-orange-500",
+    "bg-pink-500",
+  ];
+  return colors[index % colors.length];
+};
+
 export default function ReportsPage() {
   const { isAdmin, loading: roleLoading } = useUserRole();
   const router = useRouter();
@@ -231,6 +242,224 @@ export default function ReportsPage() {
       )
     : 0;
 
+  const renderContent = () => {
+    if (loading || roleLoading) {
+      return (
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="w-8 h-8 text-white/40 animate-spin" />
+        </div>
+      );
+    }
+
+    if (!stats || !isAdmin) {
+      return (
+        <div className="bg-black/30 backdrop-blur-md border border-white/10 rounded-xl p-12 text-center">
+          <p className="text-white/60">
+            {isAdmin 
+              ? "Selecciona un período para ver las estadísticas" 
+              : "No tienes permisos para ver este reporte"}
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <>
+        {/* Main KPIs */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <MetricCard
+            icon={BarChart3}
+            label="Total Reservas"
+            value={stats.total_bookings}
+            color="blue"
+          />
+          <MetricCard
+            icon={Users}
+            label="Total PAX"
+            value={stats.total_pax}
+            subtitle={`Promedio: ${stats.avg_pax} pax/reserva`}
+            color="green"
+          />
+          <MetricCard
+            icon={CheckCircle2}
+            label="Completadas"
+            value={stats.completed}
+            subtitle={`${Math.round((stats.completed / Math.max(stats.total_bookings, 1)) * 100)}% del total`}
+            color="emerald"
+          />
+          <MetricCard
+            icon={XCircle}
+            label="Cancelaciones + No-Shows"
+            value={stats.cancelled + stats.no_shows}
+            subtitle={`${cancellationRate}% tasa de cancelación`}
+            color="red"
+            trend={cancellationRate > 15 ? "down" : "up"}
+          />
+        </div>
+
+        {/* Secondary stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-black/30 backdrop-blur-md border border-white/10 rounded-xl p-6">
+            <div className="flex items-center space-x-3 mb-4">
+              <Clock className="w-5 h-5 text-purple-400" />
+              <h3 className="font-medium text-white">Hora Pico</h3>
+            </div>
+            <p className="text-3xl font-bold text-white">{stats.peak_hour}</p>
+            <p className="text-sm text-white/60 mt-1">
+              Mayor cantidad de reservas
+            </p>
+          </div>
+
+          <div className="bg-black/30 backdrop-blur-md border border-white/10 rounded-xl p-6 md:col-span-2">
+            <div className="flex items-center space-x-3 mb-4">
+              <MapPin className="w-5 h-5 text-orange-400" />
+              <h3 className="font-medium text-white">Rendimiento por Zona</h3>
+            </div>
+            <div className="space-y-3">
+              {stats.zone_stats.map((zone, i) => {
+                const maxBookings = Math.max(
+                  ...stats.zone_stats.map((z) => z.bookings),
+                );
+                const percentage = (zone.bookings / maxBookings) * 100;
+                return (
+                  <div key={zone.zone_name} className="space-y-1">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-white">{zone.zone_name}</span>
+                      <span className="text-white/60">
+                        {zone.bookings} reservas • {zone.pax} pax
+                      </span>
+                    </div>
+                    <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                      <div
+                        ref={(el) => {
+                          if (el) el.style.setProperty("--progress", `${percentage}%`);
+                        }}
+                        className={`h-full rounded-full progress-bar ${getZoneBarColor(i)}`}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Daily Trend Chart */}
+        <div className="bg-black/30 backdrop-blur-md border border-white/10 rounded-xl p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-3">
+              <TrendingUp className="w-5 h-5 text-blue-400" />
+              <h3 className="font-medium text-white">Tendencia Diaria</h3>
+            </div>
+            <div className="flex items-center space-x-4 text-sm">
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 rounded-full bg-blue-400"></div>
+                <span className="text-white/60">Reservas</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 rounded-full bg-green-400"></div>
+                <span className="text-white/60">PAX</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Simple bar chart */}
+          <div className="h-48 flex items-end space-x-1">
+            {stats.daily_trend.slice(-14).map((day) => {
+              const maxPax = Math.max(
+                ...stats.daily_trend.map((d) => d.pax),
+                1,
+              );
+              const maxBookings = Math.max(
+                ...stats.daily_trend.map((d) => d.bookings),
+                1,
+              );
+              const heightPax = (day.pax / maxPax) * 100;
+              const heightBookings = (day.bookings / maxBookings) * 100;
+              const isWeekend = [0, 6].includes(new Date(day.date).getDay());
+
+              return (
+                <div
+                  key={day.date}
+                  className="flex-1 flex flex-col items-center"
+                  title={`${day.date}: ${day.bookings} reservas, ${day.pax} pax`}
+                >
+                  <div className="w-full flex items-end justify-center space-x-0.5 mb-2 chart-container">
+                    <div
+                      ref={(el) => {
+                        if (el) el.style.setProperty("--bar-height", `${heightBookings}%`);
+                      }}
+                      className="w-2 bg-blue-400 rounded-t chart-bar hover:bg-blue-300"
+                    />
+                    <div
+                      ref={(el) => {
+                        if (el) el.style.setProperty("--bar-height", `${heightPax}%`);
+                      }}
+                      className="w-2 bg-green-400 rounded-t chart-bar hover:bg-green-300"
+                    />
+                  </div>
+                  <span
+                    className={`text-xs ${isWeekend ? "text-orange-400" : "text-white/40"}`}
+                  >
+                    {new Date(day.date).getDate()}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Status Breakdown */}
+        <div className="bg-black/30 backdrop-blur-md border border-white/10 rounded-xl p-6">
+          <div className="flex items-center space-x-3 mb-4">
+            <PieChart className="w-5 h-5 text-cyan-400" />
+            <h3 className="font-medium text-white">
+              Distribución por Estado
+            </h3>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <StatusBlock
+              label="Confirmadas"
+              value={stats.confirmed}
+              total={stats.total_bookings}
+              color="bg-blue-500"
+            />
+            <StatusBlock
+              label="Completadas"
+              value={stats.completed}
+              total={stats.total_bookings}
+              color="bg-green-500"
+            />
+            <StatusBlock
+              label="Canceladas"
+              value={stats.cancelled}
+              total={stats.total_bookings}
+              color="bg-red-500"
+            />
+            <StatusBlock
+              label="No-Shows"
+              value={stats.no_shows}
+              total={stats.total_bookings}
+              color="bg-orange-500"
+            />
+            <StatusBlock
+              label="Pendientes"
+              value={
+                stats.total_bookings -
+                stats.confirmed -
+                stats.completed -
+                stats.cancelled -
+                stats.no_shows
+              }
+              total={stats.total_bookings}
+              color="bg-yellow-500"
+            />
+          </div>
+        </div>
+      </>
+    );
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -287,211 +516,7 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      {loading || roleLoading ? (
-        <div className="flex items-center justify-center h-64">
-          <Loader2 className="w-8 h-8 text-white/40 animate-spin" />
-        </div>
-      ) : stats && isAdmin ? (
-        <>
-          {/* Main KPIs */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <MetricCard
-              icon={BarChart3}
-              label="Total Reservas"
-              value={stats.total_bookings}
-              color="blue"
-            />
-            <MetricCard
-              icon={Users}
-              label="Total PAX"
-              value={stats.total_pax}
-              subtitle={`Promedio: ${stats.avg_pax} pax/reserva`}
-              color="green"
-            />
-            <MetricCard
-              icon={CheckCircle2}
-              label="Completadas"
-              value={stats.completed}
-              subtitle={`${Math.round((stats.completed / Math.max(stats.total_bookings, 1)) * 100)}% del total`}
-              color="emerald"
-            />
-            <MetricCard
-              icon={XCircle}
-              label="Cancelaciones + No-Shows"
-              value={stats.cancelled + stats.no_shows}
-              subtitle={`${cancellationRate}% tasa de cancelación`}
-              color="red"
-              trend={cancellationRate > 15 ? "down" : "up"}
-            />
-          </div>
-
-          {/* Secondary stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-black/30 backdrop-blur-md border border-white/10 rounded-xl p-6">
-              <div className="flex items-center space-x-3 mb-4">
-                <Clock className="w-5 h-5 text-purple-400" />
-                <h3 className="font-medium text-white">Hora Pico</h3>
-              </div>
-              <p className="text-3xl font-bold text-white">{stats.peak_hour}</p>
-              <p className="text-sm text-white/60 mt-1">
-                Mayor cantidad de reservas
-              </p>
-            </div>
-
-            <div className="bg-black/30 backdrop-blur-md border border-white/10 rounded-xl p-6 md:col-span-2">
-              <div className="flex items-center space-x-3 mb-4">
-                <MapPin className="w-5 h-5 text-orange-400" />
-                <h3 className="font-medium text-white">Rendimiento por Zona</h3>
-              </div>
-              <div className="space-y-3">
-                {stats.zone_stats.map((zone, i) => {
-                  const maxBookings = Math.max(
-                    ...stats.zone_stats.map((z) => z.bookings),
-                  );
-                  const percentage = (zone.bookings / maxBookings) * 100;
-                  return (
-                    <div key={zone.zone_name} className="space-y-1">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-white">{zone.zone_name}</span>
-                        <span className="text-white/60">
-                          {zone.bookings} reservas • {zone.pax} pax
-                        </span>
-                      </div>
-                      <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                        <div
-                          ref={(el) => {
-                            if (el) el.style.setProperty("--progress", `${percentage}%`);
-                          }}
-                          className={`h-full rounded-full progress-bar ${getZoneBarColor(i)}`}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          {/* Daily Trend Chart */}
-          <div className="bg-black/30 backdrop-blur-md border border-white/10 rounded-xl p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center space-x-3">
-                <TrendingUp className="w-5 h-5 text-blue-400" />
-                <h3 className="font-medium text-white">Tendencia Diaria</h3>
-              </div>
-              <div className="flex items-center space-x-4 text-sm">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 rounded-full bg-blue-400"></div>
-                  <span className="text-white/60">Reservas</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 rounded-full bg-green-400"></div>
-                  <span className="text-white/60">PAX</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Simple bar chart */}
-            <div className="h-48 flex items-end space-x-1">
-              {stats.daily_trend.slice(-14).map((day) => {
-                const maxPax = Math.max(
-                  ...stats.daily_trend.map((d) => d.pax),
-                  1,
-                );
-                const maxBookings = Math.max(
-                  ...stats.daily_trend.map((d) => d.bookings),
-                  1,
-                );
-                const heightPax = (day.pax / maxPax) * 100;
-                const heightBookings = (day.bookings / maxBookings) * 100;
-                const isWeekend = [0, 6].includes(new Date(day.date).getDay());
-
-                return (
-                  <div
-                    key={day.date}
-                    className="flex-1 flex flex-col items-center"
-                    title={`${day.date}: ${day.bookings} reservas, ${day.pax} pax`}
-                  >
-                    <div className="w-full flex items-end justify-center space-x-0.5 mb-2 chart-container">
-                      <div
-                        ref={(el) => {
-                          if (el) el.style.setProperty("--bar-height", `${heightBookings}%`);
-                        }}
-                        className="w-2 bg-blue-400 rounded-t chart-bar hover:bg-blue-300"
-                      />
-                      <div
-                        ref={(el) => {
-                          if (el) el.style.setProperty("--bar-height", `${heightPax}%`);
-                        }}
-                        className="w-2 bg-green-400 rounded-t chart-bar hover:bg-green-300"
-                      />
-                    </div>
-                    <span
-                      className={`text-xs ${isWeekend ? "text-orange-400" : "text-white/40"}`}
-                    >
-                      {new Date(day.date).getDate()}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Status Breakdown */}
-          <div className="bg-black/30 backdrop-blur-md border border-white/10 rounded-xl p-6">
-            <div className="flex items-center space-x-3 mb-4">
-              <PieChart className="w-5 h-5 text-cyan-400" />
-              <h3 className="font-medium text-white">
-                Distribución por Estado
-              </h3>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              <StatusBlock
-                label="Confirmadas"
-                value={stats.confirmed}
-                total={stats.total_bookings}
-                color="bg-blue-500"
-              />
-              <StatusBlock
-                label="Completadas"
-                value={stats.completed}
-                total={stats.total_bookings}
-                color="bg-green-500"
-              />
-              <StatusBlock
-                label="Canceladas"
-                value={stats.cancelled}
-                total={stats.total_bookings}
-                color="bg-red-500"
-              />
-              <StatusBlock
-                label="No-Shows"
-                value={stats.no_shows}
-                total={stats.total_bookings}
-                color="bg-orange-500"
-              />
-              <StatusBlock
-                label="Pendientes"
-                value={
-                  stats.total_bookings -
-                  stats.confirmed -
-                  stats.completed -
-                  stats.cancelled -
-                  stats.no_shows
-                }
-                total={stats.total_bookings}
-                color="bg-yellow-500"
-              />
-            </div>
-          </div>
-        </>
-      ) : (
-        <div className="bg-black/30 backdrop-blur-md border border-white/10 rounded-xl p-12 text-center">
-          <p className="text-white/60">
-            Selecciona un período para ver las estadísticas
-          </p>
-        </div>
-      )}
+      {renderContent()}
     </div>
   );
 }
