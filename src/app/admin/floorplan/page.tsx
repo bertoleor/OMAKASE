@@ -66,6 +66,7 @@ export default function FloorPlanPage() {
   // Refs for dynamic styles to avoid "no inline styles" warning
   const progressRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   
   // Drag State
   // activeId removed as it was unused
@@ -121,6 +122,14 @@ export default function FloorPlanPage() {
     const interval = setInterval(fetchData, 30000);
     return () => clearInterval(interval);
   }, [fetchData]);
+
+  // Calculate zone occupancy
+  const currentZone = zones.find((z) => z.id === selectedZone);
+  const zoneBookings = bookings.filter((b) => b.zone_id === selectedZone);
+  const occupiedPax = zoneBookings.reduce((sum, b) => sum + b.pax, 0);
+  const capacity = currentZone?.capacity_pax || 0;
+  const occupancyPercent =
+    capacity > 0 ? Math.round((occupiedPax / capacity) * 100) : 0;
 
   // Update dynamic styles via refs
   useEffect(() => {
@@ -202,7 +211,6 @@ export default function FloorPlanPage() {
 
   // Get tables for selected zone
   const zoneTables = tables.filter((t) => t.zone_id === selectedZone);
-  const currentZone = zones.find((z) => z.id === selectedZone);
 
   // Get booking assigned to a table
   const getTableBooking = (tableId: string) =>
@@ -212,13 +220,6 @@ export default function FloorPlanPage() {
   const unassignedBookings = bookings.filter(
     (b) => b.zone_id === selectedZone && !b.table_id,
   );
-
-  // Calculate zone occupancy
-  const zoneBookings = bookings.filter((b) => b.zone_id === selectedZone);
-  const occupiedPax = zoneBookings.reduce((sum, b) => sum + b.pax, 0);
-  const capacity = currentZone?.capacity_pax || 0;
-  const occupancyPercent =
-    capacity > 0 ? Math.round((occupiedPax / capacity) * 100) : 0;
 
   if (loading) {
     return (
