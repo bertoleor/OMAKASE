@@ -95,6 +95,56 @@ export default function ConfirmationStep() {
           </div>
         </div>
 
+          <div className="flex gap-4 pt-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const startTime = `${draftBooking.date?.replaceAll("-", "")}T${draftBooking.timeSlot?.replaceAll(":", "")}00`;
+                const endTime = `${draftBooking.date?.replaceAll("-", "")}T${(parseInt(draftBooking.timeSlot?.split(":")[0] || "0") + 2).toString().padStart(2, "0")}${draftBooking.timeSlot?.split(":")[1]}00`;
+                const title = encodeURIComponent(`Reserva en ${BUSINESS.name}`);
+                const details = encodeURIComponent(`Reserva para ${draftBooking.pax} personas.\nZona: ${draftBooking.zone}\nNotas: ${draftBooking.notes || "Ninguna"}`);
+                const location = encodeURIComponent(BUSINESS.address || "");
+                window.open(
+                  `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startTime}/${endTime}&details=${details}&location=${location}`,
+                  "_blank"
+                );
+              }}
+              className="text-white/60 hover:text-white border-white/10 hover:bg-white/5 uppercase tracking-wider text-[10px]"
+            >
+              Google Calendar
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const startTime = `${draftBooking.date?.replaceAll("-", "")}T${draftBooking.timeSlot?.replaceAll(":", "")}00`;
+                const endTime = `${draftBooking.date?.replaceAll("-", "")}T${(parseInt(draftBooking.timeSlot?.split(":")[0] || "0") + 2).toString().padStart(2, "0")}${draftBooking.timeSlot?.split(":")[1]}00`;
+                const icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+URL:${window.location.origin}
+DTSTART:${startTime}
+DTEND:${endTime}
+SUMMARY:Reserva en ${BUSINESS.name}
+DESCRIPTION:Reserva para ${draftBooking.pax} personas.\\nZona: ${draftBooking.zone}\\nNotas: ${draftBooking.notes || "Ninguna"}
+LOCATION:${BUSINESS.address}
+END:VEVENT
+END:VCALENDAR`;
+                const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
+                const link = document.createElement("a");
+                link.href = window.URL.createObjectURL(blob);
+                link.setAttribute("download", "reserva.ics");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+              }}
+              className="text-white/60 hover:text-white border-white/10 hover:bg-white/5 uppercase tracking-wider text-[10px]"
+            >
+              .ICS (Outlook/Apple)
+            </Button>
+          </div>
+
         <Button
           variant="ghost"
           onClick={() => {
