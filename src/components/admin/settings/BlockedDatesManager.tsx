@@ -23,6 +23,7 @@ export default function BlockedDatesManager() {
   const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [addError, setAddError] = useState<string | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -57,6 +58,7 @@ export default function BlockedDatesManager() {
     if (!formData.date) return;
 
     setSaving(true);
+    setAddError(null);
     try {
       const supabase = createClient();
       const { error } = await supabase.from("blocked_dates").insert({
@@ -71,7 +73,7 @@ export default function BlockedDatesManager() {
       setFormData({ date: "", reason: "", zone_id: "" });
     } catch (error) {
       console.error("Error adding blocked date:", error);
-      alert("Error al bloquear fecha");
+      setAddError("Error al bloquear fecha. Intentá de nuevo.");
     } finally {
       setSaving(false);
     }
@@ -144,6 +146,11 @@ export default function BlockedDatesManager() {
       {/* Add Form */}
       {isAdding && (
         <div className="p-4 border-b border-white/10 bg-red-500/5">
+          {addError && (
+            <div className="mb-4 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">
+              {addError}
+            </div>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div>
               <label className="block text-sm font-medium text-white/60 mb-2">

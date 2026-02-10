@@ -76,6 +76,7 @@ export default function UpcomingArrivals({
   // Use the shared hook - only fetches active bookings
   const { bookings, loading } = useRealtimeBookings(date);
   const [zones, setZones] = useState<Zone[]>([]);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchZones() {
@@ -102,9 +103,10 @@ export default function UpcomingArrivals({
       // Realtime hook will update the UI automatically via Supabase subscription
     } catch (error) {
       console.error("Error updating booking:", error);
-      alert(
+      setActionError(
         error instanceof Error ? error.message : "Error al actualizar reserva",
       );
+      setTimeout(() => setActionError(null), 4000);
     }
   };
 
@@ -156,6 +158,13 @@ export default function UpcomingArrivals({
 
   return (
     <div className="space-y-6">
+      {/* Error Banner */}
+      {actionError && (
+        <div className="px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-center justify-between">
+          <span>{actionError}</span>
+          <button onClick={() => setActionError(null)} className="text-red-400/60 hover:text-red-400 ml-3">✕</button>
+        </div>
+      )}
       {/* SECCION 1: URGENTE (Llegando ahora o tarde) */}
       {grouped.urgent.length > 0 && (
         <div className="space-y-3">

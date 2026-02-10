@@ -1,85 +1,73 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
+const ADMIN_LOGIN = "/admin/login";
+const CUSTOMER_LOGIN = "/mis-reservas/login";
+const ADMIN_DASHBOARD = "/admin/dashboard";
+const CUSTOMER_HOME = "/mis-reservas";
+const ADMIN_ROLES = new Set(["admin", "manager", "staff"]);
+
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({
-    request: {
-      headers: request.headers,
+    request: { headers: request.headers },
+  });
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return response;
+  }
+
+  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value }) =>
+          request.cookies.set(name, value),
+        );
+        response = NextResponse.next({ request });
+        cookiesToSet.forEach(({ name, value, options }) =>
+          response.cookies.set(name, value, options),
+        );
+      },
     },
   });
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value),
-          );
-          response = NextResponse.next({
-            request,
-          });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options),
-          );
-        },
-      },
-    },
-  );
-
-  // Refresh session if expired - required for Server Components
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Protected Routes Logic
   const path = request.nextUrl.pathname;
   const isAdminRoute = path.startsWith("/admin");
+  const isAdminLogin = path === ADMIN_LOGIN;
   const isCustomerRoute = path.startsWith("/mis-reservas");
-  const isLoginRoute = path === "/mis-reservas/login";
+  const isCustomerLogin = path === CUSTOMER_LOGIN;
 
-  // 1. Admin Protection
-
-  // MOCK: Disable middleware protection for admin
-  /*
   if (isAdminRoute && !isAdminLogin) {
     if (!user) {
-      // Not logged in -> Redirect to login
-      return NextResponse.redirect(new URL("/admin/login", request.url));
+      return NextResponse.redirect(new URL(ADMIN_LOGIN, request.url));
     }
 
-    // Role Check (Metadata)
-    const role = user.user_metadata?.role;
-    if (role !== "admin" && role !== "staff") {
-      // Logged in but not admin -> Redirect to home or reservation
-      // Use rewrite to show 403 or redirect? Redirect is safer.
-      const url = new URL("/mis-reservas", request.url);
-      url.searchParams.set("error", "unauthorized_admin_access");
-      return NextResponse.redirect(url);
+    const role = user.user_metadata?.role as string | undefined;
+    if (!role || !ADMIN_ROLES.has(role)) {
+      return NextResponse.redirect(new URL(CUSTOMER_HOME, request.url));
     }
   }
-  */
 
-  // 2. Customer Portal Protection
-  if (isCustomerRoute && !isLoginRoute && !isAdminRoute) {
-    // Note: isAdminRoute check is redundant due to if/else logic but added for clarity if blocks move
+  if (isCustomerRoute && !isCustomerLogin) {
     if (!user) {
-      return NextResponse.redirect(new URL("/mis-reservas/login", request.url));
+      return NextResponse.redirect(new URL(CUSTOMER_LOGIN, request.url));
     }
   }
 
-  // 3. Login Redirect (if already logged in)
-  if (isLoginRoute && user) {
-    // If admin, go to admin dashboard
-    if (user.user_metadata?.role === "admin") {
-      return NextResponse.redirect(new URL("/admin/dashboard", request.url));
-    }
-    // Otherwise go to customer portal
-    return NextResponse.redirect(new URL("/mis-reservas", request.url));
+  if ((isAdminLogin || isCustomerLogin) && user) {
+    const role = user.user_metadata?.role as string | undefined;
+    const destination =
+      role && ADMIN_ROLES.has(role) ? ADMIN_DASHBOARD : CUSTOMER_HOME;
+    return NextResponse.redirect(new URL(destination, request.url));
   }
 
   return response;

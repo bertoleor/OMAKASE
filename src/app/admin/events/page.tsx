@@ -115,6 +115,7 @@ export default function EventsPage() {
   const [history, setHistory] = useState<EventHistory[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"upcoming" | "history">(
     "upcoming",
   );
@@ -194,6 +195,7 @@ export default function EventsPage() {
     if (!formData.name || !formData.event_date) return;
 
     setSaving(true);
+    setActionError(null);
     try {
       const supabase = createClient();
 
@@ -230,7 +232,8 @@ export default function EventsPage() {
       handleCancel();
     } catch (error) {
       console.error("Error saving event:", error);
-      alert("Error al guardar el evento");
+      setActionError("Error al guardar el evento");
+      setTimeout(() => setActionError(null), 4000);
     } finally {
       setSaving(false);
     }
@@ -272,8 +275,8 @@ export default function EventsPage() {
       const supabase = createClient();
       const { error } = await supabase.rpc("archive_completed_event", {
         p_event_id: event.id,
-        p_guests: parseInt(guests) || 0,
-        p_revenue: parseFloat(revenue) || 0,
+        p_guests: Number.parseInt(guests) || 0,
+        p_revenue: Number.parseFloat(revenue) || 0,
         p_notes: notes || null,
       });
 
@@ -281,7 +284,8 @@ export default function EventsPage() {
       await fetchData();
     } catch (error) {
       console.error("Error archiving event:", error);
-      alert("Error al archivar el evento");
+      setActionError("Error al archivar el evento");
+      setTimeout(() => setActionError(null), 4000);
     }
   };
 
@@ -322,6 +326,13 @@ export default function EventsPage() {
 
   return (
     <div className="space-y-6">
+      {/* Error Banner */}
+      {actionError && (
+        <div className="px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-center justify-between">
+          <span>{actionError}</span>
+          <button onClick={() => setActionError(null)} className="text-red-400/60 hover:text-red-400 ml-3">✕</button>
+        </div>
+      )}
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
@@ -375,10 +386,11 @@ export default function EventsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Name */}
             <div className="lg:col-span-2">
-              <label className="block text-sm text-white/60 mb-1">
+              <label htmlFor="event-name" className="block text-sm text-white/60 mb-1">
                 Nombre del Evento
               </label>
               <input
+                id="event-name"
                 type="text"
                 value={formData.name}
                 onChange={(e) =>
@@ -386,14 +398,13 @@ export default function EventsPage() {
                 }
                 className="w-full px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white"
                 placeholder="Ej: Cata de Sake Premium"
-                title="Nombre del Evento"
               />
             </div>
 
             {/* Event Type */}
             <div>
-              <label className="block text-sm text-white/60 mb-1">Tipo</label>
-              <div className="flex gap-2">
+              <span className="block text-sm text-white/60 mb-1">Tipo</span>
+              <div className="flex gap-2" role="group" aria-label="Tipo de evento">
                 {(
                   Object.keys(EVENT_TYPES) as Array<keyof typeof EVENT_TYPES>
                 ).map((type) => {
@@ -421,120 +432,121 @@ export default function EventsPage() {
 
             {/* Date */}
             <div>
-              <label className="block text-sm text-white/60 mb-1">Fecha</label>
+              <label htmlFor="event-date" className="block text-sm text-white/60 mb-1">Fecha</label>
               <input
+                id="event-date"
                 type="date"
                 value={formData.event_date}
                 onChange={(e) =>
                   setFormData({ ...formData, event_date: e.target.value })
                 }
                 className="w-full px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white"
-                title="Fecha del evento"
               />
             </div>
 
             {/* Start Time */}
             <div>
-              <label className="block text-sm text-white/60 mb-1">
+              <label htmlFor="event-start" className="block text-sm text-white/60 mb-1">
                 Hora Inicio
               </label>
               <input
+                id="event-start"
                 type="time"
                 value={formData.start_time}
                 onChange={(e) =>
                   setFormData({ ...formData, start_time: e.target.value })
                 }
                 className="w-full px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white"
-                title="Hora de inicio"
               />
             </div>
 
             {/* End Time */}
             <div>
-              <label className="block text-sm text-white/60 mb-1">
+              <label htmlFor="event-end" className="block text-sm text-white/60 mb-1">
                 Hora Fin
               </label>
               <input
+                id="event-end"
                 type="time"
                 value={formData.end_time}
                 onChange={(e) =>
                   setFormData({ ...formData, end_time: e.target.value })
                 }
                 className="w-full px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white"
-                title="Hora de fin"
               />
             </div>
 
             {/* Max Capacity */}
             <div>
-              <label className="block text-sm text-white/60 mb-1">
+              <label htmlFor="event-capacity" className="block text-sm text-white/60 mb-1">
                 Capacidad Máx.
               </label>
               <input
+                id="event-capacity"
                 type="number"
                 value={formData.max_capacity}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    max_capacity: parseInt(e.target.value) || 0,
+                    max_capacity: Number.parseInt(e.target.value) || 0,
                   })
                 }
                 min={1}
                 className="w-full px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white"
-                title="Capacidad máxima"
               />
             </div>
 
             {/* Price per person */}
             <div>
-              <label className="block text-sm text-white/60 mb-1">
+              <label htmlFor="event-price" className="block text-sm text-white/60 mb-1">
                 Precio/Persona
               </label>
               <div className="relative">
                 <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
                 <input
+                  id="event-price"
                   type="number"
                   value={formData.price_per_person}
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      price_per_person: parseFloat(e.target.value) || 0,
+                      price_per_person: Number.parseFloat(e.target.value) || 0,
                     })
                   }
                   min={0}
                   className="w-full pl-9 pr-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white"
-                  title="Precio por persona"
                 />
               </div>
             </div>
 
             {/* Deposit */}
             <div>
-              <label className="block text-sm text-white/60 mb-1">Seña</label>
+              <label htmlFor="event-deposit" className="block text-sm text-white/60 mb-1">Seña</label>
               <div className="relative">
                 <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
                 <input
+                  id="event-deposit"
                   type="number"
                   value={formData.deposit_required}
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      deposit_required: parseFloat(e.target.value) || 0,
+                      deposit_required: Number.parseFloat(e.target.value) || 0,
                     })
                   }
                   min={0}
                   className="w-full pl-9 pr-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white"
-                  title="Monto de la seña"
                 />
               </div>
             </div>
 
             {/* Description */}
             <div className="lg:col-span-3">
-              <label className="block text-sm text-white/60 mb-1">
+              <label htmlFor="event-desc" className="block text-sm text-white/60 mb-1">
                 Descripción
               </label>
               <textarea
+                id="event-desc"
                 value={formData.description}
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
@@ -542,16 +554,15 @@ export default function EventsPage() {
                 rows={2}
                 className="w-full px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white resize-none"
                 placeholder="Detalles del evento..."
-                title="Descripción del evento"
               />
             </div>
 
             {/* Zones */}
             <div className="lg:col-span-2">
-              <label className="block text-sm text-white/60 mb-1">
+              <span className="block text-sm text-white/60 mb-1">
                 Zonas Habilitadas
-              </label>
-              <div className="flex flex-wrap gap-2">
+              </span>
+              <div className="flex flex-wrap gap-2" role="group" aria-label="Zonas habilitadas">
                 {zones.map((zone) => (
                   <button
                     key={zone.id}
@@ -594,24 +605,25 @@ export default function EventsPage() {
               formData.event_type === "rental") && (
               <>
                 <div>
-                  <label className="block text-sm text-white/60 mb-1">
+                  <label htmlFor="event-contact-name" className="block text-sm text-white/60 mb-1">
                     Nombre Contacto
                   </label>
                   <input
+                    id="event-contact-name"
                     type="text"
                     value={formData.contact_name}
                     onChange={(e) =>
                       setFormData({ ...formData, contact_name: e.target.value })
                     }
                     className="w-full px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white"
-                    title="Nombre del contacto"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-white/60 mb-1">
+                  <label htmlFor="event-contact-phone" className="block text-sm text-white/60 mb-1">
                     Teléfono
                   </label>
                   <input
+                    id="event-contact-phone"
                     type="tel"
                     value={formData.contact_phone}
                     onChange={(e) =>
@@ -621,14 +633,14 @@ export default function EventsPage() {
                       })
                     }
                     className="w-full px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white"
-                    title="Teléfono del contacto"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-white/60 mb-1">
+                  <label htmlFor="event-contact-email" className="block text-sm text-white/60 mb-1">
                     Email
                   </label>
                   <input
+                    id="event-contact-email"
                     type="email"
                     value={formData.contact_email}
                     onChange={(e) =>
@@ -638,7 +650,6 @@ export default function EventsPage() {
                       })
                     }
                     className="w-full px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white"
-                    title="Email del contacto"
                   />
                 </div>
               </>

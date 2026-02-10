@@ -16,6 +16,7 @@ import {
 import { PageBackground } from "@/components/ui/page-background";
 import { createClient } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
+import { BUSINESS } from "@/config/business";
 
 interface Reservation {
   id: string;
@@ -143,7 +144,7 @@ export default function MyReservationsPage() {
         <div className="max-w-2xl mx-auto px-4 py-4 sm:py-6 flex items-center justify-between">
           <div>
             <h1 className="text-lg sm:text-xl font-extralight tracking-[0.3em] mb-0.5 uppercase text-white/90">
-              OMAKASE
+              {BUSINESS.name}
             </h1>
             <div className="h-px w-6 bg-white/20 mb-1" />
             <p className="text-[9px] text-white/40 uppercase tracking-[0.2em] font-medium">
@@ -237,7 +238,7 @@ export default function MyReservationsPage() {
       {/* Footer Branding */}
       <footer className="max-w-3xl mx-auto px-6 py-12 text-center">
         <p className="text-[10px] text-white/10 uppercase tracking-[0.4em]">
-          OMAKASE · Experience
+          {BUSINESS.name} · {BUSINESS.tagline}
         </p>
       </footer>
     </div>

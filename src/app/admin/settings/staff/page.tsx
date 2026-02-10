@@ -26,6 +26,7 @@ export default function StaffPage() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [roleError, setRoleError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -50,7 +51,10 @@ export default function StaffPage() {
     userId: string,
     newRole: "admin" | "staff" | "user",
   ) {
+    if (!confirm(`¿Cambiar el rol de este usuario a "${newRole}"?`)) return;
+
     setActionLoading(userId);
+    setRoleError(null);
     try {
       const result = await updateUserRole(userId, newRole);
       if (result.success) {
@@ -59,10 +63,12 @@ export default function StaffPage() {
           prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u)),
         );
       } else {
-        alert("Error al actualizar rol: " + result.error);
+        setRoleError("Error al actualizar rol: " + result.error);
+        setTimeout(() => setRoleError(null), 4000);
       }
     } catch {
-      alert("Error desconocido");
+      setRoleError("Error desconocido");
+      setTimeout(() => setRoleError(null), 4000);
     } finally {
       setActionLoading(null);
     }
@@ -80,6 +86,13 @@ export default function StaffPage() {
 
   return (
     <div className="space-y-6">
+      {/* Error Banner */}
+      {roleError && (
+        <div className="px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-center justify-between">
+          <span>{roleError}</span>
+          <button onClick={() => setRoleError(null)} className="text-red-400/60 hover:text-red-400 ml-3">✕</button>
+        </div>
+      )}
       {/* Header */}
       <div>
         <Link
@@ -189,7 +202,7 @@ export default function StaffPage() {
   );
 }
 
-function RoleBadge({ role }: { role: string }) {
+function RoleBadge({ role }: Readonly<{ role: string }>) {
   if (role === "admin") {
     return (
       <span className="inline-flex items-center space-x-1 px-3 py-1 rounded-full bg-red-500/20 text-red-400 text-xs font-medium border border-red-500/20">

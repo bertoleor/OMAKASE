@@ -38,21 +38,13 @@ export interface ButtonProps
     VariantProps<typeof buttonVariants> {}
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, ...props }, ref) => {
-    // Basic slot support if I install radix-slot, but I can mock it if needed or just use standard button for now.
-    // I haven't installed @radix-ui/react-slot. I'll mock it or just use button.
-    // The user didn't ask for full Radix, but 'shadcn' uses it. I'll verify if I need to install it.
-    // I didn't install @radix-ui/react-slot in step 48. I'll just use 'button' element for now to avoid errors, or strictly check.
-    // I'll stick to simple button for now.
-    const Comp = "button";
-    return (
-      <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
-        ref={ref}
-        {...props}
-      />
-    );
-  },
+  ({ className, variant, size, ...props }, ref) => (
+    <button
+      className={cn(buttonVariants({ variant, size, className }))}
+      ref={ref}
+      {...props}
+    />
+  ),
 );
 Button.displayName = "Button";
 

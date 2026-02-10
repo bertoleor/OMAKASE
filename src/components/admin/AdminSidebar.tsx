@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   CalendarDays,
@@ -13,9 +13,11 @@ import {
   Menu,
   PartyPopper,
 } from "lucide-react";
+import { BUSINESS } from "@/config/business";
 import { cn } from "@/lib/utils";
 import { useAdminUIStore } from "@/store/admin-ui-store";
 import { useUserRole } from "@/hooks/useUserRole";
+import { createClient } from "@/lib/supabase/client";
 
 const menuItems = [
   {
@@ -49,16 +51,22 @@ const menuItems = [
 
 export default function AdminSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { isSidebarOpen, setSidebarOpen } = useAdminUIStore();
   const { isAdmin, loading } = useUserRole();
 
-  // Filter items based on role
   const filteredItems = menuItems.filter((item) => {
-    if (loading) return true; // Show all (or skeletons) while loading
+    if (loading) return true;
     if (item.role === "all") return true;
     if (item.role === "admin") return isAdmin;
     return true;
   });
+
+  async function handleSignOut() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.replace("/admin/login");
+  }
 
   return (
     <>
@@ -94,7 +102,7 @@ export default function AdminSidebar() {
         {/* Branding */}
         <div className="h-20 flex items-center justify-between px-6 border-b border-white/5">
           <h1 className="text-xl font-bold tracking-[0.2em] text-white whitespace-nowrap">
-            OMAKASE
+            {BUSINESS.name}
             {isAdmin && (
               <span className="text-[10px] bg-red-500 px-1 rounded ml-2 align-top">
                 ADMIN
@@ -155,11 +163,12 @@ export default function AdminSidebar() {
         {/* Footer / User */}
         <div className="p-4 border-t border-white/5">
           <button
+            onClick={handleSignOut}
             className="flex items-center w-full px-4 py-3 rounded-xl text-white/40 hover:text-red-400 hover:bg-red-500/10 transition-colors whitespace-nowrap space-x-3"
-            title="Cerrar Sesión"
+            title="Cerrar Sesion"
           >
             <LogOut className="w-5 h-5 flex-shrink-0" />
-            <span>Cerrar Sesión</span>
+            <span>Cerrar Sesion</span>
           </button>
         </div>
       </aside>

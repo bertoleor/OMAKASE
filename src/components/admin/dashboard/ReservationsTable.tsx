@@ -28,6 +28,8 @@ export default function ReservationsTable({
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [zones, setZones] = useState<Zone[]>([]);
   const [loading, setLoading] = useState(true);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [forceCompleteId, setForceCompleteId] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -84,6 +86,8 @@ export default function ReservationsTable({
       return;
     }
 
+    setForceCompleteId(bookingId);
+    setActionError(null);
     try {
       const { success, error: actionError } = await updateBookingStatus(
         bookingId,
@@ -101,11 +105,14 @@ export default function ReservationsTable({
       );
     } catch (error) {
       console.error("Error completing booking:", error);
-      alert(
+      setActionError(
         error instanceof Error
           ? error.message
           : "Error al completar la reserva",
       );
+      setTimeout(() => setActionError(null), 4000);
+    } finally {
+      setForceCompleteId(null);
     }
   };
 
@@ -126,6 +133,13 @@ export default function ReservationsTable({
 
   return (
     <div className="bg-black/30 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden">
+      {/* Error Banner */}
+      {actionError && (
+        <div className="px-4 py-3 bg-red-500/10 border-b border-red-500/20 text-red-400 text-sm flex items-center justify-between">
+          <span>{actionError}</span>
+          <button onClick={() => setActionError(null)} className="text-red-400/60 hover:text-red-400 ml-3">✕</button>
+        </div>
+      )}
       <div className="p-6 border-b border-white/10">
         <h2 className="text-xl font-bold text-white">Reservas del Día</h2>
         <p className="text-sm text-white/60 mt-1">
@@ -206,7 +220,8 @@ export default function ReservationsTable({
                   {booking.status === "seated" && (
                     <button
                       onClick={() => handleForceComplete(booking.id)}
-                      className="inline-flex items-center space-x-1 px-3 py-1.5 text-xs font-medium text-green-400 bg-green-500/10 border border-green-500/20 rounded-lg hover:bg-green-500/20 transition-colors"
+                      disabled={forceCompleteId === booking.id}
+                      className="inline-flex items-center space-x-1 px-3 py-1.5 text-xs font-medium text-green-400 bg-green-500/10 border border-green-500/20 rounded-lg hover:bg-green-500/20 transition-colors disabled:opacity-50"
                     >
                       <CheckCircle2 className="w-3 h-3" />
                       <span>Completar</span>

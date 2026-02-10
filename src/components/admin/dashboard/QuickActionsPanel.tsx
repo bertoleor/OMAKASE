@@ -51,6 +51,7 @@ export default function QuickActionsPanel({ date }: QuickActionsPanelProps) {
   const [walkInZone, setWalkInZone] = useState("");
   const [walkInName, setWalkInName] = useState("");
   const [isSubmittingWalkIn, setIsSubmittingWalkIn] = useState(false);
+  const [walkInError, setWalkInError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -178,6 +179,7 @@ export default function QuickActionsPanel({ date }: QuickActionsPanelProps) {
     if (!walkInZone) return;
 
     setIsSubmittingWalkIn(true);
+    setWalkInError(null);
     try {
       const supabase = createClient();
       const now = new Date();
@@ -205,7 +207,7 @@ export default function QuickActionsPanel({ date }: QuickActionsPanelProps) {
       setWalkInName("");
     } catch (err) {
       console.error("Error creating walk-in:", err);
-      alert("Error al crear Walk-in");
+      setWalkInError("Error al crear Walk-in. Intentá de nuevo.");
     } finally {
       setIsSubmittingWalkIn(false);
     }
@@ -391,6 +393,12 @@ export default function QuickActionsPanel({ date }: QuickActionsPanelProps) {
             </div>
 
             <div className="space-y-4">
+              {/* Walk-in Error */}
+              {walkInError && (
+                <div className="px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">
+                  {walkInError}
+                </div>
+              )}
               <div>
                 <label 
                   htmlFor="walkin-name"

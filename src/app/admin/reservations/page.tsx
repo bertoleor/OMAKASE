@@ -46,6 +46,7 @@ export default function ReservationsPage() {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   // Filters
   const [filters, setFilters] = useState({
@@ -109,6 +110,7 @@ export default function ReservationsPage() {
 
   const handleAction = async (bookingId: string, newStatus: string) => {
     setActionLoading(true);
+    setActionError(null);
     try {
       const { success, error } = await updateBookingStatus(
         bookingId,
@@ -125,11 +127,12 @@ export default function ReservationsPage() {
       }
     } catch (error) {
       console.error("Error updating booking:", error);
-      alert(
+      setActionError(
         error instanceof Error
           ? error.message
           : "Error al actualizar la reserva",
       );
+      setTimeout(() => setActionError(null), 4000);
     } finally {
       setActionLoading(false);
     }
@@ -151,6 +154,13 @@ export default function ReservationsPage() {
 
   return (
     <div className="space-y-6">
+      {/* Error Banner */}
+      {actionError && (
+        <div className="px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-center justify-between">
+          <span>{actionError}</span>
+          <button onClick={() => setActionError(null)} className="text-red-400/60 hover:text-red-400 ml-3">✕</button>
+        </div>
+      )}
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
@@ -374,7 +384,7 @@ export default function ReservationsPage() {
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status }: Readonly<{ status: string }>) {
   const config: Record<string, { bg: string; text: string }> = {
     pending: { bg: "bg-yellow-500/20", text: "text-yellow-400" },
     confirmed: { bg: "bg-blue-500/20", text: "text-blue-400" },
@@ -397,11 +407,11 @@ function QuickActions({
   booking,
   onAction,
   loading,
-}: {
+}: Readonly<{
   booking: Booking;
   onAction: (id: string, status: string) => void;
   loading: boolean;
-}) {
+}>) {
   const actions = [];
 
   if (booking.status === "pending") {

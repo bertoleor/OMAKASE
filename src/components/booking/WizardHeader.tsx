@@ -2,6 +2,7 @@
 
 import { useBookingStore } from "@/store/booking-store";
 import { ChevronLeft } from "lucide-react";
+import { BUSINESS } from "@/config/business";
 
 import { useRouter } from "next/navigation";
 
@@ -46,7 +47,7 @@ export default function WizardHeader() {
       )}
 
       {/* Logo placeholder */}
-      <h1 className="hidden">Omakase</h1>
+      <h1 className="hidden">{BUSINESS.name}</h1>
 
       {/* Breadcrumbs / Pills - Hidden on Welcome Step */}
       {currentStep > 0 && (

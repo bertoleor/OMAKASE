@@ -7,6 +7,7 @@ import {
   getResendClient,
   sendMagicLinkEmail,
 } from "@/lib/email/resend";
+import { BUSINESS } from "@/config/business";
 
 export interface StaffUser {
   id: string;
@@ -16,27 +17,27 @@ export interface StaffUser {
   last_sign_in: string | null;
 }
 
+const ADMIN_ROLES = new Set(["admin", "manager", "staff"]);
+
 /**
- * Check if the current user is an admin or staff
- */
-/**
- * Check if the current user is an admin or staff
+ * Verify the current user has admin or staff permissions.
+ * Throws if not authenticated or role is insufficient.
  */
 async function checkAdminPermission() {
-  // MOCK: Allow access without checks
-  return;
-
-  /* 
-  // Original security check - DISABLED
   const supabase = await createClient();
   const {
     data: { user },
+    error,
   } = await supabase.auth.getUser();
 
-  if (!user || (user.user_metadata?.role !== "admin" && user.user_metadata?.role !== "staff")) {
-    throw new Error("Unauthorized: Admin or Staff access required");
+  if (error || !user) {
+    throw new Error("Unauthorized: authentication required");
   }
-  */
+
+  const role = user.user_metadata?.role as string | undefined;
+  if (!role || !ADMIN_ROLES.has(role)) {
+    throw new Error("Unauthorized: admin or staff access required");
+  }
 }
 
 /**
@@ -172,9 +173,7 @@ export async function sendQuickContactEmail(
     await checkAdminPermission();
 
     const resend = getResendClient();
-    const FROM_EMAIL =
-      process.env.EMAIL_FROM ||
-      "OMAKASE Reservations <reservas@omakase.restaurant>";
+    const FROM_EMAIL = BUSINESS.emails.from;
 
     const { error } = await resend.emails.send({
       from: FROM_EMAIL,
@@ -182,12 +181,12 @@ export async function sendQuickContactEmail(
       subject,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #000; color: #fff; border-radius: 12px; border: 1px solid #333;">
-          <h1 style="text-align: center; color: #fff; letter-spacing: 2px;">OMAKASE</h1>
+          <h1 style="text-align: center; color: #fff; letter-spacing: 2px;">${BUSINESS.name}</h1>
           <p>Hola ${customerName},</p>
           <div style="background: #111; padding: 20px; border-radius: 8px; border: 1px solid #222; margin: 20px 0;">
             <p style="margin: 0; line-height: 1.6;">${message}</p>
           </div>
-          <p style="color: #666; font-size: 12px; text-align: center;">Este es un mensaje directo del equipo de OMAKASE.</p>
+          <p style="color: #666; font-size: 12px; text-align: center;">Este es un mensaje directo del equipo de ${BUSINESS.name}.</p>
         </div>
       `,
     });
@@ -199,7 +198,7 @@ export async function sendQuickContactEmail(
     console.error("Error sending quick contact email:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: "No se pudo enviar el mensaje. Intente nuevamente.",
     };
   }
 }
@@ -235,6 +234,7 @@ export async function sendAuthMagicLink(email: string, redirectTo: string) {
     console.error("Error in sendAuthMagicLink:", error);
     const errorMsg =
       error instanceof Error ? error.message : "Error desconocido";
-    return { success: false, error: errorMsg || "Error al enviar el enlace." };
+    console.error("sendAuthMagicLink detail:", errorMsg);
+    return { success: false, error: "No se pudo enviar el enlace. Intente nuevamente." };
   }
 }

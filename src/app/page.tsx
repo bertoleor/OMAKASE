@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Calendar, Clock, MapPin, Phone, ArrowRight, Star } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import Footer from "@/components/Footer";
+import { BUSINESS } from "@/config/business";
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -14,7 +15,7 @@ export default async function HomePage() {
   const closeTime = settings?.closing_time || "00:00";
   const address = settings?.address || "Av. del Libertador 1234, Palermo";
   const phone = settings?.contact_phone || "+54 11 1234-5678";
-  const email = settings?.contact_email || "reservas@omakase.restaurant";
+  const email = settings?.contact_email || BUSINESS.emails.reservations;
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -29,7 +30,7 @@ export default async function HomePage() {
           {/* Glass Card for readability */}
           <div className="bg-black/20 backdrop-blur-lg border border-white/5 rounded-[3rem] p-10 md:p-14 shadow-2xl">
             <h1 className="text-5xl md:text-7xl font-light tracking-[0.2em] mb-6 text-white uppercase">
-              OMAKASE
+              {BUSINESS.name}
             </h1>
             <p className="text-lg md:text-xl text-white/90 font-light tracking-widest mb-8 uppercase">
               Experiencia gastronómica única

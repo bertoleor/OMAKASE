@@ -43,6 +43,7 @@ export default function ZonesPage() {
   const [editingZone, setEditingZone] = useState<Zone | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   // Form state for new/edit zone
   const [formData, setFormData] = useState({
@@ -123,6 +124,7 @@ export default function ZonesPage() {
     if (!formData.name || !formData.slug) return;
 
     setSaving(true);
+    setActionError(null);
     try {
       const supabase = createClient();
 
@@ -156,7 +158,8 @@ export default function ZonesPage() {
       handleCancel();
     } catch (error) {
       console.error("Error saving zone:", error);
-      alert("Error al guardar la zona");
+      setActionError("Error al guardar la zona");
+      setTimeout(() => setActionError(null), 4000);
     } finally {
       setSaving(false);
     }
@@ -178,7 +181,8 @@ export default function ZonesPage() {
       await fetchZones();
     } catch (error) {
       console.error("Error deleting zone:", error);
-      alert("Error al eliminar la zona");
+      setActionError("Error al eliminar la zona");
+      setTimeout(() => setActionError(null), 4000);
     }
   };
 
@@ -207,6 +211,13 @@ export default function ZonesPage() {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
+      {/* Error Banner */}
+      {actionError && (
+        <div className="px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-center justify-between">
+          <span>{actionError}</span>
+          <button onClick={() => setActionError(null)} className="text-red-400/60 hover:text-red-400 ml-3">✕</button>
+        </div>
+      )}
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>

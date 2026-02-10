@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { BUSINESS } from "@/config/business";
 
 interface Reservation {
   id: string;
@@ -81,9 +82,9 @@ export default function ReservationDetailPage() {
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
 
   useEffect(() => {
-    checkAuthAndFetch();
     checkAuthAndFetch();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -152,7 +153,8 @@ export default function ReservationDetailPage() {
       setShowCancelConfirm(false);
     } catch (err) {
       console.error("Error cancelling:", err);
-      alert("Error al cancelar. Por favor intenta de nuevo.");
+      setCancelError("Error al cancelar. Por favor intentá de nuevo.");
+      setTimeout(() => setCancelError(null), 4000);
     } finally {
       setCancelling(false);
     }
@@ -166,13 +168,13 @@ export default function ReservationDetailPage() {
     );
     const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000); // 2 hours
 
-    const formatDate = (d: Date) => d.toISOString().replace(/-|:|\.\d{3}/g, "");
+    const formatDate = (d: Date) => d.toISOString().replaceAll(/-|:|\.\d{3}/g, "");
 
     const event = {
-      text: `Reserva en OMAKASE - ${reservation.pax} personas`,
+      text: `Reserva en ${BUSINESS.name} - ${reservation.pax} personas`,
       dates: `${formatDate(startDate)}/${formatDate(endDate)}`,
-      details: `Tu reserva en OMAKASE restaurante para ${reservation.pax} personas.`,
-      location: "OMAKASE Restaurant",
+      details: `Tu reserva en ${BUSINESS.location} para ${reservation.pax} personas.`,
+      location: BUSINESS.location,
     };
 
     const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.text)}&dates=${event.dates}&details=${encodeURIComponent(event.details)}&location=${encodeURIComponent(event.location)}`;
@@ -237,6 +239,12 @@ export default function ReservationDetailPage() {
       </header>
 
       <main className="max-w-md mx-auto px-4 py-8 sm:py-12 space-y-6 relative z-10">
+        {/* Error Banner */}
+        {cancelError && (
+          <div className="px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">
+            {cancelError}
+          </div>
+        )}
         {/* Main Glasscard Card */}
         <div className="bg-white/[0.02] backdrop-blur-[40px] border border-white/10 rounded-[2rem] p-6 sm:p-10 shadow-2xl relative overflow-hidden">
           {/* Subtle Inner Glow */}
@@ -350,7 +358,7 @@ export default function ReservationDetailPage() {
         <div className="text-center pt-8">
           <p className="text-[10px] text-white/20 uppercase tracking-[0.3em]">
             ¿Necesitas ayuda?{" "}
-            <span className="text-white/40">soporte@omakase.restaurant</span>
+            <span className="text-white/40">{BUSINESS.emails.support}</span>
           </p>
         </div>
       </main>
@@ -361,6 +369,10 @@ export default function ReservationDetailPage() {
           <div
             className="absolute inset-0 bg-black/80 backdrop-blur-md"
             onClick={() => setShowCancelConfirm(false)}
+            onKeyDown={(e) => { if (e.key === 'Escape') setShowCancelConfirm(false); }}
+            role="button"
+            tabIndex={0}
+            aria-label="Cerrar diálogo"
           />
           <div className="relative bg-white/[0.03] backdrop-blur-[32px] border border-white/10 rounded-[32px] p-8 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-300">
             <div className="text-center">

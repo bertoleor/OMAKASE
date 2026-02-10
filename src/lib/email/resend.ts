@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { BUSINESS } from "@/config/business";
 
 // Lazy initialize Resend client to avoid build-time errors
 let resend: Resend | null = null;
@@ -15,9 +16,7 @@ export function getResendClient(): Resend {
 }
 
 // Email sender
-const FROM_EMAIL =
-  process.env.EMAIL_FROM ||
-  "OMAKASE Reservations <reservas@omakase.restaurant>";
+const FROM_EMAIL = BUSINESS.emails.from;
 
 export interface EmailData {
   to: string;
@@ -48,7 +47,7 @@ export async function sendConfirmationEmail(
           </head>
           <body style="font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #0a0a0a; color: #ffffff; margin: 0; padding: 40px 20px;">
             <div style="max-width: 600px; margin: 0 auto; background: linear-gradient(145deg, rgba(30,30,30,0.8), rgba(20,20,20,0.9)); border-radius: 16px; padding: 40px; border: 1px solid rgba(255,255,255,0.1);">
-              <h1 style="text-align: center; font-size: 32px; letter-spacing: 0.2em; margin-bottom: 30px; color: #ffffff;">OMAKASE</h1>
+              <h1 style="text-align: center; font-size: 32px; letter-spacing: 0.2em; margin-bottom: 30px; color: #ffffff;">${BUSINESS.name}</h1>
               
               <div style="text-align: center; padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
                 <p style="color: #22c55e; font-size: 14px; text-transform: uppercase; letter-spacing: 0.1em; margin: 0;">Reserva Confirmada</p>
@@ -130,7 +129,7 @@ export async function sendReminderEmail(
           </head>
           <body style="font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #0a0a0a; color: #ffffff; margin: 0; padding: 40px 20px;">
             <div style="max-width: 600px; margin: 0 auto; background: linear-gradient(145deg, rgba(30,30,30,0.8), rgba(20,20,20,0.9)); border-radius: 16px; padding: 40px; border: 1px solid rgba(255,255,255,0.1);">
-              <h1 style="text-align: center; font-size: 32px; letter-spacing: 0.2em; margin-bottom: 30px; color: #ffffff;">OMAKASE</h1>
+              <h1 style="text-align: center; font-size: 32px; letter-spacing: 0.2em; margin-bottom: 30px; color: #ffffff;">${BUSINESS.name}</h1>
               
               <div style="text-align: center; padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
                 <p style="color: #3b82f6; font-size: 14px; text-transform: uppercase; letter-spacing: 0.1em; margin: 0;">📅 Recordatorio de Reserva</p>
@@ -194,7 +193,7 @@ export async function sendCancellationEmail(
           </head>
           <body style="font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #0a0a0a; color: #ffffff; margin: 0; padding: 40px 20px;">
             <div style="max-width: 600px; margin: 0 auto; background: linear-gradient(145deg, rgba(30,30,30,0.8), rgba(20,20,20,0.9)); border-radius: 16px; padding: 40px; border: 1px solid rgba(255,255,255,0.1);">
-              <h1 style="text-align: center; font-size: 32px; letter-spacing: 0.2em; margin-bottom: 30px; color: #ffffff;">OMAKASE</h1>
+              <h1 style="text-align: center; font-size: 32px; letter-spacing: 0.2em; margin-bottom: 30px; color: #ffffff;">${BUSINESS.name}</h1>
               
               <div style="text-align: center; padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
                 <p style="color: #ef4444; font-size: 14px; text-transform: uppercase; letter-spacing: 0.1em; margin: 0;">Reserva Cancelada</p>
@@ -213,7 +212,7 @@ export async function sendCancellationEmail(
               
               <div style="text-align: center; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
                 <p style="color: rgba(255,255,255,0.4); font-size: 12px; margin: 0;">
-                  Esperamos verte pronto en OMAKASE.
+                  Esperamos verte pronto en ${BUSINESS.name}.
                 </p>
               </div>
             </div>
@@ -246,7 +245,7 @@ export async function sendMagicLinkEmail(
     const { error } = await getResendClient().emails.send({
       from: FROM_EMAIL,
       to,
-      subject: "Acceso a Mis Reservas - OMAKASE",
+      subject: `Acceso a Mis Reservas - ${BUSINESS.name}`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -256,7 +255,7 @@ export async function sendMagicLinkEmail(
           </head>
           <body style="font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #0a0a0a; color: #ffffff; margin: 0; padding: 40px 20px;">
             <div style="max-width: 600px; margin: 0 auto; background: linear-gradient(145deg, rgba(30,30,30,0.8), rgba(20,20,20,0.9)); border-radius: 16px; padding: 40px; border: 1px solid rgba(255,255,255,0.1);">
-              <h1 style="text-align: center; font-size: 32px; letter-spacing: 0.2em; margin-bottom: 30px; color: #ffffff;">OMAKASE</h1>
+              <h1 style="text-align: center; font-size: 32px; letter-spacing: 0.2em; margin-bottom: 30px; color: #ffffff;">${BUSINESS.name}</h1>
               
               <div style="text-align: center; padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
                 <p style="color: #ffffff; font-size: 14px; text-transform: uppercase; letter-spacing: 0.1em; margin: 0;">Enlace de Acceso</p>

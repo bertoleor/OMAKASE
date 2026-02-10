@@ -7,6 +7,7 @@ import { useState, useTransition } from "react";
 import { Calendar, Clock, Users, MapPin, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { BUSINESS } from "@/config/business";
 
 export default function ConfirmationStep() {
   const router = useRouter();
@@ -72,16 +73,8 @@ export default function ConfirmationStep() {
   };
 
   const getZoneName = (zone?: string) => {
-    switch (zone) {
-      case "indoor-tables":
-        return "Interior - Mesas";
-      case "indoor-bar":
-        return "Barra Omakase";
-      case "outdoor-pergola":
-        return "Exterior - Pérgola";
-      default:
-        return "No especificada";
-    }
+    if (!zone) return "No especificada";
+    return BUSINESS.zones[zone] || "No especificada";
   };
 
   if (isSuccess) {

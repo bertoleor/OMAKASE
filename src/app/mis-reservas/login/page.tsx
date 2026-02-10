@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { sendAuthMagicLink } from "@/app/actions/admin";
+import { BUSINESS } from "@/config/business";
 
 export default function MyReservationsLoginPage() {
   const [email, setEmail] = useState("");
@@ -44,7 +45,7 @@ export default function MyReservationsLoginPage() {
         {/* Logo */}
         <div className="text-center mb-12">
           <h1 className="text-4xl lg:text-5xl font-light tracking-[0.2em] text-white">
-            OMAKASE
+            {BUSINESS.name}
           </h1>
         </div>
 

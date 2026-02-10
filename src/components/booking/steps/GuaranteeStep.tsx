@@ -367,26 +367,36 @@ export default function GuaranteeStep() {
     );
   };
 
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
   const handleContinue = () => {
-    if (!allValid) return;
+    if (!allValid || submitting) return;
+
+    setSubmitting(true);
+    setSubmitError(null);
 
     startTransition(async () => {
-      // Mock Tokenization - In a real world this would hit Stripe/MercadoPago
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      const mockToken = `tok_${Date.now()}`;
-      const cardLastFour = paymentData.cardNumber
-        .replaceAll(/\s/g, "")
-        .slice(-4);
+      try {
+        const cardLastFour = paymentData.cardNumber
+          .replaceAll(/\s/g, "")
+          .slice(-4);
 
-      // Save token to store and move to Confirmation Step
-      updateDraft({
-        paymentToken: mockToken,
-        cardBrand: cardBrand,
-        cardLastFour: cardLastFour,
-        customerDni: paymentData.customerDni,
-      });
+        // TODO: Replace with real payment provider (Stripe / MercadoPago)
+        // when NEXT_PUBLIC_PAYMENT_PROVIDER is configured.
+        // For now, store card reference without tokenization.
+        updateDraft({
+          cardBrand: cardBrand,
+          cardLastFour: cardLastFour,
+          customerDni: paymentData.customerDni,
+        });
 
-      setStep(8); // Proceed to Confirmation (Step 8)
+        setStep(8);
+      } catch (e) {
+        console.error("Payment processing error:", e);
+        setSubmitError("No pudimos procesar tu pago. Intenta nuevamente.");
+        setSubmitting(false);
+      }
     });
   };
 
@@ -558,6 +568,13 @@ export default function GuaranteeStep() {
         </p>
       </div>
 
+      {/* Error Banner */}
+      {submitError && (
+        <div className="p-3 rounded-xl border border-red-500/30 bg-red-500/10 text-red-300 text-sm text-center">
+          {submitError}
+        </div>
+      )}
+
       {/* Footer */}
       <div className="flex items-center justify-center gap-4">
         <button
@@ -569,10 +586,10 @@ export default function GuaranteeStep() {
         </button>
         <Button
           onClick={handleContinue}
-          disabled={isPending || !allValid}
+          disabled={isPending || submitting || !allValid}
           className="px-16 py-6 bg-white/5 text-white border border-white/20 hover:bg-white hover:text-black hover:border-white transition-all duration-300 uppercase tracking-wider disabled:opacity-30 disabled:hover:bg-white/5 disabled:hover:text-white h-14 rounded-full"
         >
-          {isPending ? (
+          {isPending || submitting ? (
             <>
               <Loader2 className="w-5 h-5 mr-2 animate-spin" />
               Procesando...

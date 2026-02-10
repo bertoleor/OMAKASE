@@ -2,6 +2,7 @@
 
 import { Fragment, useState } from "react";
 import { sendQuickContactEmail } from "@/app/actions/admin";
+import { BUSINESS } from "@/config/business";
 import {
   X,
   Clock,
@@ -106,6 +107,7 @@ export default function ReservationDetail({
   const [contactSubject, setContactSubject] = useState("");
   const [contactMessage, setContactMessage] = useState("");
   const [isSendingContact, setIsSendingContact] = useState(false);
+  const [contactFeedback, setContactFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   if (!booking) return null;
 
@@ -117,7 +119,7 @@ export default function ReservationDetail({
     try {
       const subject =
         contactSubject ||
-        `OMAKASE - Referente a tu reserva del ${booking.booking_date}`;
+        `${BUSINESS.name} - Referente a tu reserva del ${booking.booking_date}`;
       const { success, error } = await sendQuickContactEmail(
         booking.customer_email,
         subject,
@@ -127,15 +129,19 @@ export default function ReservationDetail({
 
       if (!success) throw new Error(error);
 
-      alert("Email enviado con éxito");
-      setShowContactModal(false);
-      setContactMessage("");
-      setContactSubject("");
+      setContactFeedback({ type: "success", message: "Email enviado con éxito" });
+      setTimeout(() => {
+        setShowContactModal(false);
+        setContactMessage("");
+        setContactSubject("");
+        setContactFeedback(null);
+      }, 1500);
     } catch (error) {
       console.error("Error sending contact email:", error);
-      alert(
-        error instanceof Error ? error.message : "Error al enviar el email",
-      );
+      setContactFeedback({
+        type: "error",
+        message: error instanceof Error ? error.message : "Error al enviar el email",
+      });
     } finally {
       setIsSendingContact(false);
     }
@@ -477,7 +483,7 @@ export default function ReservationDetail({
                   type="text"
                   value={contactSubject}
                   onChange={(e) => setContactSubject(e.target.value)}
-                  placeholder="OMAKASE - Información sobre su reserva"
+                  placeholder={`${BUSINESS.name} - Información sobre su reserva`}
                   className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white focus:border-blue-500 focus:outline-none placeholder:text-white/20"
                 />
               </div>
@@ -500,6 +506,17 @@ export default function ReservationDetail({
                 />
               </div>
             </div>
+
+            {/* Feedback Banner */}
+            {contactFeedback && (
+              <div className={`px-4 py-3 rounded-xl text-sm ${
+                contactFeedback.type === "success"
+                  ? "bg-green-500/10 border border-green-500/20 text-green-400"
+                  : "bg-red-500/10 border border-red-500/20 text-red-400"
+              }`}>
+                {contactFeedback.message}
+              </div>
+            )}
 
             <div className="flex gap-3 pt-2">
               <button

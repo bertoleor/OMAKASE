@@ -11,9 +11,10 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
+import { BUSINESS } from "@/config/business";
 
 export const metadata: Metadata = {
-  title: "Reservas Omakase",
+  title: BUSINESS.metaTitle,
   description: "Experiencia Premium de Sushi",
 };
 

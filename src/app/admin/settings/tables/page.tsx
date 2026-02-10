@@ -84,6 +84,7 @@ export default function TablesPage() {
   const [editingTable, setEditingTable] = useState<Table | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [formData, setFormData] = useState<FormData>(defaultFormData);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -149,6 +150,7 @@ export default function TablesPage() {
     if (!formData.name || !formData.zone_id) return;
 
     setSaving(true);
+    setActionError(null);
     try {
       const supabase = createClient();
 
@@ -171,7 +173,8 @@ export default function TablesPage() {
       handleCancel();
     } catch (error) {
       console.error("Error saving table:", error);
-      alert("Error al guardar la mesa");
+      setActionError("Error al guardar la mesa");
+      setTimeout(() => setActionError(null), 4000);
     } finally {
       setSaving(false);
     }
@@ -194,7 +197,8 @@ export default function TablesPage() {
       await fetchData();
     } catch (error) {
       console.error("Error deleting table:", error);
-      alert("Error al eliminar la mesa");
+      setActionError("Error al eliminar la mesa");
+      setTimeout(() => setActionError(null), 4000);
     }
   };
 
@@ -235,6 +239,13 @@ export default function TablesPage() {
 
   return (
     <div className="space-y-6">
+      {/* Error Banner */}
+      {actionError && (
+        <div className="px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-center justify-between">
+          <span>{actionError}</span>
+          <button onClick={() => setActionError(null)} className="text-red-400/60 hover:text-red-400 ml-3">✕</button>
+        </div>
+      )}
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
@@ -356,8 +367,8 @@ export default function TablesPage() {
 
             {/* Shape */}
             <div>
-              <label className="block text-sm text-white/60 mb-1">Forma</label>
-              <div className="flex gap-2">
+              <span className="block text-sm text-white/60 mb-1">Forma</span>
+              <fieldset className="flex gap-2" aria-label="Forma de la mesa">
                 {(["square", "rectangle", "circle"] as const).map((shape) => (
                   <button
                     key={shape}
@@ -372,7 +383,7 @@ export default function TablesPage() {
                     {shapeIcon(shape)}
                   </button>
                 ))}
-              </div>
+              </fieldset>
             </div>
 
             {/* Position X */}
@@ -506,7 +517,7 @@ export default function TablesPage() {
               <div
                 key={table.id}
                 className={`p-4 flex items-center justify-between hover:bg-white/5 transition-colors ${
-                  !table.is_active ? "opacity-50" : ""
+                  table.is_active ? "" : "opacity-50"
                 }`}
               >
                 <div className="flex items-center gap-4">
