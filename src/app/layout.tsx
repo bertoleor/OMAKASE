@@ -15,7 +15,7 @@ import { BUSINESS } from "@/config/business";
 
 export const metadata: Metadata = {
   title: BUSINESS.metaTitle,
-  description: "Experiencia Premium de Sushi",
+  description: BUSINESS.description,
 };
 
 export default function RootLayout({

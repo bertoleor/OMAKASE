@@ -55,7 +55,6 @@ const ValidationIndicator = ({
 
   return (
     <AnimatePresence mode="wait">
-      {/* Success Check removed as per user request */}
       {!validation.isPotentiallyValid && (
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
@@ -132,8 +131,8 @@ export default function AuthStep() {
         handleSubmit();
       }
     };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    globalThis.addEventListener("keydown", handleKeyDown);
+    return () => globalThis.removeEventListener("keydown", handleKeyDown);
   }, [allValid, handleSubmit]);
 
   const handleBlur = (field: string) => {
@@ -147,7 +146,6 @@ export default function AuthStep() {
     let borderClass = "border-white/10";
     let ringClass = "";
 
-    // Success state mostly silent now (no green border)
     // Only show error state
     if (isTouched && !validation.isPotentiallyValid) {
       borderClass = "border-red-500/50";
@@ -159,7 +157,7 @@ export default function AuthStep() {
       "placeholder:text-white/20",
       "focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20",
       "transition-all duration-300 font-light",
-      // Autofill hack to keep background dark
+      // Style autofill to match dark theme
       "autofill:bg-transparent autofill:text-white selection:bg-white/20",
       "[&:-webkit-autofill]:bg-transparent [&:-webkit-autofill]:text-white [&:-webkit-autofill]:transition-all [&:-webkit-autofill]:duration-[5000s]",
       "[&:-webkit-autofill]:[-webkit-text-fill-color:white !important]",

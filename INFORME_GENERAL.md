@@ -127,14 +127,17 @@ Experiencia fluida para el usuario final.
 
 El proyecto se encuentra en una fase **avanzada, estable y optimizada**.
 
-- ✅ **Seguridad Robusta:** Implementación de RBAC (Role-Based Access Control) protegiendo configuración y datos sensibles.
-- ✅ **Operativa Real-Time:** Soporte completo para Walk-ins, Liberación Manual de mesas y sincronización instantánea.
-- ✅ **Calidad de Código (Auditoría Stricta):**
-  - **Zero Inline Styles:** Se han eliminado los atributos `style` en JSX, migrando a variables CSS dinámicas gestionadas por `refs`.
-  - **Accesibilidad:** Cumplimiento con estándares `aria-label`, `htmlFor` y navegación semántica.
-  - **Tipado Estricto:** Props de componentes marcadas como `readonly` y eliminación de tipos `any`.
-- ✅ **Refinamiento UI/UX:** Interfaz de cliente premium con estética Glasscard consistente y libre de mockups.
-- ✅ **Clean Code:** Extracción de lógica compleja de renderizado a funciones auxiliares descriptivas.
-- ✅ **Optimizado:** Configuración de build optimizada para producción con enfoque en rendimiento.
+- ✅ **Seguridad Blindada (Hardened):**
+  - **Middleware Activo:** Protección de servidor real habilitada (`middleware.ts`).
+  - **Política Fail Closed:** Bloqueo automático (503) ante fallos de configuración.
+  - **Manejo de Errores:** Autenticación robusta con `try/catch` para evitar crashes.
+- ✅ **Centralización y Escalabilidad:**
+  - **Single Source of Truth:** `src/config/business.ts` centraliza toda la info del negocio (Tel, Dirección, Redes).
+  - **Mantenibilidad:** Eliminación de valores hardcodeados en componentes.
+- ✅ **Calidad de Código (Auditoría Senior):**
+  - **Zero Inline Styles:** Migración a CSS variables / Tailwind.
+  - **Zero Warnings:** Resolución total de linter warnings (incluyendo deprecaciones).
+  - **Accesibilidad:** Componentes nativos y semántico (A11y).
+  - **Optimizado:** Configuración de build lista para producción.
 
-Este sistema representa una solución sólida y escalable para la gestión de reservas, lista para su despliegue y operación.
+Este sistema representa una solución sólida, segura y escalable, lista para su despliegue.

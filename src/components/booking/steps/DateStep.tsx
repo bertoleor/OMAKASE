@@ -56,23 +56,21 @@ export default function DateStep() {
     {},
   );
   const [visibleMonth, setVisibleMonth] = useState("");
+  const [prevDate, setPrevDate] = useState(draftBooking.date);
 
   // Use settings or default to 30 days
   const maxAdvanceDays = settings?.max_advance_days || 30;
   const days = useMemo(() => generateDays(maxAdvanceDays), [maxAdvanceDays]);
 
-  // Initialize visible month
-  useEffect(() => {
-    if (days.length > 0) {
-      const targetDay =
-        days.find((d) => d.date === draftBooking.date) || days[0];
-      const newLabel = `${targetDay.month}. ${targetDay.year}`;
-      if (visibleMonth !== newLabel) {
-        setVisibleMonth(newLabel);
-      }
+  // Sync visible month with selected date (Render-time update pattern)
+  if (draftBooking.date !== prevDate) {
+    setPrevDate(draftBooking.date);
+    const targetDay = days.find((d) => d.date === draftBooking.date) || days[0];
+    const newLabel = `${targetDay.month}. ${targetDay.year}`;
+    if (visibleMonth !== newLabel) {
+      setVisibleMonth(newLabel);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [days, draftBooking.date]);
+  }
 
   // Fetch blocked dates on mount
   useEffect(() => {

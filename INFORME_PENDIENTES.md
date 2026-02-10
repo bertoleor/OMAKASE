@@ -27,11 +27,24 @@
   - [x] Lógica de recordatorios y confirmaciones automática en DB.
   - [ ] Integración final de API de envío para notificaciones transaccionales.
 
-## 3. Próximos Pasos (Estrategia)
+## 3. Auditoría de Seguridad y Mantenimiento (Recién Completado)
+
+- [x] **Seguridad (Hardening):**
+  - [x] **Middleware Activo:** Renombrado y activado.
+  - [x] **Fail Closed:** Implementado bloqueo ante falta de env vars.
+  - [x] **Safe Auth:** Manejo de errores de red en autenticación.
+- [x] **Centralización:**
+  - [x] Configuración centralizada en `src/config/business.ts`.
+  - [x] Refactor de Footer y Layouts.
+- [x] **Limpieza de Código:**
+  - [x] Resolución de warnings de iconos depreciados (SVG Nativos).
+  - [x] Eliminación de código muerto y comentarios.
+
+## 4. Próximos Pasos (Estrategia)
 
 - [x] **Seguridad (RBAC):** Sistema de roles y permisos 100% operativo.
 - [ ] **Idiomas (i18n):** Traducción a Inglés y Portugués para comensales extranjeros.
 - [/] **Pagos (MercadoPago):**
   - [x] Interfaz de validación de tarjetas integrada.
   - [ ] Procesamiento real de señas y reembolsos automáticos.
-- [ ] **Optimización de Build:** Resolución de conflictos WASM en entorno de compilación local.
+- [ ] **Optimización de Build:** Resolución de conflictos WASM (Entorno local).

@@ -13,8 +13,8 @@ export default async function HomePage() {
 
   const openTime = settings?.opening_time || "20:00";
   const closeTime = settings?.closing_time || "00:00";
-  const address = settings?.address || "Av. del Libertador 1234, Palermo";
-  const phone = settings?.contact_phone || "+54 11 1234-5678";
+  const address = settings?.address || BUSINESS.address;
+  const phone = settings?.contact_phone || BUSINESS.phone;
   const email = settings?.contact_email || BUSINESS.emails.reservations;
 
   return (

@@ -251,7 +251,7 @@ const formatDNI = (value: string): string => {
   // Format with dots: XX.XXX.XXX
   return new Intl.NumberFormat("es-AR")
     .format(Number(truncated))
-    .replace(/,/g, ".");
+    .replaceAll(",", ".");
 };
 
 // Validation Indicator
@@ -359,7 +359,7 @@ export default function GuaranteeStep() {
       "placeholder:text-white/20",
       "focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20",
       "transition-all duration-300 font-light",
-      // Autofill hack
+      // Style autofill to match dark theme
       "[&:-webkit-autofill]:bg-transparent [&:-webkit-autofill]:text-white [&:-webkit-autofill]:transition-all [&:-webkit-autofill]:duration-[5000s]",
       "[&:-webkit-autofill]:[-webkit-text-fill-color:white !important]",
       borderClass,
@@ -382,9 +382,8 @@ export default function GuaranteeStep() {
           .replaceAll(/\s/g, "")
           .slice(-4);
 
-        // TODO: Replace with real payment provider (Stripe / MercadoPago)
-        // when NEXT_PUBLIC_PAYMENT_PROVIDER is configured.
-        // For now, store card reference without tokenization.
+        // NOTE: Integrate payment provider (Stripe/MercadoPago)
+        // Storing card reference without tokenization for now.
         updateDraft({
           cardBrand: cardBrand,
           cardLastFour: cardLastFour,
@@ -546,16 +545,20 @@ export default function GuaranteeStep() {
       </div>
 
       {/* Terms */}
-      <div
-        onClick={() => setPolicyAccepted(!policyAccepted)}
-        className="flex items-start gap-3 p-4 rounded-xl border border-white/10 bg-white/5 cursor-pointer hover:bg-white/10 transition-colors group"
-      >
+      {/* Terms */}
+      <label className="flex items-start gap-3 p-4 rounded-xl border border-white/10 bg-white/5 cursor-pointer hover:bg-white/10 transition-colors group relative">
+        <input
+          type="checkbox"
+          checked={policyAccepted}
+          onChange={(e) => setPolicyAccepted(e.target.checked)}
+          className="peer sr-only"
+        />
         <div
           className={`mt-0.5 w-5 h-5 rounded-md border flex items-center justify-center transition-all ${
             policyAccepted
               ? "bg-white border-white text-black"
               : "border-white/30 group-hover:border-white/50"
-          }`}
+          } peer-focus:ring-1 peer-focus:ring-white/30`}
         >
           {policyAccepted && <Check className="w-3.5 h-3.5" strokeWidth={3} />}
         </div>
@@ -566,7 +569,7 @@ export default function GuaranteeStep() {
           </span>{" "}
           de la política de reembolso y cancelación.
         </p>
-      </div>
+      </label>
 
       {/* Error Banner */}
       {submitError && (

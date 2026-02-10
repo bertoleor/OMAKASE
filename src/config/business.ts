@@ -13,6 +13,9 @@ export const BUSINESS = {
   /** SEO / metadata title */
   metaTitle: "Reservas Omakase",
 
+  /** SEO / metadata description */
+  description: "Experiencia Premium de Sushi",
+
   /** Tagline shown in the footer */
   tagline: "Experience",
 
@@ -26,9 +29,16 @@ export const BUSINESS = {
       "OMAKASE Reservations <reservas@omakase.restaurant>",
   },
 
+  /** Contact Phone (Fallback) */
+  phone: "+54 11 1234-5678",
+
+  /** Physical Address (Fallback) */
+  address: "Av. del Libertador 1234, Palermo",
+
   /** Social media URLs */
   social: {
     instagram: "https://instagram.com/omakase",
+    facebook: "https://facebook.com/omakase",
     whatsapp: "+54 9 11 0000 0000",
   },
 

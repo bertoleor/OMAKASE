@@ -1,17 +1,18 @@
-import { Mail, Phone, Facebook, Instagram } from "lucide-react";
+import { Mail, Phone } from "lucide-react";
+import { FacebookIcon, InstagramIcon } from "@/components/icons/SocialIcons";
 import type { Settings } from "@/types/settings";
 import { BUSINESS } from "@/config/business";
 
 interface FooterProps {
-  settings: Settings | null;
+  readonly settings: Settings | null;
 }
 
 export default function Footer({ settings }: FooterProps) {
   const currentYear = new Date().getFullYear();
   const contactEmail = settings?.contact_email || BUSINESS.emails.reservations;
-  const contactPhone = settings?.contact_phone || "+54 11 1234-5678";
-  const instagramUrl = settings?.social_instagram || "https://instagram.com";
-  const facebookUrl = settings?.social_facebook;
+  const contactPhone = settings?.contact_phone || BUSINESS.phone;
+  const instagramUrl = settings?.social_instagram || BUSINESS.social.instagram;
+  const facebookUrl = settings?.social_facebook || BUSINESS.social.facebook;
 
   return (
     <footer className="py-12 px-6 border-t border-white/10 bg-black text-white">
@@ -32,7 +33,7 @@ export default function Footer({ settings }: FooterProps) {
             <Mail className="w-5 h-5" />
           </a>
           <a
-            href={`tel:${contactPhone.replace(/\s/g, "")}`}
+            href={`tel:${contactPhone.replaceAll(/\s/g, "")}`}
             className="text-white/60 hover:text-white transition-colors"
             aria-label="Teléfono"
           >
@@ -46,7 +47,7 @@ export default function Footer({ settings }: FooterProps) {
               className="text-white/60 hover:text-white transition-colors"
               aria-label="Instagram"
             >
-              <Instagram className="w-5 h-5" />
+              <InstagramIcon className="w-5 h-5" />
             </a>
           )}
           {facebookUrl && (
@@ -57,7 +58,7 @@ export default function Footer({ settings }: FooterProps) {
               className="text-white/60 hover:text-white transition-colors"
               aria-label="Facebook"
             >
-              <Facebook className="w-5 h-5" />
+              <FacebookIcon className="w-5 h-5" />
             </a>
           )}
         </div>
