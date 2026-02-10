@@ -404,7 +404,7 @@ export default function EventsPage() {
             {/* Event Type */}
             <div>
               <span className="block text-sm text-white/60 mb-1">Tipo</span>
-              <div className="flex gap-2" role="group" aria-label="Tipo de evento">
+              <fieldset className="flex gap-2" aria-label="Tipo de evento">
                 {(
                   Object.keys(EVENT_TYPES) as Array<keyof typeof EVENT_TYPES>
                 ).map((type) => {
@@ -427,7 +427,7 @@ export default function EventsPage() {
                     </button>
                   );
                 })}
-              </div>
+              </fieldset>
             </div>
 
             {/* Date */}
@@ -562,7 +562,7 @@ export default function EventsPage() {
               <span className="block text-sm text-white/60 mb-1">
                 Zonas Habilitadas
               </span>
-              <div className="flex flex-wrap gap-2" role="group" aria-label="Zonas habilitadas">
+              <fieldset className="flex flex-wrap gap-2" aria-label="Zonas habilitadas">
                 {zones.map((zone) => (
                   <button
                     key={zone.id}
@@ -577,7 +577,7 @@ export default function EventsPage() {
                     {zone.name}
                   </button>
                 ))}
-              </div>
+              </fieldset>
             </div>
 
             {/* Blocks Regular Bookings */}
