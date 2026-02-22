@@ -1,18 +1,23 @@
 import { Resend } from "resend";
 import { BUSINESS } from "@/config/business";
 
-// Lazy initialize Resend client to avoid build-time errors
-let resend: Resend | null = null;
+/**
+ * Lazy initialize Resend client to avoid build-time errors.
+ * Re-using a single instance improves performance.
+ */
+let resendInstance: Resend | null = null;
 
 export function getResendClient(): Resend {
-  if (!resend) {
-    const apiKey = process.env.RESEND_API_KEY;
-    if (!apiKey) {
-      throw new Error("RESEND_API_KEY environment variable is not set");
-    }
-    resend = new Resend(apiKey);
+  if (resendInstance) return resendInstance;
+
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.error("[Resend] Critical error: RESEND_API_KEY is not defined in environment.");
+    throw new Error("RESEND_API_KEY environment variable is not set");
   }
-  return resend;
+
+  resendInstance = new Resend(apiKey);
+  return resendInstance;
 }
 
 // Email sender
@@ -95,17 +100,15 @@ export async function sendConfirmationEmail(
     });
 
     if (error) {
-      console.error("Resend error:", error);
+      console.error(`[Resend] Failed to send confirmation email to ${data.to}:`, error);
       return { success: false, error: error.message };
     }
 
     return { success: true };
   } catch (err) {
-    console.error("Email send error:", err);
-    return {
-      success: false,
-      error: err instanceof Error ? err.message : "Unknown error",
-    };
+    const message = err instanceof Error ? err.message : "Unknown error";
+    console.error(`[Resend] Unexpected error sending confirmation email to ${data.to}:`, message);
+    return { success: false, error: message };
   }
 }
 

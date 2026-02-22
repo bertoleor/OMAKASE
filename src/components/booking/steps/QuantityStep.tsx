@@ -6,11 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Minus, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { useLanguage } from "@/hooks/useLanguage";
 
 const DIRECT_SELECTION = [1, 2, 3, 4];
 
 export default function QuantityStep() {
   const { draftBooking, updateDraft, setStep, settings } = useBookingStore();
+  const { t } = useLanguage();
   const currentPax = draftBooking.pax || 0;
   const router = useRouter();
 
@@ -57,11 +59,9 @@ export default function QuantityStep() {
     <div className="space-y-10 pt-8">
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-light text-white uppercase tracking-wide">
-          Escoja cantidad de
-          <br />
-          comensales
+          {t('quantity.title')}
         </h2>
-        <p className="text-white/40 text-sm">Máximo {maxPax} personas</p>
+        <p className="text-white/40 text-sm">{t('quantity.description')}</p>
       </div>
 
       <div className="flex flex-col items-center gap-6">
@@ -134,7 +134,7 @@ export default function QuantityStep() {
           disabled={!currentPax || currentPax < 1}
           className="px-16 py-6 bg-white/5 text-white border border-white/20 hover:bg-white hover:text-black hover:border-white transition-all duration-300 uppercase tracking-wider disabled:opacity-30 disabled:hover:bg-white/5 disabled:hover:text-white h-14 rounded-full"
         >
-          Continuar
+          {t('common.next')}
         </Button>
       </div>
     </div>

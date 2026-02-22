@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
 import { useRef, useState, useMemo, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useLanguage } from "@/hooks/useLanguage";
 
 interface BlockedDate {
   blocked_date: string;
@@ -13,7 +14,7 @@ interface BlockedDate {
 }
 
 // Helper to generate days based on maxDays limit
-const generateDays = (maxDays: number) => {
+const generateDays = (maxDays: number, locale: string) => {
   const days = [];
   const today = new Date();
   today.setHours(0, 0, 0, 0); // Normalize to midnight local
@@ -31,14 +32,8 @@ const generateDays = (maxDays: number) => {
     days.push({
       date: localDateStr,
       day: d.getDate(),
-      weekday: d
-        .toLocaleDateString("es-ES", { weekday: "short" })
-        .replace(".", "")
-        .toUpperCase(),
-      month: d
-        .toLocaleDateString("es-ES", { month: "short" })
-        .replace(".", "")
-        .toUpperCase(),
+      weekday: d.toLocaleDateString(locale, { weekday: "short" }).replace(".", "").toUpperCase(),
+      month: d.toLocaleDateString(locale, { month: "short" }).replace(".", "").toUpperCase(),
       monthIdx: d.getMonth(),
       year: d.getFullYear(),
     });
@@ -48,19 +43,19 @@ const generateDays = (maxDays: number) => {
 
 export default function DateStep() {
   const { draftBooking, updateDraft, setStep, settings } = useBookingStore();
+  const { t, language } = useLanguage();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
   const [blockedDates, setBlockedDates] = useState<Set<string>>(new Set());
-  const [blockedReasons, setBlockedReasons] = useState<Record<string, string>>(
-    {},
-  );
+  const [blockedReasons, setBlockedReasons] = useState<Record<string, string>>({});
   const [visibleMonth, setVisibleMonth] = useState("");
   const [prevDate, setPrevDate] = useState(draftBooking.date);
 
   // Use settings or default to 30 days
   const maxAdvanceDays = settings?.max_advance_days || 30;
-  const days = useMemo(() => generateDays(maxAdvanceDays), [maxAdvanceDays]);
+  const locale = language === "es" ? "es-ES" : language === "pt" ? "pt-BR" : "en-GB";
+  const days = useMemo(() => generateDays(maxAdvanceDays, locale), [maxAdvanceDays, locale]);
 
   // Sync visible month with selected date (Render-time update pattern)
   if (draftBooking.date !== prevDate) {
@@ -88,9 +83,7 @@ export default function DateStep() {
           .lte("blocked_date", futureDate.toISOString().split("T")[0]);
 
         if (data) {
-          const dates = new Set<string>(
-            data.map((d: BlockedDate) => d.blocked_date),
-          );
+          const dates = new Set<string>(data.map((d: BlockedDate) => d.blocked_date));
           const reasons: Record<string, string> = {};
           data.forEach((d: BlockedDate) => {
             if (d.reason) reasons[d.blocked_date] = d.reason;
@@ -132,11 +125,7 @@ export default function DateStep() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        e.key === "Enter" &&
-        draftBooking.date &&
-        !blockedDates.has(draftBooking.date)
-      ) {
+      if (e.key === "Enter" && draftBooking.date && !blockedDates.has(draftBooking.date)) {
         handleContinue();
       }
     };
@@ -176,12 +165,11 @@ export default function DateStep() {
   };
 
   // Check if selected date is blocked (edge case if blocked after selection)
-  const isSelectedBlocked = Boolean(
-    draftBooking.date && blockedDates.has(draftBooking.date),
-  );
-  
+  const isSelectedBlocked = Boolean(draftBooking.date && blockedDates.has(draftBooking.date));
+
   const getDateButtonClasses = (isBlocked: boolean, isSelected: boolean) => {
-    if (isBlocked) return "bg-red-500/10 border-red-500/20 text-red-400/50 cursor-not-allowed line-through";
+    if (isBlocked)
+      return "bg-red-500/10 border-red-500/20 text-red-400/50 cursor-not-allowed line-through";
     if (isSelected) return "bg-white border-white text-black";
     return "bg-white/5 border-white/20 text-white hover:bg-white/10 hover:border-white/50";
   };
@@ -191,7 +179,7 @@ export default function DateStep() {
     if (isSelected) return "text-black/60";
     return "text-white/50";
   };
-  
+
   const getDayNumberClasses = (isBlocked: boolean, isSelected: boolean) => {
     if (isBlocked) return "text-red-400/50";
     if (isSelected) return "text-black";
@@ -203,11 +191,9 @@ export default function DateStep() {
       {/* Header */}
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-light text-white uppercase tracking-wide">
-          Seleccionar Fecha
+          {t("date.title")}
         </h2>
-        <p className="text-white/60 text-sm uppercase tracking-wider">
-          {visibleMonth}
-        </p>
+        <p className="text-white/60 text-sm uppercase tracking-wider">{visibleMonth}</p>
       </div>
 
       {/* Blocked date warning */}
@@ -215,10 +201,9 @@ export default function DateStep() {
         <div className="bg-red-500/20 border border-red-500/30 rounded-xl p-4 flex items-center space-x-3">
           <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
           <div>
-            <p className="text-red-400 font-medium">Fecha no disponible</p>
+            <p className="text-red-400 font-medium">{t("common.closed")}</p>
             <p className="text-red-300/60 text-sm">
-              {blockedReasons[draftBooking.date || ""] ||
-                "El restaurante está cerrado este día"}
+              {blockedReasons[draftBooking.date || ""] || t("common.closed")}
             </p>
           </div>
         </div>
@@ -262,11 +247,7 @@ export default function DateStep() {
                 key={d.date}
                 onClick={() => handleSelect(d.date)}
                 disabled={isBlocked}
-                title={
-                  isBlocked
-                    ? blockedReasons[d.date] || "No disponible"
-                    : undefined
-                }
+                title={isBlocked ? blockedReasons[d.date] || "No disponible" : undefined}
                 className={cn(
                   "flex-shrink-0 flex flex-col items-center justify-center w-14 h-20 rounded-2xl border transition-all duration-300 snap-center",
                   getDateButtonClasses(isBlocked, isSelected),
@@ -276,7 +257,7 @@ export default function DateStep() {
                 <span
                   className={cn(
                     "text-[10px] uppercase tracking-wider font-medium mb-1",
-                    getWeekdayClasses(isBlocked, isSelected)
+                    getWeekdayClasses(isBlocked, isSelected),
                   )}
                 >
                   {d.weekday}
@@ -284,7 +265,7 @@ export default function DateStep() {
                 <span
                   className={cn(
                     "text-xl font-semibold",
-                    getDayNumberClasses(isBlocked, isSelected)
+                    getDayNumberClasses(isBlocked, isSelected),
                   )}
                 >
                   {d.day}
@@ -296,12 +277,12 @@ export default function DateStep() {
                       isSelected ? "text-black/60" : "text-white/40",
                     )}
                   >
-                    Hoy
+                    {t("common.today")}
                   </span>
                 )}
                 {isBlocked && (
                   <span className="text-[8px] uppercase mt-0.5 text-red-400/60">
-                    Cerrado
+                    {t("common.closed")}
                   </span>
                 )}
               </button>
@@ -342,7 +323,7 @@ export default function DateStep() {
           disabled={!draftBooking.date || isSelectedBlocked}
           className="px-16 py-6 bg-white/5 text-white border border-white/20 hover:bg-white hover:text-black hover:border-white transition-all duration-300 uppercase tracking-wider disabled:opacity-30 disabled:hover:bg-white/5 disabled:hover:text-white h-14 rounded-full"
         >
-          Continuar
+          {t("common.next")}
         </Button>
       </div>
     </div>

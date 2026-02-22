@@ -23,9 +23,10 @@
 - [x] **Gestión de Zonas y Mesas:**
   - [x] Gestión dinámica de zonas y asignación de mesas.
   - [x] Previsualización interactiva de plano de sala.
-- [/] **Automatizaciones:**
+- [x] **Automatizaciones:**
   - [x] Lógica de recordatorios y confirmaciones automática en DB.
-  - [ ] Integración final de API de envío para notificaciones transaccionales.
+  - [x] Integración de API de envío (Resend) con manejo de errores robusto.
+  - [ ] Implementación de Webhooks para actualizaciones en tiempo real.
 
 ## 3. Auditoría de Seguridad y Mantenimiento (Recién Completado)
 
@@ -40,11 +41,31 @@
   - [x] Resolución de warnings de iconos depreciados (SVG Nativos).
   - [x] Eliminación de código muerto y comentarios.
 
-## 4. Próximos Pasos (Estrategia)
+## 4. Estado del Módulo Admin (Auditado)
+
+- [x] **Roles y Permisos (RBAC):**
+  - [x] Middleware (`src/proxy.ts`) protege rutas `/admin` para roles `admin`, `manager`, `staff`.
+  - [x] Hooks de cliente (`useUserRole`) para protección a nivel de componente.
+- [x] **Gestión de Sala (Drag & Drop):**
+  - [x] Implementado con `@dnd-kit` en `floorplan/page.tsx`.
+  - [x] Asignación visual de reservas a mesas funcionando.
+  - [x] Actualización en tiempo real (Polling de 30s).
+- [x] **Configuración y Horarios:**
+  - [x] Gestión semanal completa (`weekly_schedule`).
+  - [x] Sub-páginas de configuración (`settings/*`) estructuradas y funcionales.
+- [x] **Código:** Limpio, tipado y sin estilos inline.
+
+## 5. Próximos Pasos (Estrategia)
 
 - [x] **Seguridad (RBAC):** Sistema de roles y permisos 100% operativo.
 - [ ] **Idiomas (i18n):** Traducción a Inglés y Portugués para comensales extranjeros.
 - [/] **Pagos (MercadoPago):**
   - [x] Interfaz de validación de tarjetas integrada.
   - [ ] Procesamiento real de señas y reembolsos automáticos.
-- [ ] **Optimización de Build:** Resolución de conflictos WASM (Entorno local).
+- [x] **Optimización de Build:** Resolución de conflictos WASM (Downgrade a Next.js 15 estable).
+- [x] **Auditoría de Dependencias:** Árbol limpio y libre de conflictos críticos.
+
+## 6. Siguientes Pasos Prioritarios
+
+1.  **Integración de Pagos (MercadoPago):** Completar el flujo de procesamiento de señas.
+2.  **Soporte Multi-idioma (i18n):** Preparar la app para turistas.

@@ -12,10 +12,12 @@ export function createClient() {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    console.warn(
-      "Supabase environment variables not configured. " +
-        "Any runtime operation will throw.",
-    );
+    if (process.env.NODE_ENV === "development") {
+      console.error(
+        "[Supabase Client] Environment variables are missing. " +
+          "Ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set in .env.local",
+      );
+    }
     return createFailSafeProxy() as ReturnType<typeof createBrowserClient>;
   }
 
@@ -28,7 +30,7 @@ export function createClient() {
  */
 function createFailSafeProxy(): unknown {
   const handler: ProxyHandler<object> = {
-    get(_target, prop) {
+    get(_, prop) {
       // Allow Symbol.toPrimitive and similar built-ins to avoid crashes
       if (typeof prop === "symbol") return undefined;
 
@@ -46,7 +48,7 @@ function createFailSafeProxy(): unknown {
         },
       });
     },
-    apply(_target, _thisArg, _args) {
+    apply() {
       throw new Error(
         "Supabase not configured. " +
           "Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.",

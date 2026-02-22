@@ -7,6 +7,7 @@ import { Check, Loader2, CreditCard, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import cardValidator from "card-validator";
 import { AnimatePresence, motion } from "framer-motion";
+import { useLanguage } from "@/hooks/useLanguage";
 
 // ============================================================
 // TYPES & VALIDATIONS
@@ -25,13 +26,7 @@ interface FieldValidation {
   error?: string;
 }
 
-type CardBrand =
-  | "visa"
-  | "mastercard"
-  | "american-express"
-  | "cabal"
-  | "naranja"
-  | "unknown";
+type CardBrand = "visa" | "mastercard" | "american-express" | "cabal" | "naranja" | "unknown";
 
 // Card Brand Icon Component
 const CardBrandIcon = ({ brand }: { brand: CardBrand }) => {
@@ -79,14 +74,7 @@ const CardBrandIcon = ({ brand }: { brand: CardBrand }) => {
             d="M7 28H9L9.5 26.5H11.5L12 28H17V26.5L17.5 28H20.5L21 26.5V28H35V25.5L35.5 26H38.5V28H41V20H38.5L38 21.5L37.5 20H34V21.5L33.5 20H28C28 20 27 20 26.5 20.5L26 20H7V28Z"
             fill="white"
           />
-          <text
-            x="24"
-            y="26"
-            textAnchor="middle"
-            fill="white"
-            fontSize="6"
-            fontWeight="bold"
-          >
+          <text x="24" y="26" textAnchor="middle" fill="white" fontSize="6" fontWeight="bold">
             AMEX
           </text>
         </svg>
@@ -96,14 +84,7 @@ const CardBrandIcon = ({ brand }: { brand: CardBrand }) => {
         <svg viewBox="0 0 48 48" className="w-8 h-8" fill="none">
           <rect width="48" height="48" rx="6" fill="#00529B" />
           <circle cx="24" cy="24" r="12" fill="#FFD200" />
-          <text
-            x="24"
-            y="28"
-            textAnchor="middle"
-            fill="#00529B"
-            fontSize="8"
-            fontWeight="bold"
-          >
+          <text x="24" y="28" textAnchor="middle" fill="#00529B" fontSize="8" fontWeight="bold">
             C
           </text>
         </svg>
@@ -113,14 +94,7 @@ const CardBrandIcon = ({ brand }: { brand: CardBrand }) => {
         <svg viewBox="0 0 48 48" className="w-8 h-8" fill="none">
           <rect width="48" height="48" rx="6" fill="#FF6B00" />
           <circle cx="24" cy="24" r="12" fill="white" />
-          <text
-            x="24"
-            y="28"
-            textAnchor="middle"
-            fill="#FF6B00"
-            fontSize="8"
-            fontWeight="bold"
-          >
+          <text x="24" y="28" textAnchor="middle" fill="#FF6B00" fontSize="8" fontWeight="bold">
             N
           </text>
         </svg>
@@ -167,9 +141,7 @@ const validateCardNumber = (value: string): FieldValidation => {
   return {
     isValid: validation.isValid,
     isPotentiallyValid: validation.isPotentiallyValid,
-    error: validation.isPotentiallyValid
-      ? undefined
-      : "Número de tarjeta inválido",
+    error: validation.isPotentiallyValid ? undefined : "Número de tarjeta inválido",
   };
 };
 
@@ -182,10 +154,7 @@ const validateExpiry = (value: string): FieldValidation => {
     const currentMonth = now.getMonth() + 1;
     const expYear = Number.parseInt(validation.year, 10);
     const expMonth = Number.parseInt(validation.month, 10);
-    if (
-      expYear < currentYear ||
-      (expYear === currentYear && expMonth < currentMonth)
-    ) {
+    if (expYear < currentYear || (expYear === currentYear && expMonth < currentMonth)) {
       return {
         isValid: false,
         isPotentiallyValid: false,
@@ -249,9 +218,7 @@ const formatDNI = (value: string): string => {
   // Limit to 8 digits
   const truncated = cleaned.substring(0, 8);
   // Format with dots: XX.XXX.XXX
-  return new Intl.NumberFormat("es-AR")
-    .format(Number(truncated))
-    .replaceAll(",", ".");
+  return new Intl.NumberFormat("es-AR").format(Number(truncated)).replaceAll(",", ".");
 };
 
 // Validation Indicator
@@ -281,6 +248,7 @@ const ValidationIndicator = ({
 
 export default function GuaranteeStep() {
   const { draftBooking, updateDraft, setStep } = useBookingStore();
+  const { t } = useLanguage();
   const [isPending, startTransition] = useTransition();
   const [policyAccepted, setPolicyAccepted] = useState(false);
 
@@ -308,8 +276,7 @@ export default function GuaranteeStep() {
     customerDni: validateDNI(paymentData.customerDni),
   };
 
-  const allValid =
-    Object.values(validations).every((v) => v.isValid) && policyAccepted;
+  const allValid = Object.values(validations).every((v) => v.isValid) && policyAccepted;
 
   // Handlers
   const handleChange = useCallback(
@@ -378,9 +345,7 @@ export default function GuaranteeStep() {
 
     startTransition(async () => {
       try {
-        const cardLastFour = paymentData.cardNumber
-          .replaceAll(/\s/g, "")
-          .slice(-4);
+        const cardLastFour = paymentData.cardNumber.replaceAll(/\s/g, "").slice(-4);
 
         // NOTE: Integrate payment provider (Stripe/MercadoPago)
         // Storing card reference without tokenization for now.
@@ -403,17 +368,15 @@ export default function GuaranteeStep() {
     <div className="space-y-6 pt-4">
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-light text-white uppercase tracking-wide">
-          Garantizar Reserva
+          {t("guarantee.title")}
         </h2>
-        <p className="text-white/40 text-sm">
-          Ingrese un método de pago para confirmar
-        </p>
+        <p className="text-white/40 text-sm">{t("guarantee.description")}</p>
       </div>
 
       {/* Payment Form */}
       <div className="space-y-4">
         <h3 className="text-white/80 text-sm uppercase tracking-wider font-medium">
-          Método de Pago
+          {t("guarantee.payment_method")}
         </h3>
 
         {/* Cardholder Name */}
@@ -422,7 +385,7 @@ export default function GuaranteeStep() {
             htmlFor="cardholderName"
             className="text-xs text-white/50 uppercase tracking-wider"
           >
-            Titular
+            {t("guarantee.cardholder")}
           </label>
           <div className="relative">
             <input
@@ -444,11 +407,8 @@ export default function GuaranteeStep() {
 
         {/* Card Number */}
         <div className="space-y-2">
-          <label
-            htmlFor="cardNumber"
-            className="text-xs text-white/50 uppercase tracking-wider"
-          >
-            Número
+          <label htmlFor="cardNumber" className="text-xs text-white/50 uppercase tracking-wider">
+            {t("guarantee.card_number")}
           </label>
           <div className="relative group">
             <input
@@ -471,11 +431,8 @@ export default function GuaranteeStep() {
 
         {/* DNI */}
         <div className="space-y-2">
-          <label
-            htmlFor="customerDni"
-            className="text-xs text-white/50 uppercase tracking-wider"
-          >
-            DNI
+          <label htmlFor="customerDni" className="text-xs text-white/50 uppercase tracking-wider">
+            {t("guarantee.dni")}
           </label>
           <div className="relative">
             <input
@@ -499,11 +456,8 @@ export default function GuaranteeStep() {
         {/* Expiry & CVV */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <label
-              htmlFor="cardExpiry"
-              className="text-xs text-white/50 uppercase tracking-wider"
-            >
-              Vencimiento
+            <label htmlFor="cardExpiry" className="text-xs text-white/50 uppercase tracking-wider">
+              {t("guarantee.expiry")}
             </label>
             <input
               id="cardExpiry"
@@ -521,11 +475,8 @@ export default function GuaranteeStep() {
           </div>
 
           <div className="space-y-2">
-            <label
-              htmlFor="cardCvv"
-              className="text-xs text-white/50 uppercase tracking-wider"
-            >
-              CVC
+            <label htmlFor="cardCvv" className="text-xs text-white/50 uppercase tracking-wider">
+              {t("guarantee.cvc")}
             </label>
             <input
               id="cardCvv"
@@ -562,13 +513,7 @@ export default function GuaranteeStep() {
         >
           {policyAccepted && <Check className="w-3.5 h-3.5" strokeWidth={3} />}
         </div>
-        <p className="text-sm text-white/70 leading-relaxed select-none">
-          He leído y acepto los{" "}
-          <span className="text-white font-medium underline decoration-white/30 hover:decoration-white transition-all">
-            términos y condiciones
-          </span>{" "}
-          de la política de reembolso y cancelación.
-        </p>
+        <p className="text-sm text-white/70 leading-relaxed select-none">{t("guarantee.terms")}</p>
       </label>
 
       {/* Error Banner */}
@@ -595,10 +540,10 @@ export default function GuaranteeStep() {
           {isPending || submitting ? (
             <>
               <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-              Procesando...
+              {t("common.processing")}
             </>
           ) : (
-            "Continuar"
+            t("common.next")
           )}
         </Button>
       </div>

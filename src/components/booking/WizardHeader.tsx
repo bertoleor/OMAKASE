@@ -4,10 +4,13 @@ import { useBookingStore } from "@/store/booking-store";
 import { ChevronLeft } from "lucide-react";
 import { BUSINESS } from "@/config/business";
 
+import { useLanguage } from "@/hooks/useLanguage";
 import { useRouter } from "next/navigation";
+import { LanguageSelector } from "../ui/LanguageSelector";
 
 export default function WizardHeader() {
   const { currentStep, setStep, draftBooking } = useBookingStore();
+  const { t, language } = useLanguage();
   const router = useRouter();
 
   const handleBack = () => {
@@ -24,7 +27,7 @@ export default function WizardHeader() {
     const d = new Date(year, month - 1, day);
 
     const weekday = d
-      .toLocaleDateString("es-ES", { weekday: "short" })
+      .toLocaleDateString(language === "es" ? "es-ES" : language === "pt" ? "pt-BR" : "en-GB", { weekday: "short" })
       .replace(".", "")
       .toUpperCase();
     return `${weekday} ${day}`;
@@ -46,6 +49,11 @@ export default function WizardHeader() {
         </button>
       )}
 
+      {/* Language Selector (Top Right) */}
+      <div className="absolute right-0 top-0">
+        <LanguageSelector />
+      </div>
+
       {/* Logo placeholder */}
       <h1 className="hidden">{BUSINESS.name}</h1>
 
@@ -55,7 +63,7 @@ export default function WizardHeader() {
           {/* Show Pax only if step > 1 (Quantity confirmed) */}
           {currentStep > 1 && draftBooking.pax && (
             <div className="px-3 py-1 bg-white/10 rounded-full text-white/80 border border-white/5 backdrop-blur-sm">
-              {draftBooking.pax} Personas
+              {draftBooking.pax} {t('wizard.pax')}
             </div>
           )}
           {/* Show Date only if step > 2 (Date confirmed) */}

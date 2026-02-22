@@ -8,10 +8,12 @@ import { Calendar, Clock, Users, MapPin, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { BUSINESS } from "@/config/business";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export default function ConfirmationStep() {
   const router = useRouter();
   const { draftBooking, resetDraft, setStep, updateDraft } = useBookingStore();
+  const { t, language } = useLanguage();
   const [isPending, startTransition] = useTransition();
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,9 +52,7 @@ export default function ConfirmationStep() {
       if (result.success) {
         setIsSuccess(true);
       } else {
-        setError(
-          result.error || "Error al crear la reserva. Inténtelo de nuevo.",
-        );
+        setError(result.error || "Error al crear la reserva. Inténtelo de nuevo.");
       }
     });
   };
@@ -62,13 +62,17 @@ export default function ConfirmationStep() {
     const [year, month, day] = dateStr.split("-").map(Number);
     const d = new Date(year, month - 1, day);
     // User requested standard Spanish format: "Sábado 31 de enero"
-    const weekday = d.toLocaleDateString("es-ES", { weekday: "long" });
-    const monthName = d.toLocaleDateString("es-ES", { month: "long" });
+    const locale = language === "es" ? "es-ES" : language === "pt" ? "pt-BR" : "en-GB";
+    const weekday = d.toLocaleDateString(locale, { weekday: "long" });
+    const monthName = d.toLocaleDateString(locale, { month: "long" });
 
     // Capitalize first letter of weekday strictly
     const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
     // User requested "Sábado 31 de Enero" (Capitalized Month, lowercase 'de')
+    if (language === "en") {
+      return `${capitalize(weekday)} ${day} ${capitalize(monthName)}`;
+    }
     return `${capitalize(weekday)} ${day} de ${capitalize(monthName)}`;
   };
 
@@ -82,45 +86,47 @@ export default function ConfirmationStep() {
       <div className="flex flex-col items-center justify-center space-y-8 py-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="text-center space-y-6 max-w-md mx-auto px-4">
           <h2 className="text-3xl font-light text-white uppercase tracking-wide">
-            Reserva Confirmada
+            {t("confirmation.title")}
           </h2>
 
           <div className="space-y-4">
             <p className="text-white/60 text-base font-light leading-relaxed">
-              Se envió a su correo la confirmación de la reserva.
+              {t("confirmation.email_sent")}
             </p>
             <p className="text-white text-lg font-medium">
-              Muchas gracias, {draftBooking.customer?.firstName || "Cliente"}
+              {t("confirmation.thank_you")}, {draftBooking.customer?.firstName || "Cliente"}
             </p>
           </div>
         </div>
 
-          <div className="flex gap-4 pt-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                const startTime = `${draftBooking.date?.replaceAll("-", "")}T${draftBooking.timeSlot?.replaceAll(":", "")}00`;
-                const endTime = `${draftBooking.date?.replaceAll("-", "")}T${(parseInt(draftBooking.timeSlot?.split(":")[0] || "0") + 2).toString().padStart(2, "0")}${draftBooking.timeSlot?.split(":")[1]}00`;
-                const title = encodeURIComponent(`Reserva en ${BUSINESS.name}`);
-                const details = encodeURIComponent(`Reserva para ${draftBooking.pax} personas.\nZona: ${draftBooking.zone}\nNotas: ${draftBooking.notes || "Ninguna"}`);
-                const location = encodeURIComponent(BUSINESS.address || "");
-                window.open(
-                  `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startTime}/${endTime}&details=${details}&location=${location}`,
-                  "_blank"
-                );
-              }}
-              className="text-white/60 hover:text-white border-white/10 hover:bg-white/5 uppercase tracking-wider text-[10px]"
-            >
-              Google Calendar
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                const startTime = `${draftBooking.date?.replaceAll("-", "")}T${draftBooking.timeSlot?.replaceAll(":", "")}00`;
-                const endTime = `${draftBooking.date?.replaceAll("-", "")}T${(parseInt(draftBooking.timeSlot?.split(":")[0] || "0") + 2).toString().padStart(2, "0")}${draftBooking.timeSlot?.split(":")[1]}00`;
-                const icsContent = `BEGIN:VCALENDAR
+        <div className="flex gap-4 pt-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const startTime = `${draftBooking.date?.replaceAll("-", "")}T${draftBooking.timeSlot?.replaceAll(":", "")}00`;
+              const endTime = `${draftBooking.date?.replaceAll("-", "")}T${(parseInt(draftBooking.timeSlot?.split(":")[0] || "0") + 2).toString().padStart(2, "0")}${draftBooking.timeSlot?.split(":")[1]}00`;
+              const title = encodeURIComponent(`Reserva en ${BUSINESS.name}`);
+              const details = encodeURIComponent(
+                `Reserva para ${draftBooking.pax} personas.\nZona: ${draftBooking.zone}\nNotas: ${draftBooking.notes || "Ninguna"}`,
+              );
+              const location = encodeURIComponent(BUSINESS.address || "");
+              window.open(
+                `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startTime}/${endTime}&details=${details}&location=${location}`,
+                "_blank",
+              );
+            }}
+            className="text-white/60 hover:text-white border-white/10 hover:bg-white/5 uppercase tracking-wider text-[10px]"
+          >
+            Google Calendar
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const startTime = `${draftBooking.date?.replaceAll("-", "")}T${draftBooking.timeSlot?.replaceAll(":", "")}00`;
+              const endTime = `${draftBooking.date?.replaceAll("-", "")}T${(parseInt(draftBooking.timeSlot?.split(":")[0] || "0") + 2).toString().padStart(2, "0")}${draftBooking.timeSlot?.split(":")[1]}00`;
+              const icsContent = `BEGIN:VCALENDAR
 VERSION:2.0
 BEGIN:VEVENT
 URL:${window.location.origin}
@@ -131,19 +137,19 @@ DESCRIPTION:Reserva para ${draftBooking.pax} personas.\\nZona: ${draftBooking.zo
 LOCATION:${BUSINESS.address}
 END:VEVENT
 END:VCALENDAR`;
-                const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
-                const link = document.createElement("a");
-                link.href = window.URL.createObjectURL(blob);
-                link.setAttribute("download", "reserva.ics");
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-              }}
-              className="text-white/60 hover:text-white border-white/10 hover:bg-white/5 uppercase tracking-wider text-[10px]"
-            >
-              .ICS (Outlook/Apple)
-            </Button>
-          </div>
+              const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
+              const link = document.createElement("a");
+              link.href = window.URL.createObjectURL(blob);
+              link.setAttribute("download", "reserva.ics");
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            }}
+            className="text-white/60 hover:text-white border-white/10 hover:bg-white/5 uppercase tracking-wider text-[10px]"
+          >
+            .ICS (Outlook/Apple)
+          </Button>
+        </div>
 
         <Button
           variant="ghost"
@@ -153,7 +159,7 @@ END:VCALENDAR`;
           }}
           className="text-white/40 hover:text-white hover:bg-white/5 uppercase tracking-widest text-xs transition-colors mt-8"
         >
-          Volver al Principal
+          {t("confirmation.home")}
         </Button>
       </div>
     );
@@ -163,11 +169,9 @@ END:VCALENDAR`;
     <div className="space-y-6 pt-4">
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-light text-white uppercase tracking-wide">
-          Resumen Final
+          {t("summary.title")}
         </h2>
-        <p className="text-white/40 text-sm">
-          Confirme que los datos sean correctos
-        </p>
+        <p className="text-white/40 text-sm">{t("summary.description")}</p>
       </div>
 
       {/* Full Summary Card */}
@@ -175,25 +179,23 @@ END:VCALENDAR`;
         {/* Reservation Details */}
         <div className="space-y-4 border-b border-white/10 pb-4">
           <p className="text-white/30 text-xs uppercase tracking-wider font-bold mb-2">
-            Detalles de Reserva
+            {t("summary.details")}
           </p>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex items-start gap-3">
               <Calendar className="w-5 h-5 text-white/50 mt-0.5" />
               <div>
                 <p className="text-xs text-white/40 uppercase tracking-wider">
-                  Fecha
+                  {t("wizard.steps.date")}
                 </p>
-                <p className="text-white text-sm capitalize">
-                  {formatDate(draftBooking.date)}
-                </p>
+                <p className="text-white text-sm capitalize">{formatDate(draftBooking.date)}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <Clock className="w-5 h-5 text-white/50 mt-0.5" />
               <div>
                 <p className="text-xs text-white/40 uppercase tracking-wider">
-                  Hora
+                  {t("wizard.steps.time")}
                 </p>
                 <p className="text-white text-sm">{draftBooking.timeSlot}</p>
               </div>
@@ -202,7 +204,7 @@ END:VCALENDAR`;
               <Users className="w-5 h-5 text-white/50 mt-0.5" />
               <div>
                 <p className="text-xs text-white/40 uppercase tracking-wider">
-                  Personas
+                  {t("quantity.label")}
                 </p>
                 <p className="text-white text-sm">{draftBooking.pax}</p>
               </div>
@@ -210,12 +212,8 @@ END:VCALENDAR`;
             <div className="flex items-start gap-3">
               <MapPin className="w-5 h-5 text-white/50 mt-0.5" />
               <div>
-                <p className="text-xs text-white/40 uppercase tracking-wider">
-                  Zona
-                </p>
-                <p className="text-white text-sm">
-                  {getZoneName(draftBooking.zone).split("-")[0]}
-                </p>
+                <p className="text-xs text-white/40 uppercase tracking-wider">{t("zones.title")}</p>
+                <p className="text-white text-sm">{getZoneName(draftBooking.zone).split("-")[0]}</p>
               </div>
             </div>
           </div>
@@ -227,25 +225,25 @@ END:VCALENDAR`;
           draftBooking.restrictions) && (
           <div className="space-y-2 border-b border-white/10 pb-4">
             <p className="text-white/30 text-xs uppercase tracking-wider font-bold mb-2">
-              Preferencias
+              {t("summary.preferences")}
             </p>
             <div className="space-y-1">
               {(draftBooking.kids ?? 0) > 0 && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-white/60">Menores de 12:</span>
+                  <span className="text-white/60">{t("personalize.kids")}:</span>
                   <span className="text-white">{draftBooking.kids}</span>
                 </div>
               )}
               {(draftBooking.vegetarians ?? 0) > 0 && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-white/60">Vegetarianos:</span>
+                  <span className="text-white/60">{t("personalize.vegetarians")}:</span>
                   <span className="text-white">{draftBooking.vegetarians}</span>
                 </div>
               )}
               {draftBooking.restrictions && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-white/60">Restricciones:</span>
-                  <span className="text-white">SI</span>
+                  <span className="text-white/60">{t("personalize.restrictions")}:</span>
+                  <span className="text-white">{t("common.yes")}</span>
                 </div>
               )}
             </div>
@@ -255,27 +253,23 @@ END:VCALENDAR`;
         {/* Personal & Payment */}
         <div className="space-y-4">
           <p className="text-white/30 text-xs uppercase tracking-wider font-bold mb-2">
-            Titular de la Reserva
+            {t("summary.holder")}
           </p>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-white/60">Nombre:</span>
-              <span className="text-white font-medium uppercase">
-                {customerName}
-              </span>
+              <span className="text-white/60">{t("auth.name_label")}:</span>
+              <span className="text-white font-medium uppercase">{customerName}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-white/60">Correo Electrónico:</span>
+              <span className="text-white/60">{t("auth.email_label")}:</span>
               <span className="text-white">{draftBooking.customer?.email}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-white/60">Teléfono:</span>
-              <span className="text-white">
-                {draftBooking.customer?.phone || "-"}
-              </span>
+              <span className="text-white/60">{t("auth.phone_label")}:</span>
+              <span className="text-white">{draftBooking.customer?.phone || "-"}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-white/60">Método de pago:</span>
+              <span className="text-white/60">{t("guarantee.payment_method")}:</span>
               <span className="text-white flex items-center gap-2 uppercase">
                 {draftBooking.cardBrand && draftBooking.cardBrand !== "unknown"
                   ? draftBooking.cardBrand
@@ -311,11 +305,7 @@ END:VCALENDAR`;
             </div>
           </div>
           <div className="text-sm text-white/70 group-hover:text-white/90 transition-colors">
-            <span className="font-light">He leído y acepto los </span>
-            <span className="font-medium underline decoration-white/30 underline-offset-2">
-              Términos y Condiciones
-            </span>
-            <span className="font-light"> y la política de cancelación.</span>
+            {t("guarantee.terms")}
           </div>
         </label>
       </div>
@@ -351,7 +341,7 @@ END:VCALENDAR`;
               Confirmando...
             </>
           ) : (
-            "Confirmar Reserva"
+            t("common.confirm")
           )}
         </Button>
       </div>

@@ -1,4 +1,4 @@
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
 /**
@@ -14,10 +14,12 @@ export async function createClient() {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    console.warn(
-      "Supabase environment variables not configured. " +
-        "Any runtime operation will throw.",
-    );
+    if (process.env.NODE_ENV === "development") {
+      console.error(
+        "[Supabase Server] Environment variables are missing. " +
+          "Check your .env.local file for NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.",
+      );
+    }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return createFailSafeProxy() as any;
   }
@@ -26,21 +28,21 @@ export async function createClient() {
 
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
-      get(name: string) {
-        return cookieStore.get(name)?.value;
+      getAll() {
+        return cookieStore.getAll().map((cookie) => ({
+          name: cookie.name,
+          value: cookie.value,
+        }));
       },
-      set(name: string, value: string, options: CookieOptions) {
+      setAll(cookiesToSet) {
         try {
-          cookieStore.set({ name, value, ...options });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            cookieStore.set({ name, value, ...options }),
+          );
         } catch {
-          // Server Component context — cookie writes are expected to fail
-        }
-      },
-      remove(name: string, options: CookieOptions) {
-        try {
-          cookieStore.set({ name, value: "", ...options });
-        } catch {
-          // Server Component context — cookie writes are expected to fail
+          // The `setAll` method was called from a Server Component.
+          // This can be ignored if you have middleware refreshing
+          // user sessions.
         }
       },
     },
@@ -53,7 +55,7 @@ export async function createClient() {
  */
 function createFailSafeProxy(): unknown {
   const handler: ProxyHandler<object> = {
-    get(_target, prop) {
+    get(_, prop) {
       if (typeof prop === "symbol") return undefined;
 
       return new Proxy(() => {}, {
@@ -69,7 +71,7 @@ function createFailSafeProxy(): unknown {
         },
       });
     },
-    apply(_target, _thisArg, _args) {
+    apply() {
       throw new Error(
         "Supabase not configured. " +
           "Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.",

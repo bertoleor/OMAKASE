@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { useState, useCallback, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertCircle } from "lucide-react";
+import { useLanguage } from "@/hooks/useLanguage";
 
 // ============================================================
 // TYPES
@@ -74,6 +75,7 @@ const ValidationIndicator = ({
 // ============================================================
 export default function AuthStep() {
   const { draftBooking, updateDraft, setStep } = useBookingStore();
+  const { t } = useLanguage();
 
   const [formData, setFormData] = useState<FormDataState>({
     firstName: draftBooking.customer?.firstName || "",
@@ -96,12 +98,9 @@ export default function AuthStep() {
   const allValid = Object.values(validations).every((v) => v.isValid);
 
   // Handlers
-  const handleChange = useCallback(
-    (field: keyof FormDataState, value: string) => {
-      setFormData((prev) => ({ ...prev, [field]: value }));
-    },
-    [],
-  );
+  const handleChange = useCallback((field: keyof FormDataState, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  }, []);
 
   const handleSubmit = useCallback(
     (e?: React.FormEvent) => {
@@ -170,22 +169,17 @@ export default function AuthStep() {
     <div className="space-y-6 pt-4">
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-light text-white uppercase tracking-wide">
-          Datos Personales
+          {t("auth.title")}
         </h2>
-        <p className="text-white/40 text-sm">
-          Información de contacto para su reserva
-        </p>
+        <p className="text-white/40 text-sm">{t("auth.description")}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Personal Info */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <label
-              htmlFor="firstName"
-              className="text-xs text-white/50 uppercase tracking-wider"
-            >
-              Nombre
+            <label htmlFor="firstName" className="text-xs text-white/50 uppercase tracking-wider">
+              {t("auth.first_name")}
             </label>
             <input
               id="firstName"
@@ -195,15 +189,12 @@ export default function AuthStep() {
               onChange={(e) => handleChange("firstName", e.target.value)}
               onBlur={() => handleBlur("firstName")}
               className={getInputClasses("firstName")}
-              placeholder="Juan"
+              placeholder={t("auth.first_name")}
             />
           </div>
           <div className="space-y-2">
-            <label
-              htmlFor="lastName"
-              className="text-xs text-white/50 uppercase tracking-wider"
-            >
-              Apellidos
+            <label htmlFor="lastName" className="text-xs text-white/50 uppercase tracking-wider">
+              {t("auth.last_name")}
             </label>
             <input
               id="lastName"
@@ -213,17 +204,14 @@ export default function AuthStep() {
               onChange={(e) => handleChange("lastName", e.target.value)}
               onBlur={() => handleBlur("lastName")}
               className={getInputClasses("lastName")}
-              placeholder="Pérez"
+              placeholder={t("auth.last_name")}
             />
           </div>
         </div>
 
         <div className="space-y-2">
-          <label
-            htmlFor="email"
-            className="text-xs text-white/50 uppercase tracking-wider"
-          >
-            Email
+          <label htmlFor="email" className="text-xs text-white/50 uppercase tracking-wider">
+            {t("auth.email_label")}
           </label>
           <div className="relative">
             <input
@@ -234,21 +222,15 @@ export default function AuthStep() {
               onChange={(e) => handleChange("email", e.target.value)}
               onBlur={() => handleBlur("email")}
               className={getInputClasses("email")}
-              placeholder="juan.perez@ejemplo.com"
+              placeholder={t("auth.email_placeholder")}
             />
-            <ValidationIndicator
-              validation={validations.email}
-              showIcon={touched.email}
-            />
+            <ValidationIndicator validation={validations.email} showIcon={touched.email} />
           </div>
         </div>
 
         <div className="space-y-2">
-          <label
-            htmlFor="phone"
-            className="text-xs text-white/50 uppercase tracking-wider"
-          >
-            Teléfono
+          <label htmlFor="phone" className="text-xs text-white/50 uppercase tracking-wider">
+            {t("auth.phone_label")}
           </label>
           <div className="relative">
             <input
@@ -259,28 +241,22 @@ export default function AuthStep() {
               onChange={(e) => handleChange("phone", e.target.value)}
               onBlur={() => handleBlur("phone")}
               className={getInputClasses("phone")}
-              placeholder="+54 11 0000 0000"
+              placeholder={t("auth.phone_placeholder")}
             />
-            <ValidationIndicator
-              validation={validations.phone}
-              showIcon={touched.phone}
-            />
+            <ValidationIndicator validation={validations.phone} showIcon={touched.phone} />
           </div>
         </div>
 
         <div className="space-y-2">
-          <label
-            htmlFor="notes"
-            className="text-xs text-white/50 uppercase tracking-wider"
-          >
-            Notas / Alergias (Opcional)
+          <label htmlFor="notes" className="text-xs text-white/50 uppercase tracking-wider">
+            {t("auth.notes_label")}
           </label>
           <textarea
             id="notes"
             value={formData.notes}
             onChange={(e) => handleChange("notes", e.target.value)}
             className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all font-light min-h-[60px] placeholder:text-white/20"
-            placeholder="Alergia a mariscos, mesa tranquila..."
+            placeholder={t("auth.notes_placeholder")}
           />
         </div>
 
@@ -299,7 +275,7 @@ export default function AuthStep() {
             disabled={!allValid}
             className="px-16 py-6 bg-white/5 text-white border border-white/20 hover:bg-white hover:text-black hover:border-white transition-all duration-300 uppercase tracking-wider h-14 rounded-full disabled:opacity-30 disabled:hover:bg-white/5 disabled:hover:text-white"
           >
-            Continuar
+            {t("common.next")}
           </Button>
         </div>
       </form>

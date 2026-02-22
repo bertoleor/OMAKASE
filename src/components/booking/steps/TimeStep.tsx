@@ -5,9 +5,11 @@ import { useBookingStore } from "@/store/booking-store";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Clock } from "lucide-react";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export default function TimeStep() {
   const { draftBooking, updateDraft, setStep, settings } = useBookingStore();
+  const { t } = useLanguage();
 
   const shifts = useMemo(() => {
     // Defaults if settings not loaded
@@ -96,18 +98,14 @@ export default function TimeStep() {
     <div className="space-y-6 pt-4">
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-light text-white uppercase tracking-wide">
-          Cena
+          {t("time.title")}
         </h2>
-        <p className="text-white/40 text-sm">
-          Horarios disponibles para la fecha seleccionada
-        </p>
+        <p className="text-white/40 text-sm">{t("time.select_time")}</p>
       </div>
 
       {shifts.length === 0 ? (
         <div className="text-center p-8 bg-white/5 rounded-xl border border-white/10">
-          <p className="text-white/60">
-            No hay horarios disponibles para esta fecha.
-          </p>
+          <p className="text-white/60">{t("time.no_slots")}</p>
         </div>
       ) : (
         <div className="grid grid-cols-3 gap-3">
@@ -124,12 +122,7 @@ export default function TimeStep() {
                     : "bg-white/5 border-white/20 text-white hover:bg-white/10 hover:border-white/50",
                 )}
               >
-                <Clock
-                  className={cn(
-                    "w-4 h-4",
-                    isSelected ? "text-black/60" : "text-white/40",
-                  )}
-                />
+                <Clock className={cn("w-4 h-4", isSelected ? "text-black/60" : "text-white/40")} />
                 <span className="font-medium tracking-wide">{t}</span>
               </button>
             );
@@ -151,7 +144,7 @@ export default function TimeStep() {
           disabled={!draftBooking.timeSlot}
           className="px-16 py-6 bg-white/5 text-white border border-white/20 hover:bg-white hover:text-black hover:border-white transition-all duration-300 uppercase tracking-wider disabled:opacity-30 disabled:hover:bg-white/5 disabled:hover:text-white h-14 rounded-full"
         >
-          Continuar
+          {t("common.next")}
         </Button>
       </div>
     </div>

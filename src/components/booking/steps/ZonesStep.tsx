@@ -6,33 +6,30 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { TableZone } from "@/types/booking";
-
-const zones: { id: TableZone; name: string; description: string }[] = [
-  {
-    id: "indoor-tables",
-    name: "INTERIOR - MESAS",
-    description:
-      "Mesas tradicionales en el interior asignadas por orden de reservación.",
-  },
-  {
-    id: "outdoor-pergola",
-    name: "EXTERIOR - PERGOLA",
-    description:
-      "Contamos con una pérgola semi cubierta y calefaccionada en donde las reservas están sujetas a condiciones climáticas.",
-  },
-  {
-    id: "indoor-bar",
-    name: "INTERIOR - BARRA",
-    description:
-      "Disfrute en la barra de una vista privilegiada y cercana a nuestros cocineros.",
-  },
-];
+import { useLanguage } from "@/hooks/useLanguage";
 
 export default function ZonesStep() {
   const { draftBooking, updateDraft, setStep } = useBookingStore();
-  const [expandedId, setExpandedId] = useState<TableZone | null>(
-    draftBooking.zone || null,
-  );
+  const { t } = useLanguage();
+  const [expandedId, setExpandedId] = useState<TableZone | null>(draftBooking.zone || null);
+
+  const zones: { id: TableZone; name: string; description: string }[] = [
+    {
+      id: "indoor-tables",
+      name: t("zones.indoor_tables.name"),
+      description: t("zones.indoor_tables.description"),
+    },
+    {
+      id: "outdoor-pergola",
+      name: t("zones.outdoor_pergola.name"),
+      description: t("zones.outdoor_pergola.description"),
+    },
+    {
+      id: "indoor-bar",
+      name: t("zones.indoor_bar.name"),
+      description: t("zones.indoor_bar.description"),
+    },
+  ];
 
   const handleSelect = (zone: TableZone) => {
     if (draftBooking.zone === zone) {
@@ -64,7 +61,7 @@ export default function ZonesStep() {
     <div className="space-y-8 pt-10">
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-light text-white uppercase tracking-wide">
-          Experiencias Disponibles
+          {t("zones.title")}
         </h2>
       </div>
 
@@ -86,9 +83,7 @@ export default function ZonesStep() {
                 }}
                 className={cn(
                   "w-full flex items-center justify-between p-4 text-left transition-all duration-300",
-                  isSelected
-                    ? "bg-white text-black"
-                    : "bg-white/5 text-white hover:bg-white/10",
+                  isSelected ? "bg-white text-black" : "bg-white/5 text-white hover:bg-white/10",
                 )}
               >
                 <div className="flex items-center gap-3">
@@ -96,9 +91,7 @@ export default function ZonesStep() {
                   <div
                     className={cn(
                       "w-5 h-5 rounded-full border flex items-center justify-center transition-all",
-                      isSelected
-                        ? "border-black"
-                        : "border-white/40 group-hover:border-white/60",
+                      isSelected ? "border-black" : "border-white/40 group-hover:border-white/60",
                     )}
                   >
                     <div
@@ -121,17 +114,11 @@ export default function ZonesStep() {
                 </div>
                 {isExpanded ? (
                   <ChevronUp
-                    className={cn(
-                      "w-4 h-4",
-                      isSelected ? "text-black/40" : "text-white/40",
-                    )}
+                    className={cn("w-4 h-4", isSelected ? "text-black/40" : "text-white/40")}
                   />
                 ) : (
                   <ChevronDown
-                    className={cn(
-                      "w-4 h-4",
-                      isSelected ? "text-black/40" : "text-white/40",
-                    )}
+                    className={cn("w-4 h-4", isSelected ? "text-black/40" : "text-white/40")}
                   />
                 )}
               </button>
@@ -168,7 +155,7 @@ export default function ZonesStep() {
           disabled={!draftBooking.zone}
           className="px-16 py-6 bg-white/5 text-white border border-white/20 hover:bg-white hover:text-black hover:border-white transition-all duration-300 uppercase tracking-wider disabled:opacity-30 disabled:hover:bg-white/5 disabled:hover:text-white h-14 rounded-full"
         >
-          Continuar
+          {t("common.next")}
         </Button>
       </div>
     </div>

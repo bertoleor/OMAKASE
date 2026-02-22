@@ -6,9 +6,11 @@ import { useBookingStore } from "@/store/booking-store";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Minus, Plus } from "lucide-react";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export default function PersonalizeStep() {
   const { draftBooking, updateDraft, setStep } = useBookingStore();
+  const { t } = useLanguage();
 
   const pax = draftBooking.pax || 1;
   const vegetarians = draftBooking.vegetarians ?? 0;
@@ -60,14 +62,13 @@ export default function PersonalizeStep() {
     <div className="space-y-8 pt-8">
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-light text-white uppercase tracking-wide">
-          Personalizar Experiencia
+          {t("personalize.title")}
         </h2>
       </div>
 
       <div className="space-y-6">
-        {/* Vegetarians */}
         <div className="flex items-center justify-between">
-          <span className="text-white/80 font-medium">Vegetarianos</span>
+          <span className="text-white/80 font-medium">{t("personalize.vegetarians")}</span>
           <div className="flex items-center gap-2">
             <button
               onClick={handleDecrementVegetarians}
@@ -93,9 +94,7 @@ export default function PersonalizeStep() {
 
         {/* Dietary Restrictions - Full width toggle aligned with counters */}
         <div className="flex items-center justify-between">
-          <span className="text-white/80 font-medium">
-            Restricciones alimentarias
-          </span>
+          <span className="text-white/80 font-medium">{t("personalize.restrictions")}</span>
           <div className="flex border border-white/20 rounded-lg overflow-hidden w-[8.5rem]">
             <button
               onClick={() => updateDraft({ restrictions: false })}
@@ -106,7 +105,7 @@ export default function PersonalizeStep() {
                   : "bg-transparent text-white/60 hover:bg-white/10",
               )}
             >
-              No
+              {t("common.no")}
             </button>
             <button
               onClick={() => updateDraft({ restrictions: true })}
@@ -117,14 +116,14 @@ export default function PersonalizeStep() {
                   : "bg-transparent text-white/60 hover:bg-white/10",
               )}
             >
-              Si
+              {t("common.yes")}
             </button>
           </div>
         </div>
 
         {/* Kids */}
         <div className="flex items-center justify-between">
-          <span className="text-white/80 font-medium">Niños menores de 12</span>
+          <span className="text-white/80 font-medium">{t("personalize.kids")}</span>
           <div className="flex items-center gap-2">
             <button
               onClick={handleDecrementKids}
@@ -162,7 +161,7 @@ export default function PersonalizeStep() {
           onClick={handleContinue}
           className="px-16 py-6 bg-white/5 text-white border border-white/20 hover:bg-white hover:text-black hover:border-white transition-all duration-300 uppercase tracking-wider h-14 rounded-full"
         >
-          Continuar
+          {t("common.next")}
         </Button>
       </div>
     </div>
