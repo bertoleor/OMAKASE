@@ -3,6 +3,9 @@ import { Calendar, Clock, MapPin, Phone, ArrowRight, Star } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import Footer from "@/components/Footer";
 import { BUSINESS } from "@/config/business";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata = pageMetadata.home;
 
 export default async function HomePage() {
   const supabase = await createClient();

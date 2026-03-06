@@ -5,6 +5,9 @@ import Link from "next/link";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { sendAuthMagicLink } from "@/app/actions/admin";
 import { BUSINESS } from "@/config/business";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata = pageMetadata.login();
 
 export default function MyReservationsLoginPage() {
   const [email, setEmail] = useState("");
@@ -12,7 +15,7 @@ export default function MyReservationsLoginPage() {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setError("");
@@ -21,7 +24,7 @@ export default function MyReservationsLoginPage() {
       // Use the manual Resend-based magic link flow
       const { success, error: authError } = await sendAuthMagicLink(
         email,
-        `${window.location.origin}/mis-reservas`,
+        `${globalThis.location.origin}/mis-reservas`,
       );
 
       if (!success) throw new Error(authError);

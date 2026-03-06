@@ -441,6 +441,8 @@ function QuickActions({
   return (
     <div
       className="flex justify-end space-x-2"
+      role="group"
+      aria-label="Acciones de reserva"
       onClick={(e) => e.stopPropagation()}
     >
       {actions.map((action) => (

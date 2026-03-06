@@ -159,8 +159,8 @@ export default function CommandPalette() {
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    globalThis.addEventListener("keydown", handleKeyDown);
+    return () => globalThis.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, router]);
 
   // Focus input when opened
@@ -211,7 +211,11 @@ export default function CommandPalette() {
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+        role="presentation"
         onClick={() => setIsOpen(false)}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") setIsOpen(false);
+        }}
       />
 
       {/* Modal */}

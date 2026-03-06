@@ -24,7 +24,7 @@ export const bookingSchema = z.object({
   
   customerEmail: z
     .string()
-    .email("Correo electrónico inválido")
+    .email({ message: "Correo electrónico inválido" })
     .max(255, "El correo es muy largo"),
   
   customerPhone: z
@@ -52,9 +52,7 @@ export const bookingSchema = z.object({
     .max(20, "Máximo 20 comensales"),
   
   zone: z
-    .enum(["indoor_tables", "outdoor_pergola", "indoor_bar"], {
-      errorMap: () => ({ message: "Zona inválida" }),
-    }),
+    .enum(["indoor_tables", "outdoor_pergola", "indoor_bar"]),
   
   notes: z
     .string()
@@ -79,7 +77,7 @@ export type BookingFormData = z.infer<typeof bookingSchema>;
 export const loginSchema = z.object({
   email: z
     .string()
-    .email("Correo electrónico inválido")
+    .email({ message: "Correo electrónico inválido" })
     .max(255),
   
   password: z
@@ -130,7 +128,7 @@ export const reservationUpdateSchema = z.object({
   
   tableId: z
     .string()
-    .uuid("ID de mesa inválido")
+    .uuid({ message: "ID de mesa inválido" })
     .nullable(),
   
   notes: z
@@ -210,7 +208,7 @@ export const settingsUpdateSchema = z.object({
   
   contactEmail: z
     .string()
-    .email("Email inválido")
+    .email({ message: "Email inválido" })
     .optional()
     .or(z.literal("")),
   
@@ -228,7 +226,7 @@ export const settingsUpdateSchema = z.object({
   
   socialFacebook: z
     .string()
-    .url("URL inválida")
+    .url({ message: "URL inválida" })
     .optional()
     .or(z.literal("")),
   
@@ -276,7 +274,7 @@ export type ZoneFormData = z.infer<typeof zoneSchema>;
 export const tableSchema = z.object({
   zoneId: z
     .string()
-    .uuid("ID de zona inválido"),
+    .uuid({ message: "ID de zona inválido" }),
   
   name: z
     .string()
@@ -340,7 +338,7 @@ export type TableFormData = z.infer<typeof tableSchema>;
 export const staffSchema = z.object({
   email: z
     .string()
-    .email("Correo electrónico inválido"),
+    .email({ message: "Correo electrónico inválido" }),
   
   fullName: z
     .string()

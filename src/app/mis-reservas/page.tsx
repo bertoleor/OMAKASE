@@ -19,6 +19,9 @@ import { User } from "@supabase/supabase-js";
 import { BUSINESS } from "@/config/business";
 import { useBookingsByCustomer, Booking } from "@/hooks/queries";
 import { useLanguage } from "@/hooks/useLanguage";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata = pageMetadata.myReservations();
 
 // Use Booking type from queries - extend with zone name relation
 type Reservation = Booking & { zones?: { name: string } };
