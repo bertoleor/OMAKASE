@@ -111,4 +111,59 @@ export interface Dictionary {
     email_sent: string;
     thank_you: string;
   };
+  // Mis Reservas page translations
+  myReservations: {
+    title: string;
+    upcoming: string;
+    past: string;
+    history: string;
+    noReservations: string;
+    noUpcoming: string;
+    noPast: string;
+    guests: string;
+    zone: string;
+    tableAssignedAtArrival: string;
+    time: string;
+    status: string;
+    status_pending: string;
+    status_confirmed: string;
+    status_seated: string;
+    status_completed: string;
+    status_cancelled: string;
+    status_noShow: string;
+    viewDetails: string;
+    addToCalendar: string;
+    session: string;
+    logout: string;
+    logoutConfirm: string;
+  };
+  reservationDetail: {
+    title: string;
+    bookingDetails: string;
+    customerInfo: string;
+    contact: string;
+    notes: string;
+    noNotes: string;
+    cancelReservation: string;
+    cancelConfirm: string;
+    cancelWarning: string;
+    confirmCancel: string;
+    cancelling: string;
+    cancelError: string;
+    cancelled: string;
+    pastReservation: string;
+  };
+  login: {
+    title: string;
+    subtitle: string;
+    emailLabel: string;
+    emailPlaceholder: string;
+    sendLink: string;
+    sending: string;
+    sent: string;
+    checkEmail: string;
+    useMagicLink: string;
+    or: string;
+    error: string;
+  };
 }

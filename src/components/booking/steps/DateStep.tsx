@@ -5,13 +5,8 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
 import { useRef, useState, useMemo, useEffect, useCallback } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/hooks/useLanguage";
-
-interface BlockedDate {
-  blocked_date: string;
-  reason?: string;
-}
+import { useBlockedDates } from "@/hooks/queries";
 
 // Helper to generate days based on maxDays limit
 const generateDays = (maxDays: number, locale: string) => {
@@ -47,15 +42,21 @@ export default function DateStep() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
-  const [blockedDates, setBlockedDates] = useState<Set<string>>(new Set());
-  const [blockedReasons, setBlockedReasons] = useState<Record<string, string>>({});
   const [visibleMonth, setVisibleMonth] = useState("");
   const [prevDate, setPrevDate] = useState(draftBooking.date);
 
   // Use settings or default to 30 days
   const maxAdvanceDays = settings?.max_advance_days || 30;
-  const locale = language === "es" ? "es-ES" : language === "pt" ? "pt-BR" : "en-GB";
-  const days = useMemo(() => generateDays(maxAdvanceDays, locale), [maxAdvanceDays, locale]);
+  const getLocale = (lang: string) => {
+    if (lang === "es") return "es-ES";
+    if (lang === "pt") return "pt-BR";
+    return "en-GB";
+  };
+  const resolvedLocale = getLocale(language);
+  const days = useMemo(
+    () => generateDays(maxAdvanceDays, resolvedLocale),
+    [maxAdvanceDays, resolvedLocale],
+  );
 
   // Sync visible month with selected date (Render-time update pattern)
   if (draftBooking.date !== prevDate) {
@@ -67,36 +68,23 @@ export default function DateStep() {
     }
   }
 
-  // Fetch blocked dates on mount
-  useEffect(() => {
-    async function fetchBlockedDates() {
-      try {
-        const supabase = createClient();
-        const today = new Date().toISOString().split("T")[0];
-        const futureDate = new Date();
-        futureDate.setDate(futureDate.getDate() + maxAdvanceDays);
+  // Fetch blocked dates using React Query hook
+  const { data: blockedDatesData } = useBlockedDates();
 
-        const { data } = await supabase
-          .from("blocked_dates")
-          .select("blocked_date, reason")
-          .gte("blocked_date", today)
-          .lte("blocked_date", futureDate.toISOString().split("T")[0]);
+  // Process blocked dates into derived state (no separate state needed)
+  const blockedDates = useMemo(() => {
+    if (!blockedDatesData) return new Set<string>();
+    return new Set(blockedDatesData.map((d: { date: string }) => d.date));
+  }, [blockedDatesData]);
 
-        if (data) {
-          const dates = new Set<string>(data.map((d: BlockedDate) => d.blocked_date));
-          const reasons: Record<string, string> = {};
-          data.forEach((d: BlockedDate) => {
-            if (d.reason) reasons[d.blocked_date] = d.reason;
-          });
-          setBlockedDates(dates);
-          setBlockedReasons(reasons);
-        }
-      } catch (err) {
-        console.error("Error fetching blocked dates:", err);
-      }
-    }
-    fetchBlockedDates();
-  }, [maxAdvanceDays]);
+  const blockedReasons = useMemo(() => {
+    if (!blockedDatesData) return {};
+    const reasons: Record<string, string> = {};
+    blockedDatesData.forEach((d: { date: string; reason?: string }) => {
+      if (d.reason) reasons[d.date] = d.reason;
+    });
+    return reasons;
+  }, [blockedDatesData]);
 
   const handleSelect = (dayStr: string) => {
     // Don't allow selecting blocked dates

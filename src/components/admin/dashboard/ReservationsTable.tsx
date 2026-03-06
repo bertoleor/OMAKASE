@@ -1,80 +1,36 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Clock, MapPin, Users, CheckCircle2 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
-import { updateBookingStatus } from "@/app/actions/admin";
+import { useBookingsByDate, useZones, useUpdateBookingStatus, Booking } from "@/hooks/queries";
+import { useState } from "react";
 
-interface Booking {
-  id: string;
-  customer_name: string;
-  customer_phone: string;
-  booking_time: string;
-  pax: number;
-  zone_id: string;
-  status: "pending" | "confirmed" | "seated" | "completed" | "cancelled";
-  notes?: string;
-}
-
-interface Zone {
-  id: string;
-  name: string;
-  slug: string;
+interface ReservationsTableProps {
+  readonly date: string;
 }
 
 export default function ReservationsTable({
   date,
-}: Readonly<{ date: string }>) {
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [zones, setZones] = useState<Zone[]>([]);
-  const [loading, setLoading] = useState(true);
+}: Readonly<ReservationsTableProps>) {
   const [actionError, setActionError] = useState<string | null>(null);
-  const [forceCompleteId, setForceCompleteId] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const supabase = createClient();
-
-        // Fetch zones
-        const { data: zonesData } = await supabase
-          .from("zones")
-          .select("*")
-          .eq("is_active", true)
-          .order("display_order");
-
-        // Fetch bookings for the date
-        const { data: bookingsData } = await supabase
-          .from("bookings")
-          .select("*")
-          .eq("booking_date", date)
-          .order("booking_time");
-
-        setZones(zonesData || []);
-        setBookings(bookingsData || []);
-      } catch (error) {
-        console.error("Error fetching bookings:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchData();
-  }, [date]);
+  const { data: bookings = [], isLoading: loadingBookings } = useBookingsByDate(date);
+  const { data: zones = [] } = useZones();
+  const updateStatus = useUpdateBookingStatus();
 
   const getZoneName = (zoneId: string) => {
     return zones.find((z) => z.id === zoneId)?.name || "Unknown";
   };
 
   const getStatusColor = (status: string) => {
-    const colors = {
+    const colors: Record<string, string> = {
       pending: "text-yellow-400 bg-yellow-500/10",
       confirmed: "text-blue-400 bg-blue-500/10",
       seated: "text-green-400 bg-green-500/10",
       completed: "text-gray-400 bg-gray-500/10",
       cancelled: "text-red-400 bg-red-500/10",
+      no_show: "text-orange-400 bg-orange-500/10",
     };
-    return colors[status as keyof typeof colors] || "text-gray-400";
+    return colors[status] || "text-gray-400";
   };
 
   const handleForceComplete = async (bookingId: string) => {
@@ -86,37 +42,20 @@ export default function ReservationsTable({
       return;
     }
 
-    setForceCompleteId(bookingId);
     setActionError(null);
     try {
-      const { success, error: actionError } = await updateBookingStatus(
-        bookingId,
-        "completed",
-        "Admin force-complete",
-      );
-
-      if (!success) throw new Error(actionError);
-
-      // Refresh data
-      setBookings((prev) =>
-        prev.map((b) =>
-          b.id === bookingId ? { ...b, status: "completed" as const } : b,
-        ),
-      );
+      await updateStatus.mutateAsync({ id: bookingId, status: "completed" });
     } catch (error) {
-      console.error("Error completing booking:", error);
       setActionError(
         error instanceof Error
           ? error.message
           : "Error al completar la reserva",
       );
       setTimeout(() => setActionError(null), 4000);
-    } finally {
-      setForceCompleteId(null);
     }
   };
 
-  if (loading) {
+  if (loadingBookings) {
     return (
       <div className="bg-black/30 backdrop-blur-md border border-white/10 rounded-xl p-6">
         <div className="animate-pulse space-y-4">
@@ -172,7 +111,7 @@ export default function ReservationsTable({
             </tr>
           </thead>
           <tbody className="divide-y divide-white/10">
-            {bookings.map((booking) => (
+            {bookings.map((booking: Booking) => (
               <tr
                 key={booking.id}
                 className="hover:bg-white/5 transition-colors"
@@ -199,7 +138,7 @@ export default function ReservationsTable({
                   <div className="flex items-center space-x-2">
                     <MapPin className="w-4 h-4 text-white/40" />
                     <span className="text-sm text-white/80">
-                      {getZoneName(booking.zone_id)}
+                      {getZoneName(booking.zone_id || "")}
                     </span>
                   </div>
                 </td>
@@ -220,7 +159,7 @@ export default function ReservationsTable({
                   {booking.status === "seated" && (
                     <button
                       onClick={() => handleForceComplete(booking.id)}
-                      disabled={forceCompleteId === booking.id}
+                      disabled={updateStatus.isPending}
                       className="inline-flex items-center space-x-1 px-3 py-1.5 text-xs font-medium text-green-400 bg-green-500/10 border border-green-500/20 rounded-lg hover:bg-green-500/20 transition-colors disabled:opacity-50"
                     >
                       <CheckCircle2 className="w-3 h-3" />

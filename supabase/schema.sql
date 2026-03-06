@@ -544,3 +544,155 @@ values (0, false, '12:00', '23:00'),
 -- Example Tables (only if empty)
 -- (Skipping full table insert for brevity unless specific request, but ensuring logical tables exist)
 -- See 08_tables_and_assignment.sql for detailed table coordinates if needed.
+
+-- =============================================================================
+-- 7. REALTIME WEBHOOK TRIGGERS
+-- =============================================================================
+-- These triggers enable Supabase Realtime and notify external services
+-- about database changes for webhook integration
+
+-- Enable realtime for bookings table
+alter publication supabase_realtime add table bookings;
+alter publication supabase_realtime add table tables;
+alter publication supabase_realtime add table zones;
+alter publication supabase_realtime add table events;
+
+-- Function to notify on booking changes
+create or replace function notify_booking_change() returns trigger as $
+begin
+  -- This triggers Supabase Realtime automatically
+  -- The webhook endpoint can process these events
+  if TG_OP = 'INSERT' then
+    perform pg_notify('booking_changes', json_build_object(
+      'type', 'INSERT',
+      'table', 'bookings',
+      'record', row_to_json(NEW),
+      'timestamp', now()::text
+    )::text);
+    return NEW;
+  elsif TG_OP = 'UPDATE' then
+    perform pg_notify('booking_changes', json_build_object(
+      'type', 'UPDATE',
+      'table', 'bookings',
+      'record', row_to_json(NEW),
+      'old_record', row_to_json(OLD),
+      'timestamp', now()::text
+    )::text);
+    return NEW;
+  elsif TG_OP = 'DELETE' then
+    perform pg_notify('booking_changes', json_build_object(
+      'type', 'DELETE',
+      'table', 'bookings',
+      'old_record', row_to_json(OLD),
+      'timestamp', now()::text
+    )::text);
+    return OLD;
+  end if;
+  return null;
+end;
+$ language plpgsql security definer;
+
+-- Function to notify on table changes
+create or replace function notify_table_change() returns trigger as $
+begin
+  if TG_OP = 'INSERT' then
+    perform pg_notify('table_changes', json_build_object(
+      'type', 'INSERT',
+      'table', 'tables',
+      'record', row_to_json(NEW),
+      'timestamp', now()::text
+    )::text);
+    return NEW;
+  elsif TG_OP = 'UPDATE' then
+    perform pg_notify('table_changes', json_build_object(
+      'type', 'UPDATE',
+      'table', 'tables',
+      'record', row_to_json(NEW),
+      'old_record', row_to_json(OLD),
+      'timestamp', now()::text
+    )::text);
+    return NEW;
+  elsif TG_OP = 'DELETE' then
+    perform pg_notify('table_changes', json_build_object(
+      'type', 'DELETE',
+      'table', 'tables',
+      'old_record', row_to_json(OLD),
+      'timestamp', now()::text
+    )::text);
+    return OLD;
+  end if;
+  return null;
+end;
+$ language plpgsql security definer;
+
+-- Function to notify on zone changes
+create or replace function notify_zone_change() returns trigger as $
+begin
+  if TG_OP = 'INSERT' then
+    perform pg_notify('zone_changes', json_build_object(
+      'type', 'INSERT',
+      'table', 'zones',
+      'record', row_to_json(NEW),
+      'timestamp', now()::text
+    )::text);
+    return NEW;
+  elsif TG_OP = 'UPDATE' then
+    perform pg_notify('zone_changes', json_build_object(
+      'type', 'UPDATE',
+      'table', 'zones',
+      'record', row_to_json(NEW),
+      'old_record', row_to_json(OLD),
+      'timestamp', now()::text
+    )::text);
+    return NEW;
+  elsif TG_OP = 'DELETE' then
+    perform pg_notify('zone_changes', json_build_object(
+      'type', 'DELETE',
+      'table', 'zones',
+      'old_record', row_to_json(OLD),
+      'timestamp', now()::text
+    )::text);
+    return OLD;
+  end if;
+  return null;
+end;
+$ language plpgsql security definer;
+
+-- Create triggers for bookings
+drop trigger if exists on_booking_insert on bookings;
+create trigger on_booking_insert
+after insert on bookings for each row execute procedure notify_booking_change();
+
+drop trigger if exists on_booking_update on bookings;
+create trigger on_booking_update
+after update on bookings for each row execute procedure notify_booking_change();
+
+drop trigger if exists on_booking_delete on bookings;
+create trigger on_booking_delete
+after delete on bookings for each row execute procedure notify_booking_change();
+
+-- Create triggers for tables
+drop trigger if exists on_table_insert on tables;
+create trigger on_table_insert
+after insert on tables for each row execute procedure notify_table_change();
+
+drop trigger if exists on_table_update on tables;
+create trigger on_table_update
+after update on tables for each row execute procedure notify_table_change();
+
+drop trigger if exists on_table_delete on tables;
+create trigger on_table_delete
+after delete on tables for each row execute procedure notify_table_change();
+
+-- Create triggers for zones
+drop trigger if exists on_zone_insert on zones;
+create trigger on_zone_insert
+after insert on zones for each row execute procedure notify_zone_change();
+
+drop trigger if exists on_zone_update on zones;
+create trigger on_zone_update
+after update on zones for each row execute procedure notify_zone_change();
+
+drop trigger if exists on_zone_delete on zones;
+create trigger on_zone_delete
+after delete on zones for each row execute procedure notify_zone_change();

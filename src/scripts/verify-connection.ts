@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 
 // Manually parse .env.local
 const envPath = path.resolve(process.cwd(), ".env.local");
@@ -12,7 +12,7 @@ if (fs.existsSync(envPath)) {
   fileContent.split("\n").forEach((line) => {
     const [key, value] = line.split("=");
     if (key && value) {
-      envConfig[key.trim()] = value.trim().replace(/^["']|["']$/g, "");
+      envConfig[key.trim()] = value.trim().replaceAll(/^["']|["']$/g, "");
     }
   });
 }
@@ -32,11 +32,11 @@ async function main() {
     console.log("✅ Supabase Credentials found");
   }
 
-  if (!RESEND_KEY) {
+  if (RESEND_KEY) {
+    console.log("✅ Resend API Key found");
+  } else {
     console.error("❌ Resend API Key missing in .env.local");
     process.exit(1);
-  } else {
-    console.log("✅ Resend API Key found");
   }
 
   // 2. Verify Supabase Connection
@@ -48,6 +48,7 @@ async function main() {
       console.error("❌ Supabase Connection Failed:", error.message);
     } else {
       console.log("✅ Supabase Connection Successful (Read 'restaurant_settings')");
+      console.log("   Sample data:", JSON.stringify(data, null, 2));
     }
   } catch (error) {
     console.error("❌ Supabase Connection Error:", error);
@@ -64,4 +65,4 @@ async function main() {
   }
 }
 
-main();
+await main();

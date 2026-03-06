@@ -5,5 +5,8 @@
     "source.fixAll.eslint": "explicit"
   },
   "vscode-edge-devtools.mirror-edits": true,
-  "vscode-edge-devtools.webhint": true
+  "vscode-edge-devtools.webhint": true,
+  "css.customData": [
+    ".vscode/tailwind.css.json"
+  ]
 }

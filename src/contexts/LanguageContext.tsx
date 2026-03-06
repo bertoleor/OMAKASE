@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useMemo, useState } from "react";
 import { Language, Dictionary } from "../i18n/types";
 import { dictionaries, defaultDictionary } from "../i18n";
 
@@ -13,45 +13,53 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguage] = useState<Language>("es");
-  const [dictionary, setDictionary] = useState<Dictionary>(defaultDictionary);
-
-  useEffect(() => {
-    // Load from localStorage on mount
+export function LanguageProvider({ children }: Readonly<{ children: React.ReactNode }>) {
+  // Lazy initialization - read from localStorage once on initial render
+  const getInitialLanguage = (): Language => {
+    if (globalThis.window === undefined) return "es";
     const saved = localStorage.getItem("language") as Language;
-    if (saved && dictionaries[saved]) {
-      setLanguage(saved);
-      setDictionary(dictionaries[saved]);
-    }
-  }, []);
+    return saved && dictionaries[saved] ? saved : "es";
+  };
 
-  const handleSetLanguage = (lang: Language) => {
+  const getInitialDictionary = (): Dictionary => {
+    if (globalThis.window === undefined) return defaultDictionary;
+    const saved = localStorage.getItem("language") as Language;
+    return saved && dictionaries[saved] ? dictionaries[saved] : defaultDictionary;
+  };
+
+  const [language, setLanguage] = useState<Language>(getInitialLanguage);
+  const [dictionary, setDictionary] = useState<Dictionary>(getInitialDictionary);
+
+  const handleSetLanguage = useCallback((lang: Language) => {
     setLanguage(lang);
     setDictionary(dictionaries[lang]);
     localStorage.setItem("language", lang);
-  };
+  }, []);
 
-  const t = (path: string): string => {
-    const keys = path.split(".");
-    let current: any = dictionary;
+  const t = useCallback(
+    (path: string): string => {
+      const keys = path.split(".");
+      let current: unknown = dictionary;
 
-    for (const key of keys) {
-      if (current[key] === undefined) {
-        console.warn(`Translation missing for key: ${path}`);
-        return path;
+      for (const key of keys) {
+        if (typeof current !== "object" || current === null || !(key in current)) {
+          console.warn(`Translation missing for key: ${path}`);
+          return path;
+        }
+        current = (current as Record<string, unknown>)[key];
       }
-      current = current[key];
-    }
 
-    return current as string;
-  };
-
-  return (
-    <LanguageContext.Provider value={{ language, setLanguage: handleSetLanguage, t, dictionary }}>
-      {children}
-    </LanguageContext.Provider>
+      return typeof current === "string" ? current : path;
+    },
+    [dictionary],
   );
+
+  const contextValue = useMemo(
+    () => ({ language, setLanguage: handleSetLanguage, t, dictionary }),
+    [language, handleSetLanguage, t, dictionary],
+  );
+
+  return <LanguageContext.Provider value={contextValue}>{children}</LanguageContext.Provider>;
 }
 
 export function useLanguage() {

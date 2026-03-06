@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -17,95 +17,73 @@ import { PageBackground } from "@/components/ui/page-background";
 import { createClient } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { BUSINESS } from "@/config/business";
+import { useBookingsByCustomer, Booking } from "@/hooks/queries";
+import { useLanguage } from "@/hooks/useLanguage";
 
-interface Reservation {
-  id: string;
-  booking_date: string;
-  booking_time: string;
-  pax: number;
-  status: string;
-  zone_id: string;
-  notes?: string;
-  created_at: string;
-  zones?: { name: string };
-}
+// Use Booking type from queries - extend with zone name relation
+type Reservation = Booking & { zones?: { name: string } };
 
-const STATUS_CONFIG: Record<
-  string,
-  { label: string; color: string; bg: string }
-> = {
+// Status labels are now managed through translations
+const getStatusConfig = (t: (key: string) => string) => ({
   pending: {
-    label: "Pendiente",
+    label: t("myReservations.status_pending"),
     color: "text-white/80",
     bg: "bg-white/10",
   },
   confirmed: {
-    label: "Confirmada",
+    label: t("myReservations.status_confirmed"),
     color: "text-white/80",
     bg: "bg-white/10",
   },
-  seated: { label: "En mesa", color: "text-white/80", bg: "bg-white/10" },
+  seated: { 
+    label: t("myReservations.status_seated"), 
+    color: "text-white/80", 
+    bg: "bg-white/10" 
+  },
   completed: {
-    label: "Completada",
+    label: t("myReservations.status_completed"),
     color: "text-white/40",
     bg: "bg-white/5",
   },
-  cancelled: { label: "Cancelada", color: "text-white/30", bg: "bg-white/5" },
+  cancelled: { 
+    label: t("myReservations.status_cancelled"), 
+    color: "text-white/30", 
+    bg: "bg-white/5" 
+  },
   no_show: {
-    label: "No presentado",
+    label: t("myReservations.status_noShow"),
     color: "text-white/30",
     bg: "bg-white/5",
   },
-};
+});
 
 export default function MyReservationsPage() {
   const [user, setUser] = useState<User | null>(null);
-  const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  const fetchReservations = useCallback(async (email: string) => {
-    try {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("bookings")
-        .select(
-          `
-          id, booking_date, booking_time, pax, status, zone_id, notes, created_at,
-          zones(name)
-        `,
-        )
-        .eq("customer_email", email)
-        .order("booking_date", { ascending: false })
-        .order("booking_time", { ascending: false });
+  // Use React Query hook for fetching reservations
+  const { data: reservations = [] } = useBookingsByCustomer(user?.email || "");
 
-      if (error) throw error;
-      setReservations(data || []);
-    } catch (err) {
-      console.error("Error fetching reservations:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const checkAuth = useCallback(async () => {
-    const supabase = createClient();
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    if (!session) {
-      router.push("/mis-reservas/login");
-      return;
-    }
-
-    setUser(session.user);
-    await fetchReservations(session.user.email || "");
-  }, [router, fetchReservations]);
-
+  // Handle auth check separately
   useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
+    const initAuth = async () => {
+      const supabase = createClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        router.push("/mis-reservas/login");
+        return;
+      }
+
+      setUser(session.user);
+      setLoading(false);
+    };
+
+    initAuth();
+  }, [router]);
 
   async function handleLogout() {
     const supabase = createClient();
@@ -116,14 +94,10 @@ export default function MyReservationsPage() {
   // Separate upcoming and past reservations
   const today = new Date().toISOString().split("T")[0];
   const upcoming = reservations.filter(
-    (r) =>
-      r.booking_date >= today &&
-      !["cancelled", "no_show", "completed"].includes(r.status),
+    (r) => r.booking_date >= today && !["cancelled", "no_show", "completed"].includes(r.status),
   );
   const past = reservations.filter(
-    (r) =>
-      r.booking_date < today ||
-      ["cancelled", "no_show", "completed"].includes(r.status),
+    (r) => r.booking_date < today || ["cancelled", "no_show", "completed"].includes(r.status),
   );
 
   if (loading) {
@@ -221,9 +195,7 @@ export default function MyReservationsPage() {
               <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center">
                 <Clock className="w-4 h-4" />
               </div>
-              <h2 className="text-sm font-medium uppercase tracking-widest">
-                Historial
-              </h2>
+              <h2 className="text-sm font-medium uppercase tracking-widest">Historial</h2>
             </div>
 
             <div className="space-y-4 opacity-40 hover:opacity-100 transition-opacity">
@@ -252,8 +224,10 @@ function ReservationCard({
   reservation: Reservation;
   isPast?: boolean;
 }>) {
-  const status = STATUS_CONFIG[reservation.status] || STATUS_CONFIG.pending;
-  const zoneName = reservation.zones?.name || "Mesa asignada al llegar";
+  const { t } = useLanguage();
+  const statusConfig = getStatusConfig(t);
+  const status = statusConfig[reservation.status] || statusConfig.pending;
+  const zoneName = reservation.zones?.name || t("myReservations.tableAssignedAtArrival");
 
   // Format date nicely
   const date = new Date(reservation.booking_date);
@@ -298,9 +272,7 @@ function ReservationCard({
               </div>
               <div className="flex items-center space-x-1.5">
                 <MapPin className="w-3 h-3 text-white/20" />
-                <span className="truncate max-w-[80px] sm:max-w-[120px]">
-                  {zoneName}
-                </span>
+                <span className="truncate max-w-[80px] sm:max-w-[120px]">{zoneName}</span>
               </div>
             </div>
           </div>
@@ -308,9 +280,7 @@ function ReservationCard({
 
         <div className="flex items-center space-x-4">
           <div className="hidden sm:flex flex-col items-end space-y-2">
-            <span
-              className={`text-[10px] uppercase tracking-[0.3em] font-medium ${status.color}`}
-            >
+            <span className={`text-[10px] uppercase tracking-[0.3em] font-medium ${status.color}`}>
               {status.label}
             </span>
           </div>

@@ -1,22 +1,23 @@
 "use client";
 
-import {
-  CalendarDays,
-  ChevronLeft,
-  ChevronRight,
-  LayoutGrid,
-  List,
-} from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, LayoutGrid, List } from "lucide-react";
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import KPICards from "@/components/admin/dashboard/KPICards";
-import ZoneOccupancy from "@/components/admin/dashboard/ZoneOccupancy";
-import ServiceTimeline from "@/components/admin/dashboard/ServiceTimeline";
-import UpcomingArrivals from "@/components/admin/dashboard/UpcomingArrivals";
-import ReservationsTable from "@/components/admin/dashboard/ReservationsTable";
-import QuickActionsPanel from "@/components/admin/dashboard/QuickActionsPanel";
 
-export const dynamic = "force-dynamic";
+// Dynamic imports for heavy components
+// Components handle their own loading states with matching skeletons
+const KPICards = dynamic(() => import("@/components/admin/dashboard/KPICards"));
+
+const ZoneOccupancy = dynamic(() => import("@/components/admin/dashboard/ZoneOccupancy"));
+
+const ServiceTimeline = dynamic(() => import("@/components/admin/dashboard/ServiceTimeline"));
+
+const UpcomingArrivals = dynamic(() => import("@/components/admin/dashboard/UpcomingArrivals"));
+
+const ReservationsTable = dynamic(() => import("@/components/admin/dashboard/ReservationsTable"));
+
+const QuickActionsPanel = dynamic(() => import("@/components/admin/dashboard/QuickActionsPanel"));
 
 export default function DashboardPage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -50,9 +51,7 @@ export default function DashboardPage() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-white">Dashboard</h1>
-          <p className="text-white/40 mt-1">
-            Gestión del servicio en tiempo real
-          </p>
+          <p className="text-white/40 mt-1">Gestión del servicio en tiempo real</p>
         </div>
 
         <div className="flex items-center space-x-3">
@@ -73,9 +72,7 @@ export default function DashboardPage() {
               <button
                 onClick={() => setViewMode("list")}
                 className={`p-2 rounded-lg transition-colors ${
-                  viewMode === "list"
-                    ? "bg-white/10 text-white"
-                    : "text-white/40 hover:text-white"
+                  viewMode === "list" ? "bg-white/10 text-white" : "text-white/40 hover:text-white"
                 }`}
                 title="Vista Lista"
               >
@@ -127,9 +124,7 @@ export default function DashboardPage() {
 
       {/* Zone Occupancy - Horizontal scroll on mobile */}
       <div>
-        <h2 className="text-lg font-semibold text-white mb-3">
-          Ocupación por Zona
-        </h2>
+        <h2 className="text-lg font-semibold text-white mb-3">Ocupación por Zona</h2>
         <ZoneOccupancy date={toISODate(selectedDate)} />
       </div>
 
@@ -139,31 +134,23 @@ export default function DashboardPage() {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div>
-            <h2 className="text-lg font-semibold text-white mb-3">
-              Próximas Llegadas
-            </h2>
+            <h2 className="text-lg font-semibold text-white mb-3">Próximas Llegadas</h2>
             <UpcomingArrivals date={toISODate(selectedDate)} />
           </div>
           <div className="hidden lg:block">
-            <h2 className="text-lg font-semibold text-white mb-3">
-              Todas las Reservas
-            </h2>
+            <h2 className="text-lg font-semibold text-white mb-3">Todas las Reservas</h2>
             <ReservationsTable date={toISODate(selectedDate)} />
           </div>
         </div>
       )}
 
       {/* Full Table - Always visible on Timeline mode, and on desktop List mode */}
-      {effectiveViewMode === "timeline" && (
-        <ReservationsTable date={toISODate(selectedDate)} />
-      )}
+      {effectiveViewMode === "timeline" && <ReservationsTable date={toISODate(selectedDate)} />}
 
       {/* Mobile: Show table below arrivals */}
       {isMobile && (
         <div className="lg:hidden">
-          <h2 className="text-lg font-semibold text-white mb-3">
-            Todas las Reservas
-          </h2>
+          <h2 className="text-lg font-semibold text-white mb-3">Todas las Reservas</h2>
           <ReservationsTable date={toISODate(selectedDate)} />
         </div>
       )}

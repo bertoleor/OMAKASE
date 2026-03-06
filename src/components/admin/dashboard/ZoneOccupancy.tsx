@@ -1,83 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
-
-interface Zone {
-  id: string;
-  name: string;
-  slug: string;
-  capacity_pax: number;
-}
+import { useZoneOccupancy } from "@/hooks/queries";
 
 interface ZoneOccupancyProps {
   date: string;
 }
 
 export default function ZoneOccupancy({ date }: ZoneOccupancyProps) {
-  const [zones, setZones] = useState<(Zone & { occupied: number })[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: zones, isLoading, error } = useZoneOccupancy(date);
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const supabase = createClient();
-
-        // Fetch zones
-        const { data: zonesData } = await supabase
-          .from("zones")
-          .select("*")
-          .eq("is_active", true)
-          .order("display_order");
-
-        // For each zone, calculate current occupancy
-        const enrichedZones = await Promise.all(
-          ((zonesData || []) as Zone[]).map(async (zone: Zone) => {
-            const { data: seatedBookings } = await supabase
-              .from("bookings")
-              .select("pax")
-              .eq("booking_date", date)
-              .eq("zone_id", zone.id)
-              .eq("status", "seated");
-
-            const occupied =
-              seatedBookings?.reduce(
-                (sum: number, b: { pax: number }) => sum + b.pax,
-                0,
-              ) || 0;
-            return { ...zone, occupied };
-          }),
-        );
-
-        setZones(enrichedZones);
-      } catch (error) {
-        console.error("Error fetching zone occupancy:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchData();
-
-    // Realtime updates
-    const supabase = createClient();
-    const channel = supabase
-      .channel("zone-occupancy")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "bookings" },
-        () => {
-          fetchData();
-        },
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [date]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex space-x-4 overflow-x-auto pb-2">
         {[...Array(3)].map((_, i) => (
@@ -86,6 +18,22 @@ export default function ZoneOccupancy({ date }: ZoneOccupancyProps) {
             className="flex-shrink-0 w-32 h-32 bg-black/30 rounded-xl animate-pulse"
           />
         ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-32 text-red-400">
+        Error al cargar ocupación
+      </div>
+    );
+  }
+
+  if (!zones || zones.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-32 text-white/60">
+        No hay zonas disponibles
       </div>
     );
   }

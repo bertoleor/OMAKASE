@@ -1,9 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Users, Clock, TrendingUp, CalendarCheck } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
-import { useRealtimeBookings } from "@/hooks/useRealtimeBookings";
+import { useDashboardKPIs } from "@/hooks/queries";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -12,84 +10,36 @@ interface KPICardsProps {
 }
 
 export default function KPICards({ date }: KPICardsProps) {
-  const { bookings, loading: loadingBookings } = useRealtimeBookings(date);
-  const [zones, setZones] = useState<{ id: string; capacity_pax: number }[]>(
-    [],
-  );
-  const [next7DaysCount, setNext7DaysCount] = useState(0);
+  const { data: kpis, isLoading, error } = useDashboardKPIs(date);
 
-  useEffect(() => {
-    async function fetchAdditionalStats() {
-      const supabase = createClient();
-
-      // Fetch Zones for capacity
-      const { data: zonesData } = await supabase
-        .from("zones")
-        .select("id, capacity_pax")
-        .eq("is_active", true);
-
-      if (zonesData) setZones(zonesData);
-
-      // Fetch Next 7 Days count
-      const today = new Date().toISOString().split("T")[0];
-      const nextWeek = new Date();
-      nextWeek.setDate(nextWeek.getDate() + 7);
-      const nextWeekStr = nextWeek.toISOString().split("T")[0];
-
-      const { count } = await supabase
-        .from("bookings")
-        .select("*", { count: "exact", head: true })
-        .gte("booking_date", today)
-        .lte("booking_date", nextWeekStr)
-        .neq("status", "cancelled");
-
-      setNext7DaysCount(count || 0);
-    }
-
-    fetchAdditionalStats();
-  }, []);
-
-  // Calculate Today's Stats from Realtime Bookings
-  const totalBookings = bookings.length;
-  const confirmedCount = bookings.filter((b) => b.status === "confirmed").length;
-  const totalPax = bookings.reduce(
-    (acc, b) => (b.status !== "cancelled" ? acc + b.pax : acc),
-    0,
-  );
-  const seatedPax = bookings.reduce(
-    (acc, b) => (b.status === "seated" ? acc + b.pax : acc),
-    0,
-  );
-
-  // Calculate Occupancy
-  // Note: This is "Current Occupancy" based on "seated" status, which is real-time.
-  // Capacity is total zone capacity.
-  const totalCapacity = zones.reduce((acc, z) => acc + z.capacity_pax, 0);
+  // Calculate derived values
   const occupancyPercent =
-    totalCapacity > 0 ? Math.round((seatedPax / totalCapacity) * 100) : 0;
+    kpis && kpis.totalCapacity > 0
+      ? Math.round((kpis.seatedPax / kpis.totalCapacity) * 100)
+      : 0;
 
-  const kpis = [
+  const kpiData = [
     {
       label: "Reservas Hoy",
-      value: totalBookings,
+      value: kpis?.todayBookings ?? 0,
       icon: CalendarCheck,
       color: "text-blue-400",
       bgColor: "bg-blue-500/10",
       borderColor: "border-blue-500/20",
-      subtitle: `${confirmedCount} confirmadas`,
+      subtitle: `${kpis?.confirmedCount ?? 0} confirmadas`,
     },
     {
       label: "Comensales",
-      value: totalPax,
+      value: kpis?.totalPax ?? 0,
       icon: Users,
       color: "text-green-400",
       bgColor: "bg-green-500/10",
       borderColor: "border-green-500/20",
-      subtitle: `${seatedPax} sentados ahora`,
+      subtitle: `${kpis?.seatedPax ?? 0} sentados ahora`,
     },
     {
       label: "Próximos 7 Días",
-      value: next7DaysCount,
+      value: kpis?.next7DaysCount ?? 0,
       icon: TrendingUp,
       color: "text-purple-400",
       bgColor: "bg-purple-500/10",
@@ -103,11 +53,11 @@ export default function KPICards({ date }: KPICardsProps) {
       color: "text-amber-400",
       bgColor: "bg-amber-500/10",
       borderColor: "border-amber-500/20",
-      subtitle: `${seatedPax} / ${totalCapacity} pax`,
+      subtitle: `${kpis?.seatedPax ?? 0} / ${kpis?.totalCapacity ?? 0} pax`,
     },
   ];
 
-  if (loadingBookings) {
+  if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {new Array(4).fill(null).map((_, i) => (
@@ -122,9 +72,21 @@ export default function KPICards({ date }: KPICardsProps) {
     );
   }
 
+  if (error) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="col-span-full bg-red-500/10 border-red-500/20">
+          <CardContent className="p-6 text-center text-red-400">
+            Error al cargar KPIs
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      {kpis.map((kpi) => {
+      {kpiData.map((kpi) => {
         const Icon = kpi.icon;
         return (
           <Card

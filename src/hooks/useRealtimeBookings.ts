@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { logger } from "@/lib/logger";
 
 export interface Booking {
   id: string;
@@ -11,13 +12,7 @@ export interface Booking {
   pax: number;
   zone_id: string;
   table_id?: string;
-  status:
-    | "pending"
-    | "confirmed"
-    | "seated"
-    | "completed"
-    | "cancelled"
-    | "no_show";
+  status: "pending" | "confirmed" | "seated" | "completed" | "cancelled" | "no_show";
   notes?: string;
   booking_date: string;
 }
@@ -42,7 +37,10 @@ export function useRealtimeBookings(date: string) {
         if (error) throw error;
         if (isMounted) setBookings(data || []);
       } catch (error) {
-        console.error("Error fetching bookings:", error);
+        logger.error("Error fetching bookings", error instanceof Error ? error : undefined, {
+          context: "useRealtimeBookings",
+          date,
+        });
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -62,24 +60,22 @@ export function useRealtimeBookings(date: string) {
           filter: `booking_date=eq.${date}`,
         },
         (payload: { eventType: string; new: Booking; old: Booking }) => {
-          if (payload.eventType === "INSERT") {
-            setBookings((prev) =>
-              [...prev, payload.new as Booking].sort((a, b) =>
-                a.booking_time.localeCompare(b.booking_time),
-              ),
-            );
-          } else if (payload.eventType === "UPDATE") {
-            setBookings((prev) =>
-              prev.map((b) =>
-                b.id === (payload.new as Booking).id
-                  ? (payload.new as Booking)
-                  : b,
-              ),
-            );
-          } else if (payload.eventType === "DELETE") {
-            setBookings((prev) =>
-              prev.filter((b) => b.id !== (payload.old as Booking).id),
-            );
+          const evt = payload.eventType;
+          const newItem = payload.new;
+          const oldItem = payload.old;
+
+          // Process event - use inline callbacks to reduce nesting
+          if (evt === "INSERT") {
+            const sorter = (a: Booking, b: Booking) => a.booking_time.localeCompare(b.booking_time);
+            setBookings((prev: Booking[]) => [newItem, ...prev].toSorted(sorter));
+          } else if (evt === "UPDATE") {
+            const id = newItem.id;
+            const updater = (b: Booking) => b.id === id ? newItem : b;
+            setBookings((prev: Booking[]) => prev.map(updater));
+          } else if (evt === "DELETE") {
+            const id = oldItem.id;
+            const filterPred = (b: Booking) => b.id !== id;
+            setBookings((prev: Booking[]) => prev.filter(filterPred));
           }
         },
       )
