@@ -5,9 +5,6 @@ import Link from "next/link";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { sendAuthMagicLink } from "@/app/actions/admin";
 import { BUSINESS } from "@/config/business";
-import { pageMetadata } from "@/lib/seo";
-
-export const metadata = pageMetadata.login();
 
 export default function MyReservationsLoginPage() {
   const [email, setEmail] = useState("");
