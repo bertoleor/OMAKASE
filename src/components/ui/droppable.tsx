@@ -5,11 +5,11 @@ import { useDroppable, UseDroppableArguments } from "@dnd-kit/core";
 import { cn } from "@/lib/utils";
 
 interface DroppableProps {
-  id: string;
-  data?: UseDroppableArguments["data"];
-  children: React.ReactNode | ((args: { isOver: boolean }) => React.ReactNode);
-  className?: string;
-  disabled?: boolean;
+  readonly id: string;
+  readonly data?: UseDroppableArguments["data"];
+  readonly children: React.ReactNode | ((args: { isOver: boolean }) => React.ReactNode);
+  readonly className?: string;
+  readonly disabled?: boolean;
 }
 
 export function Droppable({
@@ -18,7 +18,7 @@ export function Droppable({
   children,
   className,
   disabled = false,
-}: DroppableProps) {
+}: Readonly<DroppableProps>) {
   const { isOver, setNodeRef } = useDroppable({
     id,
     data,

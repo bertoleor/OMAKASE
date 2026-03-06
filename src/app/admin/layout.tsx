@@ -20,7 +20,7 @@ export default function AdminLayout({
 
   return (
     <div className="flex bg-black min-h-screen font-sans text-white bg-[url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2670&auto=format&fit=crop')] bg-cover bg-fixed relative">
-      <div className="absolute inset-0 bg-black/80 backdrop-blur-sm z-0" />
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-0" />
 
       {/* Sidebar - hidden on mobile */}
       <div className="hidden lg:block">

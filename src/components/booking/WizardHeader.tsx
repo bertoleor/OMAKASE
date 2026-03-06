@@ -26,8 +26,11 @@ export default function WizardHeader() {
     const [year, month, day] = dStr.split("-").map(Number);
     const d = new Date(year, month - 1, day);
 
+    // Determine locale based on language
+    const locale = language === "es" ? "es-ES" : language === "pt" ? "pt-BR" : "en-GB";
+    
     const weekday = d
-      .toLocaleDateString(language === "es" ? "es-ES" : language === "pt" ? "pt-BR" : "en-GB", { weekday: "short" })
+      .toLocaleDateString(locale, { weekday: "short" })
       .replace(".", "")
       .toUpperCase();
     return `${weekday} ${day}`;

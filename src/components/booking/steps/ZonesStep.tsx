@@ -73,7 +73,7 @@ export default function ZonesStep() {
           return (
             <div
               key={z.id}
-              className="rounded-xl border border-white/10 overflow-hidden transition-all duration-300"
+              className="group rounded-xl border border-white/10 overflow-hidden transition-all duration-300"
             >
               {/* Header */}
               {/* Header */}

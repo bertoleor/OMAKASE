@@ -51,8 +51,8 @@ export default function QuantityStep() {
         handleContinue();
       }
     };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    globalThis.addEventListener("keydown", handleKeyDown);
+    return () => globalThis.removeEventListener("keydown", handleKeyDown);
   }, [currentPax, handleContinue]);
 
   return (
@@ -105,7 +105,7 @@ export default function QuantityStep() {
                   : "bg-white/5 border-white/20 text-white hover:bg-white/10 hover:border-white/50",
               )}
             >
-              {currentPax > 4 ? currentPax : maxPax >= 5 ? 5 : maxPax}
+              {currentPax > 4 ? currentPax : "5+"}
             </button>
 
             <button

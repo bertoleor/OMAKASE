@@ -9,4 +9,5 @@ export const dictionaries: Record<string, Dictionary> = {
   pt,
 };
 
-export const defaultDictionary = es;
+// Re-export defaultDictionary using export...from pattern
+export { es as defaultDictionary } from "./locales/es";

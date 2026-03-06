@@ -3,18 +3,18 @@
 import { useZoneOccupancy } from "@/hooks/queries";
 
 interface ZoneOccupancyProps {
-  date: string;
+  readonly date: string;
 }
 
-export default function ZoneOccupancy({ date }: ZoneOccupancyProps) {
+export default function ZoneOccupancy({ date }: Readonly<ZoneOccupancyProps>) {
   const { data: zones, isLoading, error } = useZoneOccupancy(date);
 
   if (isLoading) {
     return (
       <div className="flex space-x-4 overflow-x-auto pb-2">
-        {[...Array(3)].map((_, i) => (
+        {["zone-skeleton-1", "zone-skeleton-2", "zone-skeleton-3"].map((key) => (
           <div
-            key={i}
+            key={key}
             className="flex-shrink-0 w-32 h-32 bg-black/30 rounded-xl animate-pulse"
           />
         ))}
@@ -53,17 +53,20 @@ export default function ZoneOccupancy({ date }: ZoneOccupancyProps) {
         const offset =
           circumference - (Math.min(percentage, 100) / 100) * circumference;
 
-        const colorClass = isFull
-          ? "text-red-400"
-          : isHigh
-            ? "text-yellow-400"
-            : "text-green-400";
-
-        const bgColorClass = isFull
-          ? "from-red-500/20"
-          : isHigh
-            ? "from-yellow-500/20"
-            : "from-green-500/20";
+        // Determine color based on occupancy level
+        let colorClass: string;
+        let bgColorClass: string;
+        
+        if (isFull) {
+          colorClass = "text-red-400";
+          bgColorClass = "from-red-500/20";
+        } else if (isHigh) {
+          colorClass = "text-yellow-400";
+          bgColorClass = "from-yellow-500/20";
+        } else {
+          colorClass = "text-green-400";
+          bgColorClass = "from-green-500/20";
+        }
 
         return (
           <div

@@ -160,6 +160,18 @@ export const pageMetadata = {
       description: "Panel de administración de OMAKASE.",
       noIndex: true,
     }),
+
+  terms: () =>
+    generateMetadata({
+      title: "Términos y Condiciones",
+      description: "Términos y condiciones de uso del sistema de reservas de OMAKASE.",
+    }),
+
+  privacy: () =>
+    generateMetadata({
+      title: "Política de Privacidad",
+      description: "Política de privacidad y protección de datos de OMAKASE.",
+    }),
 };
 
 /**
@@ -179,7 +191,7 @@ const staticPages: SitemapEntry[] = [
   {
     url: BASE_URL,
     changeFrequency: "daily",
-    priority: 1.0,
+    priority: 1,
   },
   {
     url: `${BASE_URL}/reservar`,

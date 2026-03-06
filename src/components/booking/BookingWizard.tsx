@@ -66,7 +66,7 @@ export default function BookingWizard() {
           transition={{ duration: 0.5, ease: "easeOut" }}
           className="
             relative w-full max-w-md 
-            bg-black/40 backdrop-blur-xl 
+            bg-black/20 backdrop-blur-xl 
             border border-white/10 shadow-2xl rounded-3xl 
             overflow-hidden flex flex-col max-h-[90vh]
           "

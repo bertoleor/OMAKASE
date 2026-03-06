@@ -59,9 +59,9 @@ export default function ReservationsTable({
     return (
       <div className="bg-black/30 backdrop-blur-md border border-white/10 rounded-xl p-6">
         <div className="animate-pulse space-y-4">
-          {[...new Array(5)].map((_, i) => (
+          {["row-1", "row-2", "row-3", "row-4", "row-5"].map((key) => (
             <div
-              key={`skeleton-${i}`}
+              key={key}
               className="h-16 bg-white/5 rounded-lg"
             ></div>
           ))}

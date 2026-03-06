@@ -31,7 +31,7 @@ export interface LogEntry {
  * Logger service with environment-aware behavior.
  */
 class Logger {
-  private isDevelopment: boolean;
+  private readonly isDevelopment: boolean;
   private remoteEndpoint?: string;
 
   constructor() {

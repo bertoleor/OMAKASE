@@ -7,12 +7,16 @@
 
 import { cn } from "@/lib/utils";
 
+// Counter for generating unique skeleton keys
+let skeletonId = 0;
+const getSkeletonId = () => `skeleton-${skeletonId++}`;
+
 /**
  * Base skeleton props
  */
 interface SkeletonProps {
   /** Additional CSS classes */
-  className?: string;
+  readonly className?: string;
 }
 
 /**
@@ -64,10 +68,11 @@ export function CardSkeleton({ className }: Readonly<SkeletonProps>) {
  * Table row skeleton
  */
 export function TableRowSkeleton({ columns = 4, className }: Readonly<{ columns?: number } & SkeletonProps>) {
+  const rowId = getSkeletonId();
   return (
     <tr className={cn("border-b border-white/5", className)}>
       {Array.from({ length: columns }).map((_, i) => (
-        <td key={`col-${i}`} className="py-4 px-4">
+        <td key={`${rowId}-col-${i}`} className="py-4 px-4">
           <Skeleton className="h-4 w-full max-w-[120px]" />
         </td>
       ))}
@@ -86,13 +91,14 @@ export function TableSkeleton({
   rows?: number;
   columns?: number;
 } & SkeletonProps>) {
+  const tableId = getSkeletonId();
   return (
     <div className={cn("rounded-lg border border-white/10 overflow-hidden", className)}>
       <table className="w-full">
         <thead>
           <tr className="border-b border-white/10">
             {Array.from({ length: columns }).map((_, i) => (
-              <th key={`header-${i}`} className="py-3 px-4 text-left">
+              <th key={`${tableId}-header-${i}`} className="py-3 px-4 text-left">
                 <Skeleton className="h-4 w-20" />
               </th>
             ))}
@@ -100,7 +106,7 @@ export function TableSkeleton({
         </thead>
         <tbody>
           {Array.from({ length: rows }).map((_, i) => (
-            <TableRowSkeleton key={`row-${i}`} columns={columns} />
+            <TableRowSkeleton key={`${tableId}-row-${i}`} columns={columns} />
           ))}
         </tbody>
       </table>
@@ -137,10 +143,11 @@ export function FormSkeleton({
   fields?: number;
   includeButton?: boolean;
 } & SkeletonProps>) {
+  const formId = getSkeletonId();
   return (
     <div className={cn("space-y-4", className)}>
       {Array.from({ length: fields }).map((_, i) => (
-        <div key={`field-${i}`}>
+        <div key={`${formId}-field-${i}`}>
           <Skeleton className="h-4 w-16 mb-2" />
           <InputSkeleton />
         </div>
@@ -203,6 +210,7 @@ export function WizardStepSkeleton({ className }: Readonly<SkeletonProps>) {
  * Calendar skeleton
  */
 export function CalendarSkeleton({ className }: Readonly<SkeletonProps>) {
+  const calendarId = getSkeletonId();
   return (
     <div className={cn("space-y-4", className)}>
       <div className="flex items-center justify-between">
@@ -214,7 +222,7 @@ export function CalendarSkeleton({ className }: Readonly<SkeletonProps>) {
       </div>
       <div className="grid grid-cols-7 gap-1">
         {Array.from({ length: 35 }).map((_, i) => (
-          <Skeleton key={`day-${i}`} className="h-10 w-10" />
+          <Skeleton key={`${calendarId}-day-${i}`} className="h-10 w-10" />
         ))}
       </div>
     </div>
@@ -225,10 +233,11 @@ export function CalendarSkeleton({ className }: Readonly<SkeletonProps>) {
  * Timeline skeleton for service timeline
  */
 export function TimelineSkeleton({ items = 5, className }: Readonly<{ items?: number } & SkeletonProps>) {
+  const timelineId = getSkeletonId();
   return (
     <div className={cn("space-y-4", className)}>
       {Array.from({ length: items }).map((_, i) => (
-        <div key={`timeline-${i}`} className="flex gap-4">
+        <div key={`${timelineId}-timeline-${i}`} className="flex gap-4">
           <div className="flex flex-col items-center">
             <Skeleton className="h-3 w-3 rounded-full" />
             <Skeleton className="h-8 w-px my-1" />
@@ -247,6 +256,7 @@ export function TimelineSkeleton({ items = 5, className }: Readonly<{ items?: nu
  * Detail view skeleton
  */
 export function DetailSkeleton({ className }: Readonly<SkeletonProps>) {
+  const detailId = getSkeletonId();
   return (
     <div className={cn("space-y-6", className)}>
       <div className="flex items-center justify-between">
@@ -255,7 +265,7 @@ export function DetailSkeleton({ className }: Readonly<SkeletonProps>) {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={`detail-${i}`}>
+          <div key={`${detailId}-detail-${i}`}>
             <Skeleton className="h-3 w-24 mb-1" />
             <Skeleton className="h-5 w-40" />
           </div>
@@ -278,10 +288,11 @@ export function ReservationListSkeleton({
 }: Readonly<{
   items?: number;
 } & SkeletonProps>) {
+  const listId = getSkeletonId();
   return (
     <div className={cn("space-y-3", className)}>
       {Array.from({ length: items }).map((_, i) => (
-        <CardSkeleton key={`reservation-${i}`} />
+        <CardSkeleton key={`${listId}-reservation-${i}`} />
       ))}
     </div>
   );

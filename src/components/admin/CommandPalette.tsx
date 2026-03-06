@@ -209,13 +209,11 @@ export default function CommandPalette() {
   return (
     <>
       {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
-        role="presentation"
+      <button
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 cursor-default"
         onClick={() => setIsOpen(false)}
-        onKeyDown={(e) => {
-          if (e.key === "Escape") setIsOpen(false);
-        }}
+        aria-label="Cerrar búsqueda"
+        disabled
       />
 
       {/* Modal */}

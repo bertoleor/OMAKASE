@@ -366,13 +366,11 @@ export default function ReservationDetailPage() {
       {/* Cancel Confirmation Modal - Glasscard Style */}
       {showCancelConfirm && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
-          <div
-            className="absolute inset-0 bg-black/80 backdrop-blur-md"
+          <button
+            className="absolute inset-0 bg-black/80 backdrop-blur-md cursor-default"
             onClick={() => setShowCancelConfirm(false)}
-            onKeyDown={(e) => { if (e.key === 'Escape') setShowCancelConfirm(false); }}
-            role="button"
-            tabIndex={0}
             aria-label="Cerrar diálogo"
+            disabled
           />
           <div className="relative bg-white/[0.03] backdrop-blur-[32px] border border-white/10 rounded-[32px] p-8 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-300">
             <div className="text-center">

@@ -439,11 +439,11 @@ function QuickActions({
   if (actions.length === 0) return null;
 
   return (
-    <div
+    <nav
       className="flex justify-end space-x-2"
-      role="group"
       aria-label="Acciones de reserva"
       onClick={(e) => e.stopPropagation()}
+      onKeyDown={(e) => e.stopPropagation()}
     >
       {actions.map((action) => (
         <button
@@ -455,6 +455,6 @@ function QuickActions({
           {action.label}
         </button>
       ))}
-    </div>
+    </nav>
   );
 }

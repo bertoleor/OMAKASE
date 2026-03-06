@@ -19,6 +19,8 @@ import {
   TouchSensor,
   DragEndEvent,
   DragStartEvent,
+  closestCenter,
+  MeasuringStrategy,
 } from "@dnd-kit/core";
 
 import { DraggableBooking } from "@/components/admin/floorplan/DraggableBooking";
@@ -232,6 +234,12 @@ export default function FloorPlanPage() {
   return (
     <DndContext
       sensors={sensors}
+      collisionDetection={closestCenter}
+      measuring={{
+        droppable: {
+          strategy: MeasuringStrategy.Always,
+        },
+      }}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >

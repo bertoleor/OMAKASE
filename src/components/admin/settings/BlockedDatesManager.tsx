@@ -155,29 +155,28 @@ export default function BlockedDatesManager() {
             <div>
               <label className="block text-sm font-medium text-white/60 mb-2">
                 Fecha
+                <input
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) =>
+                    setFormData({ ...formData, date: e.target.value })
+                  }
+                  min={new Date().toISOString().split("T")[0]}
+                  className="w-full px-4 py-3 bg-black/30 border border-white/10 rounded-xl text-white focus:border-red-500 focus:outline-none mt-2"
+                  aria-label="Fecha a bloquear"
+                />
               </label>
-              <input
-                type="date"
-                value={formData.date}
-                onChange={(e) =>
-                  setFormData({ ...formData, date: e.target.value })
-                }
-                min={new Date().toISOString().split("T")[0]}
-                className="w-full px-4 py-3 bg-black/30 border border-white/10 rounded-xl text-white focus:border-red-500 focus:outline-none"
-                aria-label="Fecha a bloquear"
-              />
             </div>
             <div>
               <label className="block text-sm font-medium text-white/60 mb-2">
                 Zona (opcional)
-              </label>
-              <select
-                value={formData.zone_id}
-                onChange={(e) =>
-                  setFormData({ ...formData, zone_id: e.target.value })
-                }
-                className="w-full px-4 py-3 bg-black/30 border border-white/10 rounded-xl text-white focus:border-red-500 focus:outline-none"
-                aria-label="Seleccionar zona"
+                <select
+                  value={formData.zone_id}
+                  onChange={(e) =>
+                    setFormData({ ...formData, zone_id: e.target.value })
+                  }
+                  className="w-full px-4 py-3 bg-black/30 border border-white/10 rounded-xl text-white focus:border-red-500 focus:outline-none mt-2"
+                  aria-label="Seleccionar zona"
               >
                 <option value="">Todas las zonas</option>
                 {zones.map((zone) => (
@@ -186,20 +185,21 @@ export default function BlockedDatesManager() {
                   </option>
                 ))}
               </select>
+              </label>
             </div>
             <div>
               <label className="block text-sm font-medium text-white/60 mb-2">
                 Motivo (opcional)
+                <input
+                  type="text"
+                  value={formData.reason}
+                  onChange={(e) =>
+                    setFormData({ ...formData, reason: e.target.value })
+                  }
+                  placeholder="Ej: Evento privado"
+                  className="w-full px-4 py-3 bg-black/30 border border-white/10 rounded-xl text-white placeholder-white/30 focus:border-red-500 focus:outline-none mt-2"
+                />
               </label>
-              <input
-                type="text"
-                value={formData.reason}
-                onChange={(e) =>
-                  setFormData({ ...formData, reason: e.target.value })
-                }
-                placeholder="Ej: Evento privado"
-                className="w-full px-4 py-3 bg-black/30 border border-white/10 rounded-xl text-white placeholder-white/30 focus:border-red-500 focus:outline-none"
-              />
             </div>
           </div>
           <div className="flex space-x-3">

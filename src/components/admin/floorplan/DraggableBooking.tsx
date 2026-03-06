@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { Draggable } from "@/components/ui/draggable";
 import { Users, Clock, GripVertical } from "lucide-react";
 
@@ -14,7 +15,7 @@ interface DraggableBookingProps {
   readonly booking: Booking;
 }
 
-export function DraggableBooking({ booking }: DraggableBookingProps) {
+export const DraggableBooking = memo(function DraggableBooking({ booking }: DraggableBookingProps) {
   return (
     <Draggable
       id={booking.id}
@@ -55,4 +56,4 @@ export function DraggableBooking({ booking }: DraggableBookingProps) {
       )}
     </Draggable>
   );
-}
+});

@@ -23,8 +23,8 @@ export interface RateLimitConfig {
  * Note: Does not work across multiple server instances.
  */
 class InMemoryRateLimiter {
-  private requests: Map<string, { count: number; resetTime: number }> = new Map();
-  private cleanupInterval: NodeJS.Timeout | null = null;
+  private readonly requests: Map<string, { count: number; resetTime: number }> = new Map();
+  private readonly cleanupInterval: NodeJS.Timeout | null = null;
 
   constructor() {
     // Cleanup old entries every minute
@@ -79,9 +79,7 @@ class InMemoryRateLimiter {
 let rateLimiterInstance: InMemoryRateLimiter | null = null;
 
 function getRateLimiter(): InMemoryRateLimiter {
-  if (!rateLimiterInstance) {
-    rateLimiterInstance = new InMemoryRateLimiter();
-  }
+  rateLimiterInstance ??= new InMemoryRateLimiter();
   return rateLimiterInstance;
 }
 

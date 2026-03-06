@@ -22,10 +22,10 @@ interface Zone {
 }
 
 interface BookingFormProps {
-  zones: Zone[];
-  date?: string;
-  onClose: () => void;
-  onSuccess: (bookingId: string) => void;
+  readonly zones: Zone[];
+  readonly date?: string;
+  readonly onClose: () => void;
+  readonly onSuccess: (bookingId: string) => void;
 }
 
 const TIME_SLOTS = [
@@ -69,7 +69,7 @@ export default function BookingForm({
     auto_confirm: true,
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
@@ -130,6 +130,10 @@ export default function BookingForm({
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
+        onKeyDown={(e) => e.key === "Escape" && onClose()}
+        role="button"
+        tabIndex={0}
+        aria-label="Cerrar modal"
       />
 
       {/* Modal */}
@@ -294,7 +298,7 @@ export default function BookingForm({
                     required
                     value={formData.pax}
                     onChange={(e) =>
-                      updateField("pax", parseInt(e.target.value) || 1)
+                      updateField("pax", Number.parseInt(e.target.value) || 1)
                     }
                     className="w-full pl-10 pr-4 py-3 bg-black/30 border border-white/10 rounded-xl text-white focus:border-blue-500 focus:outline-none"
                   />

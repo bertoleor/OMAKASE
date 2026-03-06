@@ -54,8 +54,8 @@ export default function PersonalizeStep() {
         handleContinue();
       }
     };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    globalThis.addEventListener("keydown", handleKeyDown);
+    return () => globalThis.removeEventListener("keydown", handleKeyDown);
   }, [handleContinue]);
 
   return (
@@ -92,33 +92,19 @@ export default function PersonalizeStep() {
           </div>
         </div>
 
-        {/* Dietary Restrictions - Full width toggle aligned with counters */}
+        {/* Dietary Restrictions - Checkbox aligned with counters */}
         <div className="flex items-center justify-between">
           <span className="text-white/80 font-medium">{t("personalize.restrictions")}</span>
-          <div className="flex border border-white/20 rounded-lg overflow-hidden w-[8.5rem]">
-            <button
-              onClick={() => updateDraft({ restrictions: false })}
-              className={cn(
-                "flex-1 py-2.5 text-sm font-medium transition-all duration-300 uppercase tracking-wider",
-                !restrictions
-                  ? "bg-white text-black"
-                  : "bg-transparent text-white/60 hover:bg-white/10",
-              )}
-            >
-              {t("common.no")}
-            </button>
-            <button
-              onClick={() => updateDraft({ restrictions: true })}
-              className={cn(
-                "flex-1 py-2.5 text-sm font-medium transition-all duration-300 uppercase tracking-wider",
-                restrictions
-                  ? "bg-white text-black"
-                  : "bg-transparent text-white/60 hover:bg-white/10",
-              )}
-            >
-              {t("common.yes")}
-            </button>
-          </div>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={restrictions}
+              onChange={(e) => updateDraft({ restrictions: e.target.checked })}
+              className="sr-only peer"
+              aria-label={t("personalize.restrictions")}
+            />
+            <div className="w-14 h-7 bg-white/10 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-white/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white/40 peer-checked:bg-white peer-checked:after:bg-black after:rounded-full after:h-6 after:w-6 after:transition-all"></div>
+          </label>
         </div>
 
         {/* Kids */}

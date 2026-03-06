@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { Droppable } from "@/components/ui/droppable";
 import { Users } from "lucide-react";
 
@@ -28,7 +29,7 @@ interface DroppableTableProps {
   readonly onRemoveBooking: (bookingId: string) => void;
 }
 
-export function DroppableTable({
+export const DroppableTable = memo(function DroppableTable({
   table,
   booking,
   onRemoveBooking,
@@ -60,25 +61,26 @@ export function DroppableTable({
       id={table.id}
       data={{ type: "table", table }}
       disabled={isOccupied}
-      className="absolute" // Handle absolute positioning wrapper
+      className="absolute"
     >
       {({ isOver }) => (
         <div
-          style={tableStyle as React.CSSProperties} // Apply styles to the inner div to avoid wrapper issues
+          style={tableStyle as React.CSSProperties}
           className={`
-            flex flex-col items-center justify-center transition-all duration-300
+            flex flex-col items-center justify-center transition-all duration-200
             border-2 backdrop-blur-sm
             ${getShapeClasses(table.shape)}
             ${
               isOver && !isOccupied
-                ? "border-blue-500 bg-blue-500/20 scale-105 shadow-[0_0_30px_rgba(59,130,246,0.5)] z-10"
+                ? "border-blue-500 bg-blue-500/30 scale-105 shadow-[0_0_30px_rgba(59,130,246,0.5)] z-10"
                 : ""
             }
             ${
               isOccupied
-                ? "border-red-500/50 bg-red-500/10 hover:bg-red-500/20"
-                : !isOver &&
-                  "border-white/10 bg-white/5 hover:border-white/30 hover:bg-white/10"
+                ? "border-red-500/50 bg-red-500/10 hover:bg-red-500/20 cursor-not-allowed"
+                : !isOver && !isOccupied
+                  ? "border-white/10 bg-white/5 hover:border-white/30 hover:bg-white/10 cursor-pointer"
+                  : ""
             }
           `}
         >
@@ -135,4 +137,4 @@ export function DroppableTable({
       )}
     </Droppable>
   );
-}
+});

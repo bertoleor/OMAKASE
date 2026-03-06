@@ -11,19 +11,19 @@ export function useMediaQuery(breakpoint: number = 768) {
 
   useEffect(() => {
     // Check if window is defined (client-side)
-    if (typeof window === "undefined") return;
+    if (globalThis.window === undefined) return;
 
     const checkSize = () => {
-      setIsMobile(window.innerWidth < breakpoint);
+      setIsMobile(globalThis.window.innerWidth < breakpoint);
     };
 
     // Initial check
     checkSize();
 
     // Listen for resize
-    window.addEventListener("resize", checkSize);
+    globalThis.window.addEventListener("resize", checkSize);
 
-    return () => window.removeEventListener("resize", checkSize);
+    return () => globalThis.window.removeEventListener("resize", checkSize);
   }, [breakpoint]);
 
   return isMobile;

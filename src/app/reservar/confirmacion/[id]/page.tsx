@@ -62,9 +62,19 @@ export default function BookingConfirmationPage() {
     );
     const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
 
-    const formatDate = (d: Date) => d.toISOString().replace(/-|:|\.\d{3}/g, "");
+    const formatDate = (d: Date) => d.toISOString().replaceAll(
+      "-", ""
+    ).replaceAll(
+      ":", ""
+    ).replaceAll(".", "");
 
-    const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`Reserva en MESS - ${reservation.pax} personas`)}&dates=${formatDate(startDate)}/${formatDate(endDate)}&details=${encodeURIComponent(`Tu reserva en MESS restaurante para ${reservation.pax} personas.`)}&location=${encodeURIComponent("MESS Restaurant")}`;
+    // Build calendar URL with separate variables to avoid nested template literals
+    const eventTitle = `Reserva en MESS - ${reservation.pax} personas`;
+    const eventDetails = `Tu reserva en MESS restaurante para ${reservation.pax} personas.`;
+    const eventLocation = "MESS Restaurant";
+    const dates = `${formatDate(startDate)}/${formatDate(endDate)}`;
+    
+    const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(eventTitle)}&dates=${dates}&details=${encodeURIComponent(eventDetails)}&location=${encodeURIComponent(eventLocation)}`;
 
     window.open(url, "_blank");
   }

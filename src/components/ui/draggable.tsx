@@ -6,11 +6,11 @@ import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
 
 interface DraggableProps {
-  id: string;
-  data?: UseDraggableArguments["data"];
-  children: React.ReactNode | ((args: { isDragging: boolean }) => React.ReactNode);
-  className?: string;
-  disabled?: boolean;
+  readonly id: string;
+  readonly data?: UseDraggableArguments["data"];
+  readonly children: React.ReactNode | ((args: { isDragging: boolean }) => React.ReactNode);
+  readonly className?: string;
+  readonly disabled?: boolean;
 }
 
 export function Draggable({
@@ -19,7 +19,7 @@ export function Draggable({
   children,
   className,
   disabled = false,
-}: DraggableProps) {
+}: Readonly<DraggableProps>) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
       id,

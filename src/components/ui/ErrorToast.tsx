@@ -14,11 +14,11 @@ export interface Toast {
 }
 
 interface ToastItemProps {
-  toast: Toast;
-  onDismiss: (id: string) => void;
+  readonly toast: Toast;
+  readonly onDismiss: (id: string) => void;
 }
 
-function ToastItem({ toast, onDismiss }: ToastItemProps) {
+function ToastItem({ toast, onDismiss }: Readonly<ToastItemProps>) {
   useEffect(() => {
     if (toast.duration === 0) return; // Don't auto-dismiss if duration is 0
     
@@ -70,11 +70,11 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
 let toastId = 0;
 
 interface ToastContainerProps {
-  toasts: Toast[];
-  onDismiss: (id: string) => void;
+  readonly toasts: Toast[];
+  readonly onDismiss: (id: string) => void;
 }
 
-export function ToastContainer({ toasts, onDismiss }: ToastContainerProps) {
+export function ToastContainer({ toasts, onDismiss }: Readonly<ToastContainerProps>) {
   if (toasts.length === 0) return null;
 
   return (

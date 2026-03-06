@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { User, Users, MapPin } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -88,6 +88,24 @@ export default function ServiceTimeline({ date }: ServiceTimelineProps) {
 
   const timeSlots = useMemo(() => generateTimeSlots(), []);
 
+  // Helper functions to handle realtime updates (defined at component level with useCallback)
+  const handleInsert = useCallback((newBooking: Booking) => {
+    setBookings((prev) => {
+      const updated = [...prev, newBooking];
+      return updated.sort((a, b) => a.booking_time.localeCompare(b.booking_time));
+    });
+  }, []);
+
+  const handleUpdate = useCallback((updatedBooking: Booking) => {
+    setBookings((prev) =>
+      prev.map((b) => (b.id === updatedBooking.id ? updatedBooking : b)),
+    );
+  }, []);
+
+  const handleDelete = useCallback((deletedId: string) => {
+    setBookings((prev) => prev.filter((b) => b.id !== deletedId));
+  }, []);
+
   useEffect(() => {
     async function fetchData() {
       try {
@@ -133,25 +151,15 @@ export default function ServiceTimeline({ date }: ServiceTimelineProps) {
           filter: `booking_date=eq.${date}`,
         },
         (payload: { eventType: string; new: unknown; old: unknown }) => {
+          const newRecord = payload.new as Booking;
+          const oldRecord = payload.old as Booking;
+
           if (payload.eventType === "INSERT") {
-            setBookings((prev) => {
-              const newBookings = [...prev, payload.new as Booking];
-              return newBookings.sort((a, b) =>
-                a.booking_time.localeCompare(b.booking_time),
-              );
-            });
+            handleInsert(newRecord);
           } else if (payload.eventType === "UPDATE") {
-            setBookings((prev) =>
-              prev.map((b) =>
-                b.id === (payload.new as Booking).id
-                  ? (payload.new as Booking)
-                  : b,
-              ),
-            );
+            handleUpdate(newRecord);
           } else if (payload.eventType === "DELETE") {
-            setBookings((prev) =>
-              prev.filter((b) => b.id !== (payload.old as Booking).id),
-            );
+            handleDelete(oldRecord.id);
           }
         },
       )
@@ -160,7 +168,7 @@ export default function ServiceTimeline({ date }: ServiceTimelineProps) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [date]);
+  }, [date, handleInsert, handleUpdate, handleDelete]);
 
   // Get bookings for a specific slot and zone
   const getBookingsForSlot = (slot: string, zoneId: string) => {

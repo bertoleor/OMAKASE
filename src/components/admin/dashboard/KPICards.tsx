@@ -60,8 +60,8 @@ export default function KPICards({ date }: KPICardsProps) {
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {new Array(4).fill(null).map((_, i) => (
-          <Card key={`skeleton-${i}`} className="bg-black/40 border-white/10 animate-pulse">
+        {["kpi-1", "kpi-2", "kpi-3", "kpi-4"].map((key) => (
+          <Card key={key} className="bg-black/40 border-white/10 animate-pulse">
             <CardContent className="p-6">
               <div className="h-4 bg-white/10 rounded w-1/2 mb-4"></div>
               <div className="h-8 bg-white/10 rounded w-3/4"></div>

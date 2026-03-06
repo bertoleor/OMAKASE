@@ -113,8 +113,8 @@ export default function UpcomingArrivals({
   if (loading) {
     return (
       <div className="space-y-3">
-        {new Array(3).fill(null).map((_, i) => (
-          <Card key={`skeleton-${i}`} className="bg-black/40 border-white/10 animate-pulse">
+        {["arrival-1", "arrival-2", "arrival-3"].map((key) => (
+          <Card key={key} className="bg-black/40 border-white/10 animate-pulse">
             <CardContent className="p-4 h-24" />
           </Card>
         ))}

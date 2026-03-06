@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
 
 interface QueryProviderProps {
-  children: ReactNode;
+  readonly children: ReactNode;
 }
 
 /**
@@ -13,7 +13,7 @@ interface QueryProviderProps {
  * Creates a new QueryClient for each request in development to avoid
  * stale data between tests.
  */
-export function QueryProvider({ children }: QueryProviderProps) {
+export function QueryProvider({ children }: Readonly<QueryProviderProps>) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
