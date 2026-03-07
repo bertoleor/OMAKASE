@@ -4,7 +4,6 @@ import { useEffect, useCallback } from "react";
 
 import { useBookingStore } from "@/store/booking-store";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { Minus, Plus } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 
