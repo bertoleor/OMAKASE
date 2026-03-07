@@ -1,7 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  reactCompiler: true,
+  // React Compiler disabled due to compatibility issues
+  // reactCompiler: true,
+  // Allow network origins for development (needed for accessing from mobile/other devices on same network)
+  allowedDevOrigins: [
+    "172.30.192.1",
+    "localhost",
+  ],
   images: {
     remotePatterns: [
       {

@@ -8,7 +8,11 @@ const ADMIN_DASHBOARD = "/admin/dashboard";
 const CUSTOMER_HOME = "/mis-reservas";
 const ADMIN_ROLES = new Set(["admin", "manager", "staff"]);
 
-export async function middleware(request: NextRequest) {
+/**
+ * Proxy - Next.js 16 replacement for middleware
+ * Handles authentication and route protection for the application
+ */
+export async function proxy(request: NextRequest) {
   // 1. Validar Configuración (Fail Closed)
   const configError = checkSecurityConfig();
   if (configError) return configError;
@@ -56,7 +60,7 @@ function checkSecurityConfig() {
     !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   ) {
     console.error(
-      "❌ Middleware Security: Missing Supabase Environment Variables!",
+      "❌ Proxy Security: Missing Supabase Environment Variables!",
     );
     return new NextResponse(
       JSON.stringify({
@@ -74,7 +78,7 @@ async function getAuthenticatedUser(supabase: SupabaseClient) {
     const { data } = await supabase.auth.getUser();
     return data.user;
   } catch (error) {
-    console.error("⚠️ Middleware Auth Error:", error);
+    console.error("⚠️ Proxy Auth Error:", error);
     return null;
   }
 }
