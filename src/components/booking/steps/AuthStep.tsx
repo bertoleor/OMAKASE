@@ -3,7 +3,7 @@
 import { useBookingStore } from "@/store/booking-store";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, type SyntheticEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertCircle } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -103,7 +103,7 @@ export default function AuthStep() {
   }, []);
 
   const handleSubmit = useCallback(
-    (e?: React.FormEvent<HTMLFormElement>) => {
+    (e?: SyntheticEvent<HTMLFormElement>) => {
       if (e) e.preventDefault();
       if (!allValid) return;
 

@@ -9,8 +9,7 @@ import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 
 export default function AdminHeader() {
   const { toggleSidebar } = useAdminUIStore();
-  const { unreadCount, setCommandPaletteOpen } = useNotificationStore();
-  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const { unreadCount } = useNotificationStore();
   const [userName, setUserName] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -26,12 +25,10 @@ export default function AdminHeader() {
 
       if (!error && user) {
         // Get name from user_metadata or email
-        const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0];
-        const email = user.email;
+        const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0] || null;
         const role = user.user_metadata?.role || "staff";
 
         setUserName(name);
-        setUserEmail(email);
         setUserRole(role);
       }
     };
@@ -47,16 +44,13 @@ export default function AdminHeader() {
         const name =
           session.user.user_metadata?.full_name ||
           session.user.user_metadata?.name ||
-          session.user.email?.split("@")[0];
-        const email = session.user.email;
+          session.user.email?.split("@")[0] || null;
         const role = session.user.user_metadata?.role || "staff";
 
         setUserName(name);
-        setUserEmail(email);
         setUserRole(role);
       } else {
         setUserName(null);
-        setUserEmail(null);
         setUserRole(null);
       }
     });
@@ -68,7 +62,7 @@ export default function AdminHeader() {
   const handleSearchFocus = () => {
     setIsSearchFocused(true);
     // Dispatch custom event to open CommandPalette
-    window.dispatchEvent(new CustomEvent("open-command-palette"));
+    globalThis.dispatchEvent(new CustomEvent("open-command-palette"));
   };
 
   // Handle search blur with delay to allow click events
@@ -97,32 +91,31 @@ export default function AdminHeader() {
         </button>
 
         {/* Search Bar */}
-        <div
+        <label
+          htmlFor="admin-search-input"
           className={`flex items-center bg-white/5 rounded-full px-4 py-2 border transition-all w-96 cursor-text ${
             isSearchFocused
               ? "bg-white/10 border-white/20"
               : "border-white/10 hover:border-white/15"
           }`}
-          onClick={() => {
-            const input = document.querySelector('input[placeholder*="Buscar reserva"]') as HTMLInputElement;
-            input?.focus();
-          }}
         >
           <Search className="w-4 h-4 text-white/40 mr-3" />
           <input
+            id="admin-search-input"
             type="text"
             placeholder="Buscar reserva, cliente o mesa (Cmd+K)"
+            aria-label="Buscar reserva"
             className="bg-transparent border-none outline-none text-white text-sm w-full placeholder:text-white/20"
             onFocus={handleSearchFocus}
             onBlur={handleSearchBlur}
             onKeyDown={(e) => {
               if ((e.metaKey || e.ctrlKey) && e.key === "k") {
                 e.preventDefault();
-                window.dispatchEvent(new CustomEvent("open-command-palette"));
+                globalThis.dispatchEvent(new CustomEvent("open-command-palette"));
               }
             }}
           />
-        </div>
+        </label>
       </div>
 
       {/* Right Actions */}

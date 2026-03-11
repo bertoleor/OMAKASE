@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useState } from "react";
+import { Fragment, useState, type SyntheticEvent } from "react";
 import { sendQuickContactEmail } from "@/app/actions/admin";
 import { BUSINESS } from "@/config/business";
 import {
@@ -111,7 +111,7 @@ export default function ReservationDetail({
 
   if (!booking) return null;
 
-  const handleSendContact = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSendContact = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!contactMessage) return;
 

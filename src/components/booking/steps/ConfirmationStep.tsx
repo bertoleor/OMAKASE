@@ -62,7 +62,8 @@ export default function ConfirmationStep() {
     const [year, month, day] = dateStr.split("-").map(Number);
     const d = new Date(year, month - 1, day);
     // User requested standard Spanish format: "Sábado 31 de enero"
-    const locale = language === "es" ? "es-ES" : language === "pt" ? "pt-BR" : "en-GB";
+    const locales: Record<string, string> = { es: "es-ES", pt: "pt-BR" };
+    const locale = locales[language] || "en-GB";
     const weekday = d.toLocaleDateString(locale, { weekday: "long" });
     const monthName = d.toLocaleDateString(locale, { month: "long" });
 
@@ -126,14 +127,14 @@ export default function ConfirmationStep() {
             onClick={() => {
               const startTime = `${draftBooking.date?.replaceAll("-", "")}T${draftBooking.timeSlot?.replaceAll(":", "")}00`;
               const endTime = `${draftBooking.date?.replaceAll("-", "")}T${(Number.parseInt(draftBooking.timeSlot?.split(":")[0] || "0") + 2).toString().padStart(2, "0")}${draftBooking.timeSlot?.split(":")[1]}00`;
-              const icsContent = `BEGIN:VCALENDAR
+              const icsContent = String.raw`BEGIN:VCALENDAR
 VERSION:2.0
 BEGIN:VEVENT
 URL:${globalThis.location.origin}
 DTSTART:${startTime}
 DTEND:${endTime}
 SUMMARY:Reserva en ${BUSINESS.name}
-DESCRIPTION:Reserva para ${draftBooking.pax} personas.\\nZona: ${draftBooking.zone}\\nNotas: ${draftBooking.notes || "Ninguna"}
+DESCRIPTION:Reserva para ${draftBooking.pax} personas.\nZona: ${draftBooking.zone}\nNotas: ${draftBooking.notes || "Ninguna"}
 LOCATION:${BUSINESS.address}
 END:VEVENT
 END:VCALENDAR`;

@@ -439,22 +439,27 @@ function QuickActions({
   if (actions.length === 0) return null;
 
   return (
-    <nav
+    <div
       className="flex justify-end space-x-2"
-      aria-label="Acciones de reserva"
-      onClick={(e) => e.stopPropagation()}
-      onKeyDown={(e) => e.stopPropagation()}
     >
       {actions.map((action) => (
         <button
           key={action.status}
-          onClick={() => onAction(booking.id, action.status)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onAction(booking.id, action.status);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.stopPropagation();
+            }
+          }}
           disabled={loading}
           className={`px-3 py-1 text-xs font-medium ${action.color} hover:underline disabled:opacity-50`}
         >
           {action.label}
         </button>
       ))}
-    </nav>
+    </div>
   );
 }

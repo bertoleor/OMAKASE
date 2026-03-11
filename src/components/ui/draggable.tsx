@@ -2,7 +2,6 @@
 
 import React from "react";
 import { useDraggable, UseDraggableArguments } from "@dnd-kit/core";
-import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
 
 interface DraggableProps {
@@ -29,17 +28,22 @@ export function Draggable({
 
   // We must use inline styles for performant drag and drop transforms
   // The linter warning is suppressed because this is a specific requirement for dnd-kit
-  const style: React.CSSProperties = {
-    transform: CSS.Translate.toString(transform),
-  };
+  const style = {
+    "--drag-x": transform ? `${transform.x}px` : "0px",
+    "--drag-y": transform ? `${transform.y}px` : "0px",
+  } as React.CSSProperties;
 
   return (
     <div
       ref={setNodeRef}
-      style={style}
+      {...{ style }}
       {...listeners}
       {...attributes}
-      className={cn(className, isDragging ? "z-50" : "")}
+      className={cn(
+        className,
+        isDragging ? "z-50" : "",
+        "translate-x-[var(--drag-x)] translate-y-[var(--drag-y)]"
+      )}
     >
       {typeof children === "function" ? children({ isDragging }) : children}
     </div>

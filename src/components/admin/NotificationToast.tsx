@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { X, CheckCircle2, UserPlus, XCircle, Clock } from "lucide-react";
-import { createClient } from "/lib/supabase/client";
+import { createClient } from "@/lib/supabase/client";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import { useNotificationStore } from "@/store/notification-store";
 
@@ -63,10 +63,17 @@ export default function NotificationToast() {
     // Increment unread count in header
     incrementUnread();
 
-    setTimeout(() => {
-      setNotifications((prev) => prev.filter((n) => n.id !== newNotif.id));
+    // Auto-dismiss after 5s
+    const timer = setTimeout(() => {
+      removeById(newNotif.id);
     }, 5000);
+
+    return () => clearTimeout(timer);
   }, [incrementUnread]);
+
+  const removeById = (id: string) => {
+    setNotifications((current) => current.filter((n) => n.id !== id));
+  };
 
   const dismissNotification = useCallback((id: string) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
@@ -93,26 +100,29 @@ export default function NotificationToast() {
       const oldState = payload.old as Partial<BookingRecord>;
       const newState = payload.new as BookingRecord;
 
-      if (oldState.status !== newState.status) {
-        if (newState.status === "no_show") {
-          addNotification({
-            type: "no_show",
-            title: "No Show",
-            message: `${newState.customer_name} marcado como no-show`,
-          });
-        } else if (newState.status === "cancelled") {
-          addNotification({
-            type: "cancelled",
-            title: "Cancelación",
-            message: `${newState.customer_name} ha cancelado`,
-          });
-        } else if (newState.status === "seated") {
-          addNotification({
-            type: "status_change",
-            title: "Cliente Sentado",
-            message: `${newState.customer_name} está en su mesa`,
-          });
-        }
+      if (oldState.status === newState.status) return;
+
+      const statusMessages: Record<string, { title: string; message: string; type: Notification["type"] }> = {
+        no_show: {
+          type: "no_show",
+          title: "No Show",
+          message: `${newState.customer_name} marcado como no-show`,
+        },
+        cancelled: {
+          type: "cancelled",
+          title: "Cancelación",
+          message: `${newState.customer_name} ha cancelado`,
+        },
+        seated: {
+          type: "status_change",
+          title: "Cliente Sentado",
+          message: `${newState.customer_name} está en su mesa`,
+        },
+      };
+
+      const config = statusMessages[newState.status];
+      if (config) {
+        addNotification(config);
       }
     },
     [addNotification],

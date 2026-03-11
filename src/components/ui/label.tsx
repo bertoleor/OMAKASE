@@ -12,7 +12,9 @@ const Label = React.forwardRef<
       className
     )}
     {...props}
-  />
+  >
+    {props.children}
+  </label>
 ));
 Label.displayName = "Label";
 

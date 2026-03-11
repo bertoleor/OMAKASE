@@ -27,7 +27,8 @@ export default function WizardHeader() {
     const d = new Date(year, month - 1, day);
 
     // Determine locale based on language
-    const locale = language === "es" ? "es-ES" : language === "pt" ? "pt-BR" : "en-GB";
+    const locales: Record<string, string> = { es: "es-ES", pt: "pt-BR" };
+    const locale = locales[language] || "en-GB";
     
     const weekday = d
       .toLocaleDateString(locale, { weekday: "short" })

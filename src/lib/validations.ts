@@ -24,7 +24,7 @@ export const bookingSchema = z.object({
   
   customerEmail: z
     .string()
-    .email({ message: "Correo electrónico inválido" })
+    .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, { message: "Correo electrónico inválido" })
     .max(255, "El correo es muy largo"),
   
   customerPhone: z
@@ -77,7 +77,7 @@ export type BookingFormData = z.infer<typeof bookingSchema>;
 export const loginSchema = z.object({
   email: z
     .string()
-    .email({ message: "Correo electrónico inválido" })
+    .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, { message: "Correo electrónico inválido" })
     .max(255),
   
   password: z
@@ -128,7 +128,7 @@ export const reservationUpdateSchema = z.object({
   
   tableId: z
     .string()
-    .uuid({ message: "ID de mesa inválido" })
+    .regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i, { message: "ID de mesa inválido" })
     .nullable(),
   
   notes: z
@@ -208,7 +208,7 @@ export const settingsUpdateSchema = z.object({
   
   contactEmail: z
     .string()
-    .email({ message: "Email inválido" })
+    .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, { message: "Email inválido" })
     .optional()
     .or(z.literal("")),
   
@@ -273,8 +273,7 @@ export type ZoneFormData = z.infer<typeof zoneSchema>;
 
 export const tableSchema = z.object({
   zoneId: z
-    .string()
-    .uuid({ message: "ID de zona inválido" }),
+    .uuid("ID de zona inválido"),
   
   name: z
     .string()
@@ -338,7 +337,7 @@ export type TableFormData = z.infer<typeof tableSchema>;
 export const staffSchema = z.object({
   email: z
     .string()
-    .email({ message: "Correo electrónico inválido" }),
+    .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, { message: "Correo electrónico inválido" }),
   
   fullName: z
     .string()
