@@ -146,6 +146,7 @@ export default function ReservationDetailPage() {
           bookingDate: reservation.booking_date,
           bookingTime: reservation.booking_time,
           pax: reservation.pax,
+          cancelledBy: "cliente",
         }),
       });
 

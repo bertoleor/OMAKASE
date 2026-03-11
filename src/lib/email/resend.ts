@@ -1,5 +1,14 @@
 import { Resend } from "resend";
 import { BUSINESS } from "@/config/business";
+import {
+  confirmationTemplate,
+  reminderTemplate,
+  cancellationByCustomerTemplate,
+  cancellationByRestaurantTemplate,
+  renderTemplate,
+  buildTemplateVariables,
+  type TemplateVariables,
+} from "./templates";
 
 /**
  * Lazy initialize Resend client to avoid build-time errors.
@@ -23,6 +32,7 @@ export function getResendClient(): Resend {
 // Email sender
 const FROM_EMAIL = BUSINESS.emails.from;
 
+// Extended email data interface
 export interface EmailData {
   to: string;
   customerName: string;
@@ -30,6 +40,49 @@ export interface EmailData {
   bookingTime: string;
   pax: number;
   zoneName?: string;
+  bookingId?: string;
+  phone?: string;
+  address?: string;
+  notes?: string;
+  cancelledBy?: "cliente" | "restaurante";
+  cancellationReason?: string;
+  manageBookingUrl?: string;
+}
+
+/**
+ * Build variables for template rendering
+ */
+function getTemplateVariables(data: EmailData): TemplateVariables {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  const currentYear = new Date().getFullYear();
+  
+  return {
+    customerName: data.customerName,
+    bookingDate: data.bookingDate,
+    bookingTime: data.bookingTime,
+    pax: data.pax,
+    paxText: data.pax === 1 ? 'persona' : 'personas',
+    zoneName: data.zoneName || '',
+    bookingId: data.bookingId || '',
+    bookingIdShort: data.bookingId ? data.bookingId.slice(0, 8).toUpperCase() : '',
+    notes: data.notes || '',
+    cancellationReason: data.cancellationReason || '',
+    
+    businessName: BUSINESS.name,
+    businessTagline: BUSINESS.tagline,
+    businessAddress: data.address || BUSINESS.address,
+    businessPhone: data.phone || BUSINESS.phone,
+    businessEmail: BUSINESS.emails.reservations,
+    businessCopyright: BUSINESS.copyright(currentYear),
+    instagramUrl: BUSINESS.social.instagram,
+    facebookUrl: BUSINESS.social.facebook,
+    whatsappUrl: `https://wa.me/${BUSINESS.social.whatsapp}`,
+    
+    manageBookingUrl: data.manageBookingUrl || `${baseUrl}/mis-reservas/${data.bookingId || ''}`,
+    bookingUrl: data.manageBookingUrl || `${baseUrl}/reservar`,
+    
+    currentYear,
+  };
 }
 
 /**
@@ -39,64 +92,14 @@ export async function sendConfirmationEmail(
   data: EmailData,
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    const variables = getTemplateVariables(data);
+    const html = renderTemplate(confirmationTemplate, variables);
+
     const { error } = await getResendClient().emails.send({
       from: FROM_EMAIL,
       to: data.to,
-      subject: `Reserva Confirmada - ${data.bookingDate} a las ${data.bookingTime}`,
-      html: `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          </head>
-          <body style="font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #0a0a0a; color: #ffffff; margin: 0; padding: 40px 20px;">
-            <div style="max-width: 600px; margin: 0 auto; background: linear-gradient(145deg, rgba(30,30,30,0.8), rgba(20,20,20,0.9)); border-radius: 16px; padding: 40px; border: 1px solid rgba(255,255,255,0.1);">
-              <h1 style="text-align: center; font-size: 32px; letter-spacing: 0.2em; margin-bottom: 30px; color: #ffffff;">${BUSINESS.name}</h1>
-              
-              <div style="text-align: center; padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                <p style="color: #22c55e; font-size: 14px; text-transform: uppercase; letter-spacing: 0.1em; margin: 0;">Reserva Confirmada</p>
-              </div>
-              
-              <div style="padding: 30px 0;">
-                <p style="color: rgba(255,255,255,0.8); margin-bottom: 20px;">Hola ${data.customerName},</p>
-                <p style="color: rgba(255,255,255,0.6); line-height: 1.6;">Tu reserva ha sido confirmada. Te esperamos:</p>
-              </div>
-              
-              <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 24px; margin-bottom: 30px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 16px;">
-                  <span style="color: rgba(255,255,255,0.5);">Fecha</span>
-                  <span style="color: #ffffff; font-weight: 600;">${data.bookingDate}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 16px;">
-                  <span style="color: rgba(255,255,255,0.5);">Hora</span>
-                  <span style="color: #ffffff; font-weight: 600;">${data.bookingTime}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 16px;">
-                  <span style="color: rgba(255,255,255,0.5);">Personas</span>
-                  <span style="color: #ffffff; font-weight: 600;">${data.pax}</span>
-                </div>
-                ${
-                  data.zoneName
-                    ? `
-                <div style="display: flex; justify-content: space-between;">
-                  <span style="color: rgba(255,255,255,0.5);">Zona</span>
-                  <span style="color: #ffffff; font-weight: 600;">${data.zoneName}</span>
-                </div>
-                `
-                    : ""
-                }
-              </div>
-              
-              <div style="text-align: center; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
-                <p style="color: rgba(255,255,255,0.4); font-size: 12px; margin: 0;">
-                  Si necesitas modificar o cancelar tu reserva, por favor contáctanos con al menos 24 horas de antelación.
-                </p>
-              </div>
-            </div>
-          </body>
-        </html>
-      `,
+      subject: `✅ Reserva Confirmada - ${data.bookingDate} a las ${data.bookingTime} | ${BUSINESS.name}`,
+      html,
     });
 
     if (error) {
@@ -119,48 +122,14 @@ export async function sendReminderEmail(
   data: EmailData,
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    const variables = getTemplateVariables(data);
+    const html = renderTemplate(reminderTemplate, variables);
+
     const { error } = await getResendClient().emails.send({
       from: FROM_EMAIL,
       to: data.to,
-      subject: `Recordatorio: Tu reserva es mañana - ${data.bookingTime}`,
-      html: `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          </head>
-          <body style="font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #0a0a0a; color: #ffffff; margin: 0; padding: 40px 20px;">
-            <div style="max-width: 600px; margin: 0 auto; background: linear-gradient(145deg, rgba(30,30,30,0.8), rgba(20,20,20,0.9)); border-radius: 16px; padding: 40px; border: 1px solid rgba(255,255,255,0.1);">
-              <h1 style="text-align: center; font-size: 32px; letter-spacing: 0.2em; margin-bottom: 30px; color: #ffffff;">${BUSINESS.name}</h1>
-              
-              <div style="text-align: center; padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                <p style="color: #3b82f6; font-size: 14px; text-transform: uppercase; letter-spacing: 0.1em; margin: 0;">📅 Recordatorio de Reserva</p>
-              </div>
-              
-              <div style="padding: 30px 0;">
-                <p style="color: rgba(255,255,255,0.8); margin-bottom: 20px;">Hola ${data.customerName},</p>
-                <p style="color: rgba(255,255,255,0.6); line-height: 1.6;">Te recordamos que tienes una reserva con nosotros <strong style="color: #ffffff;">mañana</strong>:</p>
-              </div>
-              
-              <div style="background: rgba(59,130,246,0.1); border-radius: 12px; padding: 24px; margin-bottom: 30px; border: 1px solid rgba(59,130,246,0.2);">
-                <div style="text-align: center; margin-bottom: 16px;">
-                  <span style="color: #3b82f6; font-size: 36px; font-weight: bold;">${data.bookingTime}</span>
-                </div>
-                <div style="text-align: center; color: rgba(255,255,255,0.6);">
-                  ${data.bookingDate} • ${data.pax} personas
-                </div>
-              </div>
-              
-              <div style="text-align: center; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
-                <p style="color: rgba(255,255,255,0.4); font-size: 12px; margin: 0;">
-                  ¡Te esperamos! Si no puedes venir, por favor avísanos lo antes posible.
-                </p>
-              </div>
-            </div>
-          </body>
-        </html>
-      `,
+      subject: `⏰ Recordatorio: Tu reserva es mañana - ${data.bookingTime} | ${BUSINESS.name}`,
+      html,
     });
 
     if (error) {
@@ -178,50 +147,26 @@ export async function sendReminderEmail(
 
 /**
  * Send cancellation email
+ * Supports cancellation by client or restaurant with different messaging
  */
 export async function sendCancellationEmail(
   data: EmailData,
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    const isCancelledByRestaurant = data.cancelledBy === "restaurante";
+    
+    const template = isCancelledByRestaurant 
+      ? cancellationByRestaurantTemplate 
+      : cancellationByCustomerTemplate;
+    
+    const variables = getTemplateVariables(data);
+    const html = renderTemplate(template, variables);
+
     const { error } = await getResendClient().emails.send({
       from: FROM_EMAIL,
       to: data.to,
-      subject: `Reserva Cancelada - ${data.bookingDate}`,
-      html: `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          </head>
-          <body style="font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #0a0a0a; color: #ffffff; margin: 0; padding: 40px 20px;">
-            <div style="max-width: 600px; margin: 0 auto; background: linear-gradient(145deg, rgba(30,30,30,0.8), rgba(20,20,20,0.9)); border-radius: 16px; padding: 40px; border: 1px solid rgba(255,255,255,0.1);">
-              <h1 style="text-align: center; font-size: 32px; letter-spacing: 0.2em; margin-bottom: 30px; color: #ffffff;">${BUSINESS.name}</h1>
-              
-              <div style="text-align: center; padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                <p style="color: #ef4444; font-size: 14px; text-transform: uppercase; letter-spacing: 0.1em; margin: 0;">Reserva Cancelada</p>
-              </div>
-              
-              <div style="padding: 30px 0;">
-                <p style="color: rgba(255,255,255,0.8); margin-bottom: 20px;">Hola ${data.customerName},</p>
-                <p style="color: rgba(255,255,255,0.6); line-height: 1.6;">Tu reserva para el día <strong style="color: #ffffff;">${data.bookingDate}</strong> a las <strong style="color: #ffffff;">${data.bookingTime}</strong> ha sido cancelada.</p>
-              </div>
-              
-              <div style="background: rgba(239,68,68,0.1); border-radius: 12px; padding: 24px; margin-bottom: 30px; border: 1px solid rgba(239,68,68,0.2);">
-                <p style="color: rgba(255,255,255,0.6); margin: 0; text-align: center;">
-                  Si no solicitaste esta cancelación o crees que es un error, por favor contáctanos.
-                </p>
-              </div>
-              
-              <div style="text-align: center; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
-                <p style="color: rgba(255,255,255,0.4); font-size: 12px; margin: 0;">
-                  Esperamos verte pronto en ${BUSINESS.name}.
-                </p>
-              </div>
-            </div>
-          </body>
-        </html>
-      `,
+      subject: `${isCancelledByRestaurant ? '😔' : '❌'} Reserva Cancelada - ${data.bookingDate} | ${BUSINESS.name}`,
+      html,
     });
 
     if (error) {
@@ -245,46 +190,350 @@ export async function sendMagicLinkEmail(
   magicLink: string,
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    const currentYear = new Date().getFullYear();
+    
+    const html = `
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso a Mis Reservas - ${BUSINESS.name}</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap');
+      
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background-color: #0F0F0F;
+        color: #FFFFFF;
+        line-height: 1.6;
+      }
+      
+      .email-container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
+      
+      .email-card {
+        background: linear-gradient(180deg, #1A1A1A 0%, #0F0F0F 100%);
+        border: 1px solid rgba(201, 169, 98, 0.2);
+        border-radius: 24px;
+        overflow: hidden;
+      }
+      
+      .email-header {
+        background: linear-gradient(135deg, #C9A962 0%, #A88B4A 100%);
+        padding: 48px 40px;
+        text-align: center;
+      }
+      
+      .logo {
+        font-family: 'Playfair Display', serif;
+        font-size: 36px;
+        font-weight: 700;
+        letter-spacing: 0.3em;
+        color: #0F0F0F;
+        text-transform: uppercase;
+      }
+      
+      .tagline {
+        font-size: 12px;
+        letter-spacing: 0.2em;
+        color: #0F0F0F;
+        opacity: 0.8;
+        margin-top: 8px;
+        text-transform: uppercase;
+      }
+      
+      .email-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 28px;
+        font-weight: 600;
+        color: #C9A962;
+        text-align: center;
+        padding: 32px 40px 24px;
+        border-bottom: 1px solid rgba(201, 169, 98, 0.2);
+      }
+      
+      .email-content { padding: 40px; text-align: center; }
+      .greeting { font-size: 18px; margin-bottom: 8px; }
+      .message { color: #A0A0A0; margin-bottom: 32px; }
+      
+      .info-card {
+        background: #252525;
+        border: 1px solid rgba(201, 169, 98, 0.2);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 24px;
+        text-align: left;
+      }
+      
+      .info-card p { color: #666666; font-size: 13px; margin: 0; }
+      
+      .cta-button {
+        display: inline-block;
+        background: linear-gradient(135deg, #C9A962 0%, #A88B4A 100%);
+        color: #0F0F0F;
+        padding: 16px 32px;
+        border-radius: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-size: 13px;
+        transition: all 0.3s ease;
+      }
+      
+      .cta-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(201, 169, 98, 0.3);
+      }
+      
+      .email-footer {
+        border-top: 1px solid rgba(201, 169, 98, 0.2);
+        padding: 32px 40px;
+        text-align: center;
+      }
+      
+      .footer-text { color: #666666; font-size: 12px; }
+      .copyright { color: #666666; font-size: 11px; margin-top: 16px; }
+    </style>
+  </head>
+  <body>
+    <div class="email-container">
+      <div class="email-card">
+        <div class="email-header">
+          <div class="logo">${BUSINESS.name}</div>
+          <div class="tagline">${BUSINESS.tagline}</div>
+        </div>
+        
+        <div class="email-title">Acceso a Mis Reservas</div>
+        
+        <div class="email-content">
+          <p class="greeting">Bienvenido a <strong>${BUSINESS.name}</strong></p>
+          <p class="message">
+            Has solicitado acceso a la gestión de tus reservas. Haz clic en el botón de abajo para acceder de forma segura:
+          </p>
+
+          <div style="margin: 40px 0;">
+            <a href="${magicLink}" class="cta-button">
+              🎫 Acceder a Mis Reservas
+            </a>
+          </div>
+
+          <div class="info-card">
+            <p>Este enlace es válido por un único uso y expirará en breve.<br>
+            Si no solicitaste este correo, puedes ignorarlo con seguridad.</p>
+          </div>
+          
+          <p style="color: #666666; font-size: 12px;">
+            Si el botón no funciona, copia y pega este enlace en tu navegador:<br>
+            <a href="${magicLink}" style="color: #C9A962; word-break: break-all;">${magicLink}</a>
+          </p>
+        </div>
+        
+        <div class="email-footer">
+          <div class="footer-text">
+            📍 ${BUSINESS.address} • 📞 ${BUSINESS.phone}
+          </div>
+          <div class="copyright">
+            © ${currentYear} ${BUSINESS.name}. ${BUSINESS.copyright(currentYear)}
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+    `.trim();
+
     const { error } = await getResendClient().emails.send({
       from: FROM_EMAIL,
       to,
-      subject: `Acceso a Mis Reservas - ${BUSINESS.name}`,
-      html: `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          </head>
-          <body style="font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #0a0a0a; color: #ffffff; margin: 0; padding: 40px 20px;">
-            <div style="max-width: 600px; margin: 0 auto; background: linear-gradient(145deg, rgba(30,30,30,0.8), rgba(20,20,20,0.9)); border-radius: 16px; padding: 40px; border: 1px solid rgba(255,255,255,0.1);">
-              <h1 style="text-align: center; font-size: 32px; letter-spacing: 0.2em; margin-bottom: 30px; color: #ffffff;">${BUSINESS.name}</h1>
-              
-              <div style="text-align: center; padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                <p style="color: #ffffff; font-size: 14px; text-transform: uppercase; letter-spacing: 0.1em; margin: 0;">Enlace de Acceso</p>
-              </div>
-              
-              <div style="padding: 30px 0; text-align: center;">
-                <p style="color: rgba(255,255,255,0.8); margin-bottom: 30px;">Haz clic en el siguiente botón para acceder a la gestión de tus reservas:</p>
-                
-                <a href="${magicLink}" style="display: inline-block; background-color: #ffffff; color: #000000; padding: 16px 32px; border-radius: 12px; font-weight: bold; text-decoration: none; text-transform: uppercase; letter-spacing: 0.1em; font-size: 12px; transition: all 0.2s;">
-                  Ingresar a Mis Reservas
-                </a>
-                
-                <p style="color: rgba(255,255,255,0.4); font-size: 11px; margin-top: 30px;">
-                  Este enlace expirará en breve y solo puede ser usado una vez.
-                </p>
-              </div>
-              
-              <div style="text-align: center; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
-                <p style="color: rgba(255,255,255,0.3); font-size: 10px; margin: 0;">
-                  Si no solicitaste este enlace, puedes ignorar este correo.
-                </p>
-              </div>
+      subject: `🔐 Tu enlace de acceso | ${BUSINESS.name}`,
+      html,
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Unknown error",
+    };
+  }
+}
+
+/**
+ * Send reservation status update email (e.g., confirmed, seated, completed)
+ */
+export async function sendStatusUpdateEmail(
+  data: EmailData & { status: string; statusMessage: string },
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const statusEmojis: Record<string, string> = {
+      confirmed: "✅",
+      seated: "🪑",
+      completed: "🎉",
+      "no-show": "😕",
+    };
+
+    const emoji = statusEmojis[data.status] || "📋";
+    
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    const currentYear = new Date().getFullYear();
+    
+    const html = `
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estado de Reserva - ${BUSINESS.name}</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap');
+      
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background-color: #0F0F0F;
+        color: #FFFFFF;
+        line-height: 1.6;
+      }
+      
+      .email-container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
+      
+      .email-card {
+        background: linear-gradient(180deg, #1A1A1A 0%, #0F0F0F 100%);
+        border: 1px solid rgba(201, 169, 98, 0.2);
+        border-radius: 24px;
+        overflow: hidden;
+      }
+      
+      .email-header {
+        background: linear-gradient(135deg, #C9A962 0%, #A88B4A 100%);
+        padding: 48px 40px;
+        text-align: center;
+      }
+      
+      .logo {
+        font-family: 'Playfair Display', serif;
+        font-size: 36px;
+        font-weight: 700;
+        letter-spacing: 0.3em;
+        color: #0F0F0F;
+        text-transform: uppercase;
+      }
+      
+      .email-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 28px;
+        font-weight: 600;
+        color: #C9A962;
+        text-align: center;
+        padding: 32px 40px 24px;
+        border-bottom: 1px solid rgba(201, 169, 98, 0.2);
+      }
+      
+      .email-content { padding: 40px; }
+      .greeting { font-size: 18px; margin-bottom: 8px; }
+      .message { color: #A0A0A0; margin-bottom: 32px; }
+      
+      .info-card {
+        background: #252525;
+        border: 1px solid rgba(201, 169, 98, 0.2);
+        border-radius: 16px;
+        padding: 28px;
+        margin-bottom: 32px;
+      }
+      
+      .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(201, 169, 98, 0.2);
+      }
+      
+      .info-row:last-child { border-bottom: none; }
+      .info-label { color: #666666; font-size: 14px; }
+      .info-value { color: #FFFFFF; font-size: 16px; font-weight: 600; }
+      
+      .cta-button {
+        display: inline-block;
+        background: linear-gradient(135deg, #C9A962 0%, #A88B4A 100%);
+        color: #0F0F0F;
+        padding: 16px 32px;
+        border-radius: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-size: 13px;
+      }
+      
+      .cta-container { text-align: center; margin-bottom: 32px; }
+      .email-footer { border-top: 1px solid rgba(201, 169, 98, 0.2); padding: 32px 40px; text-align: center; }
+      .footer-text { color: #666666; font-size: 12px; }
+      .copyright { color: #666666; font-size: 11px; margin-top: 16px; }
+    </style>
+  </head>
+  <body>
+    <div class="email-container">
+      <div class="email-card">
+        <div class="email-header">
+          <div class="logo">${BUSINESS.name}</div>
+        </div>
+        
+        <div class="email-title">${emoji} ${data.status}</div>
+        
+        <div class="email-content">
+          <p class="greeting">Hola <strong>${data.customerName}</strong>,</p>
+          <p class="message">${emoji} ${data.statusMessage}</p>
+
+          <div class="info-card">
+            <div class="info-row">
+              <span class="info-label">📅 Fecha</span>
+              <span class="info-value">${data.bookingDate}</span>
             </div>
-          </body>
-        </html>
-      `,
+            <div class="info-row">
+              <span class="info-label">🕐 Hora</span>
+              <span class="info-value">${data.bookingTime}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">👥 Comensales</span>
+              <span class="info-value">${data.pax}</span>
+            </div>
+          </div>
+
+          <div class="cta-container">
+            <a href="${data.manageBookingUrl || `${baseUrl}/mis-reservas/${data.bookingId || ''}`}" class="cta-button">
+              Ver Mis Reservas
+            </a>
+          </div>
+        </div>
+        
+        <div class="email-footer">
+          <div class="footer-text">
+            📍 ${BUSINESS.address} • 📞 ${BUSINESS.phone}
+          </div>
+          <div class="copyright">
+            © ${currentYear} ${BUSINESS.name}. ${BUSINESS.copyright(currentYear)}
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+    `.trim();
+
+    const { error } = await getResendClient().emails.send({
+      from: FROM_EMAIL,
+      to: data.to,
+      subject: `${emoji} Actualización de tu reserva - ${data.bookingDate} | ${BUSINESS.name}`,
+      html,
     });
 
     if (error) {

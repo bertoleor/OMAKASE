@@ -3,19 +3,31 @@ import {
   sendConfirmationEmail,
   sendReminderEmail,
   sendCancellationEmail,
+  sendStatusUpdateEmail,
 } from "@/lib/email/resend";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { type, to, customerName, bookingDate, bookingTime, pax, zoneName } =
-      body;
+    const {
+      type,
+      to,
+      customerName,
+      bookingDate,
+      bookingTime,
+      pax,
+      zoneName,
+      bookingId,
+      notes,
+      cancelledBy,
+      cancellationReason,
+      manageBookingUrl,
+      status,
+      statusMessage,
+    } = body;
 
     if (!type || !to || !customerName || !bookingDate || !bookingTime || !pax) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
     const emailData = {
@@ -25,6 +37,11 @@ export async function POST(request: Request) {
       bookingTime,
       pax,
       zoneName,
+      bookingId,
+      notes,
+      cancelledBy,
+      cancellationReason,
+      manageBookingUrl,
     };
 
     let result;
@@ -37,13 +54,27 @@ export async function POST(request: Request) {
         result = await sendReminderEmail(emailData);
         break;
       case "cancellation":
-        result = await sendCancellationEmail(emailData);
+        result = await sendCancellationEmail({
+          ...emailData,
+          cancelledBy,
+          cancellationReason,
+        });
+        break;
+      case "status":
+        if (!status || !statusMessage) {
+          return NextResponse.json(
+            { error: "Status and statusMessage are required for status updates" },
+            { status: 400 },
+          );
+        }
+        result = await sendStatusUpdateEmail({
+          ...emailData,
+          status,
+          statusMessage,
+        });
         break;
       default:
-        return NextResponse.json(
-          { error: "Invalid email type" },
-          { status: 400 },
-        );
+        return NextResponse.json({ error: "Invalid email type" }, { status: 400 });
     }
 
     if (!result.success) {

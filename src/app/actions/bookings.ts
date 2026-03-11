@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { sendConfirmationEmail } from "@/lib/email/resend";
+import { BUSINESS } from "@/config/business";
 import type { TableZoneDb } from "@/types/database.types";
 
 interface CreateBookingData {
@@ -54,7 +55,11 @@ export async function createBooking(data: CreateBookingData) {
     return { success: false, error: error.message };
   }
 
-  // Send confirmation email
+  // Generate manage booking URL
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  const manageBookingUrl = `${baseUrl}/mis-reservas/${result.id}`;
+
+  // Send confirmation email with enhanced data
   try {
     await sendConfirmationEmail({
       to: data.customerEmail,
@@ -62,7 +67,10 @@ export async function createBooking(data: CreateBookingData) {
       bookingDate: data.date,
       bookingTime: data.timeSlot,
       pax: data.pax,
-      zoneName: data.zone,
+      zoneName: BUSINESS.zones[data.zone] || data.zone,
+      bookingId: result.id,
+      notes: data.notes,
+      manageBookingUrl,
     });
   } catch (e) {
     console.error("Error sending confirmation email:", e);

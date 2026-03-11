@@ -117,6 +117,7 @@ export async function updateBookingStatus(
   bookingId: string,
   status: string,
   notes?: string,
+  cancellationReason?: string,
 ) {
   try {
     await checkAdminPermission();
@@ -139,7 +140,11 @@ export async function updateBookingStatus(
 
     if (updateError) throw updateError;
 
-    // 3. Trigger cancellation email if status is 'cancelled'
+    // 3. Generate manage booking URL
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    const manageBookingUrl = `${baseUrl}/mis-reservas/${bookingId}`;
+
+    // 4. Trigger cancellation email if status is 'cancelled'
     if (status === "cancelled") {
       sendCancellationEmail({
         to: booking.customer_email,
@@ -147,6 +152,12 @@ export async function updateBookingStatus(
         bookingDate: booking.booking_date,
         bookingTime: booking.booking_time,
         pax: booking.pax,
+        zoneName: Object.entries(BUSINESS.zones).find(([key]) => key === booking.zone)?.[1] || booking.zone,
+        bookingId: booking.id,
+        notes: booking.notes,
+        cancelledBy: "restaurante", // Admin is cancelling on behalf of restaurant
+        cancellationReason,
+        manageBookingUrl,
       }).catch((e) => console.error("Error sending cancellation email:", e));
     }
 
