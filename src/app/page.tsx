@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 import { BUSINESS } from "@/config/business";
 import { pageMetadata } from "@/lib/seo";
 
-export const metadata = pageMetadata.home;
+export const metadata = pageMetadata.home();
 
 export default async function HomePage() {
   const supabase = await createClient();
