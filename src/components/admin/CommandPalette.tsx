@@ -14,6 +14,7 @@ import {
   Command,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { useNotificationStore } from "@/store/notification-store";
 
 interface CommandItem {
   id: string;
@@ -41,6 +42,12 @@ export default function CommandPalette() {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+  const setCommandPaletteOpen = useNotificationStore((state) => state.setCommandPaletteOpen);
+
+  // Sync local state with store
+  useEffect(() => {
+    setCommandPaletteOpen(isOpen);
+  }, [isOpen, setCommandPaletteOpen]);
 
   // Base commands
   const baseCommands: CommandItem[] = [
@@ -124,9 +131,7 @@ export default function CommandPalette() {
       const supabase = createClient();
       const { data } = await supabase
         .from("bookings")
-        .select(
-          "id, customer_name, customer_phone, booking_date, booking_time, status",
-        )
+        .select("id, customer_name, customer_phone, booking_date, booking_time, status")
         .or(`customer_name.ilike.%${search}%,customer_phone.ilike.%${search}%`)
         .order("booking_date", { ascending: false })
         .limit(5);
@@ -159,8 +164,17 @@ export default function CommandPalette() {
       }
     };
 
+    // Listen for custom event from header search
+    const handleOpenCommandPalette = () => {
+      setIsOpen(true);
+    };
+
     globalThis.addEventListener("keydown", handleKeyDown);
-    return () => globalThis.removeEventListener("keydown", handleKeyDown);
+    globalThis.addEventListener("open-command-palette", handleOpenCommandPalette);
+    return () => {
+      globalThis.removeEventListener("keydown", handleKeyDown);
+      globalThis.removeEventListener("open-command-palette", handleOpenCommandPalette);
+    };
   }, [isOpen, router]);
 
   // Focus input when opened
@@ -192,8 +206,7 @@ export default function CommandPalette() {
         if (selectedIndex < filteredCommands.length) {
           filteredCommands[selectedIndex].action();
         } else {
-          const booking =
-            searchResults[selectedIndex - filteredCommands.length];
+          const booking = searchResults[selectedIndex - filteredCommands.length];
           if (booking) {
             router.push(`/admin/reservations?id=${booking.id}`);
             setIsOpen(false);
@@ -242,9 +255,7 @@ export default function CommandPalette() {
             {/* Commands */}
             {filteredCommands.length > 0 && (
               <div className="mb-2">
-                <p className="text-xs text-white/40 uppercase tracking-wider px-3 py-2">
-                  Comandos
-                </p>
+                <p className="text-xs text-white/40 uppercase tracking-wider px-3 py-2">Comandos</p>
                 {filteredCommands.map((cmd, i) => (
                   <button
                     key={cmd.id}
@@ -258,9 +269,7 @@ export default function CommandPalette() {
                       <div className="text-left">
                         <p className="text-sm text-white">{cmd.label}</p>
                         {cmd.description && (
-                          <p className="text-xs text-white/40">
-                            {cmd.description}
-                          </p>
+                          <p className="text-xs text-white/40">{cmd.description}</p>
                         )}
                       </div>
                     </div>
@@ -277,9 +286,7 @@ export default function CommandPalette() {
             {/* Search Results */}
             {searchResults.length > 0 && (
               <div>
-                <p className="text-xs text-white/40 uppercase tracking-wider px-3 py-2">
-                  Reservas
-                </p>
+                <p className="text-xs text-white/40 uppercase tracking-wider px-3 py-2">Reservas</p>
                 {searchResults.map((booking, i) => {
                   const idx = filteredCommands.length + i;
                   return (
@@ -290,20 +297,15 @@ export default function CommandPalette() {
                         setIsOpen(false);
                       }}
                       className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors ${
-                        selectedIndex === idx
-                          ? "bg-white/10"
-                          : "hover:bg-white/5"
+                        selectedIndex === idx ? "bg-white/10" : "hover:bg-white/5"
                       }`}
                     >
                       <div className="flex items-center space-x-3">
                         <Users className="w-4 h-4 text-white/60" />
                         <div className="text-left">
-                          <p className="text-sm text-white">
-                            {booking.customer_name}
-                          </p>
+                          <p className="text-sm text-white">{booking.customer_name}</p>
                           <p className="text-xs text-white/40">
-                            {booking.booking_date} {booking.booking_time} •{" "}
-                            {booking.status}
+                            {booking.booking_date} {booking.booking_time} • {booking.status}
                           </p>
                         </div>
                       </div>
@@ -314,13 +316,11 @@ export default function CommandPalette() {
             )}
 
             {/* No results */}
-            {search &&
-              filteredCommands.length === 0 &&
-              searchResults.length === 0 && (
-                <div className="py-8 text-center">
-                  <p className="text-white/40">No se encontraron resultados</p>
-                </div>
-              )}
+            {search && filteredCommands.length === 0 && searchResults.length === 0 && (
+              <div className="py-8 text-center">
+                <p className="text-white/40">No se encontraron resultados</p>
+              </div>
+            )}
           </div>
 
           {/* Footer */}

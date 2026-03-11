@@ -313,7 +313,7 @@ export function useDashboardKPIs(date: string) {
       );
       const seatedPax = bookings.reduce(
         (acc: number, b: { pax: number; status: string }) =>
-          b.status === "seated" ? acc + b.pax : 0,
+          b.status === "seated" ? acc + b.pax : acc,
         0,
       );
       const totalCapacity =

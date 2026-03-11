@@ -2,8 +2,9 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { X, CheckCircle2, UserPlus, XCircle, Clock } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "/lib/supabase/client";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+import { useNotificationStore } from "@/store/notification-store";
 
 interface Notification {
   id: string;
@@ -43,31 +44,37 @@ const TYPE_CONFIG = {
 export default function NotificationToast() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isEnabled] = useState(true);
+  const incrementUnread = useNotificationStore((state) => state.incrementUnread);
+  const clearUnread = useNotificationStore((state) => state.clearUnread);
 
-  const addNotification = useCallback(
-    (notif: Omit<Notification, "id" | "timestamp">) => {
-      // Play sound
-      const audio = new Audio("/sounds/notification.mp3");
-      audio.volume = 0.5;
-      audio.play().catch(() => {}); // Ignore autoplay policy errors
+  const addNotification = useCallback((notif: Omit<Notification, "id" | "timestamp">) => {
+    // Play sound
+    const audio = new Audio("/sounds/notification.mp3");
+    audio.volume = 0.5;
+    audio.play().catch(() => {}); // Ignore autoplay policy errors
 
-      const newNotif: Notification = {
-        ...notif,
-        id: crypto.randomUUID(),
-        timestamp: new Date(),
-      };
-      setNotifications((prev) => [newNotif, ...prev].slice(0, 5));
+    const newNotif: Notification = {
+      ...notif,
+      id: crypto.randomUUID(),
+      timestamp: new Date(),
+    };
+    setNotifications((prev) => [newNotif, ...prev].slice(0, 5));
+    
+    // Increment unread count in header
+    incrementUnread();
 
-      setTimeout(() => {
-        setNotifications((prev) => prev.filter((n) => n.id !== newNotif.id));
-      }, 5000);
-    },
-    [],
-  );
+    setTimeout(() => {
+      setNotifications((prev) => prev.filter((n) => n.id !== newNotif.id));
+    }, 5000);
+  }, [incrementUnread]);
 
   const dismissNotification = useCallback((id: string) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
-  }, []);
+    // Clear unread when all notifications are dismissed
+    if (notifications.length <= 1) {
+      clearUnread();
+    }
+  }, [notifications.length, clearUnread]);
 
   const handleInsert = useCallback(
     (payload: RealtimePostgresChangesPayload<BookingRecord>) => {

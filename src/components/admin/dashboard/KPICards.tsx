@@ -10,13 +10,11 @@ interface KPICardsProps {
 }
 
 export default function KPICards({ date }: KPICardsProps) {
-  const { data: kpis, isLoading, error } = useDashboardKPIs(date);
+  const { data: kpis, isLoading, error, refetch, isFetching } = useDashboardKPIs(date);
 
   // Calculate derived values
   const occupancyPercent =
-    kpis && kpis.totalCapacity > 0
-      ? Math.round((kpis.seatedPax / kpis.totalCapacity) * 100)
-      : 0;
+    kpis && kpis.totalCapacity > 0 ? Math.round((kpis.seatedPax / kpis.totalCapacity) * 100) : 0;
 
   const kpiData = [
     {
@@ -77,7 +75,17 @@ export default function KPICards({ date }: KPICardsProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="col-span-full bg-red-500/10 border-red-500/20">
           <CardContent className="p-6 text-center text-red-400">
-            Error al cargar KPIs
+            <p className="font-medium mb-2">Error al cargar KPIs</p>
+            <p className="text-sm text-red-400/70 mb-4">
+              {error.message || "No se pudieron obtener los datos del dashboard"}
+            </p>
+            <button
+              onClick={() => refetch()}
+              disabled={isFetching}
+              className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 disabled:opacity-50 text-red-400 rounded-lg text-sm transition-colors"
+            >
+              {isFetching ? "Reintentando..." : "Reintentar"}
+            </button>
           </CardContent>
         </Card>
       </div>
@@ -98,13 +106,7 @@ export default function KPICards({ date }: KPICardsProps) {
           >
             <CardContent className="p-6">
               <div className="flex items-start justify-between mb-4">
-                <div
-                  className={cn(
-                    "p-3 rounded-xl border",
-                    kpi.bgColor,
-                    kpi.borderColor,
-                  )}
-                >
+                <div className={cn("p-3 rounded-xl border", kpi.bgColor, kpi.borderColor)}>
                   <Icon className={cn("w-5 h-5", kpi.color)} />
                 </div>
               </div>
@@ -112,13 +114,9 @@ export default function KPICards({ date }: KPICardsProps) {
               <div className="space-y-1">
                 <p className="text-sm text-white/60 font-medium">{kpi.label}</p>
                 <div className="flex items-baseline space-x-2">
-                  <p className="text-3xl font-bold text-white tracking-tight">
-                    {kpi.value}
-                  </p>
+                  <p className="text-3xl font-bold text-white tracking-tight">{kpi.value}</p>
                 </div>
-                <p className="text-xs text-white/40 font-medium">
-                  {kpi.subtitle}
-                </p>
+                <p className="text-xs text-white/40 font-medium">{kpi.subtitle}</p>
               </div>
             </CardContent>
           </Card>
