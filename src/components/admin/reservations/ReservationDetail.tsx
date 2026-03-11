@@ -111,7 +111,7 @@ export default function ReservationDetail({
 
   if (!booking) return null;
 
-  const handleSendContact = async (e: React.FormEvent) => {
+  const handleSendContact = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!contactMessage) return;
 

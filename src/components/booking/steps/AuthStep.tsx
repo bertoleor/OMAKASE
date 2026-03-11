@@ -103,7 +103,7 @@ export default function AuthStep() {
   }, []);
 
   const handleSubmit = useCallback(
-    (e?: React.FormEvent) => {
+    (e?: React.FormEvent<HTMLFormElement>) => {
       if (e) e.preventDefault();
       if (!allValid) return;
 

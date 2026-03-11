@@ -6,7 +6,6 @@ import {
   cancellationByCustomerTemplate,
   cancellationByRestaurantTemplate,
   renderTemplate,
-  buildTemplateVariables,
   type TemplateVariables,
 } from "./templates";
 
@@ -55,19 +54,19 @@ export interface EmailData {
 function getTemplateVariables(data: EmailData): TemplateVariables {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
   const currentYear = new Date().getFullYear();
-  
+
   return {
     customerName: data.customerName,
     bookingDate: data.bookingDate,
     bookingTime: data.bookingTime,
     pax: data.pax,
-    paxText: data.pax === 1 ? 'persona' : 'personas',
-    zoneName: data.zoneName || '',
-    bookingId: data.bookingId || '',
-    bookingIdShort: data.bookingId ? data.bookingId.slice(0, 8).toUpperCase() : '',
-    notes: data.notes || '',
-    cancellationReason: data.cancellationReason || '',
-    
+    paxText: data.pax === 1 ? "persona" : "personas",
+    zoneName: data.zoneName || "",
+    bookingId: data.bookingId || "",
+    bookingIdShort: data.bookingId ? data.bookingId.slice(0, 8).toUpperCase() : "",
+    notes: data.notes || "",
+    cancellationReason: data.cancellationReason || "",
+
     businessName: BUSINESS.name,
     businessTagline: BUSINESS.tagline,
     businessAddress: data.address || BUSINESS.address,
@@ -77,10 +76,10 @@ function getTemplateVariables(data: EmailData): TemplateVariables {
     instagramUrl: BUSINESS.social.instagram,
     facebookUrl: BUSINESS.social.facebook,
     whatsappUrl: `https://wa.me/${BUSINESS.social.whatsapp}`,
-    
-    manageBookingUrl: data.manageBookingUrl || `${baseUrl}/mis-reservas/${data.bookingId || ''}`,
+
+    manageBookingUrl: data.manageBookingUrl || `${baseUrl}/mis-reservas/${data.bookingId || ""}`,
     bookingUrl: data.manageBookingUrl || `${baseUrl}/reservar`,
-    
+
     currentYear,
   };
 }
@@ -98,7 +97,7 @@ export async function sendConfirmationEmail(
     const { error } = await getResendClient().emails.send({
       from: FROM_EMAIL,
       to: data.to,
-      subject: `✅ Reserva Confirmada - ${data.bookingDate} a las ${data.bookingTime} | ${BUSINESS.name}`,
+      subject: `Reserva Confirmada - ${data.bookingDate} a las ${data.bookingTime} | ${BUSINESS.name}`,
       html,
     });
 
@@ -128,7 +127,7 @@ export async function sendReminderEmail(
     const { error } = await getResendClient().emails.send({
       from: FROM_EMAIL,
       to: data.to,
-      subject: `⏰ Recordatorio: Tu reserva es mañana - ${data.bookingTime} | ${BUSINESS.name}`,
+      subject: `Recordatorio: Su reserva es manana - ${data.bookingTime} | ${BUSINESS.name}`,
       html,
     });
 
@@ -154,18 +153,18 @@ export async function sendCancellationEmail(
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const isCancelledByRestaurant = data.cancelledBy === "restaurante";
-    
-    const template = isCancelledByRestaurant 
-      ? cancellationByRestaurantTemplate 
+
+    const template = isCancelledByRestaurant
+      ? cancellationByRestaurantTemplate
       : cancellationByCustomerTemplate;
-    
+
     const variables = getTemplateVariables(data);
     const html = renderTemplate(template, variables);
 
     const { error } = await getResendClient().emails.send({
       from: FROM_EMAIL,
       to: data.to,
-      subject: `${isCancelledByRestaurant ? '😔' : '❌'} Reserva Cancelada - ${data.bookingDate} | ${BUSINESS.name}`,
+      subject: `Reserva Cancelada - ${data.bookingDate} | ${BUSINESS.name}`,
       html,
     });
 
@@ -190,9 +189,8 @@ export async function sendMagicLinkEmail(
   magicLink: string,
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
     const currentYear = new Date().getFullYear();
-    
+
     const html = `
 <!DOCTYPE html>
 <html lang="es">
@@ -201,101 +199,99 @@ export async function sendMagicLinkEmail(
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acceso a Mis Reservas - ${BUSINESS.name}</title>
     <style>
-      @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=Geist+Sans:wght@400;500;600;700&display=swap');
       
       * { margin: 0; padding: 0; box-sizing: border-box; }
       
       body {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        background-color: #0F0F0F;
-        color: #FFFFFF;
+        font-family: 'Geist Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background-color: #000000;
+        color: #ffffff;
         line-height: 1.6;
       }
       
-      .email-container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
+      .email-container { max-width: 560px; margin: 0 auto; padding: 48px 20px; }
       
       .email-card {
-        background: linear-gradient(180deg, #1A1A1A 0%, #0F0F0F 100%);
-        border: 1px solid rgba(201, 169, 98, 0.2);
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 24px;
         overflow: hidden;
       }
       
       .email-header {
-        background: linear-gradient(135deg, #C9A962 0%, #A88B4A 100%);
-        padding: 48px 40px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+        padding: 40px;
         text-align: center;
       }
       
       .logo {
-        font-family: 'Playfair Display', serif;
-        font-size: 36px;
+        font-size: 32px;
         font-weight: 700;
-        letter-spacing: 0.3em;
-        color: #0F0F0F;
+        letter-spacing: 0.25em;
+        color: #ffffff;
         text-transform: uppercase;
       }
       
       .tagline {
-        font-size: 12px;
-        letter-spacing: 0.2em;
-        color: #0F0F0F;
-        opacity: 0.8;
+        font-size: 11px;
+        letter-spacing: 0.15em;
+        color: rgba(255, 255, 255, 0.5);
         margin-top: 8px;
         text-transform: uppercase;
       }
       
       .email-title {
-        font-family: 'Playfair Display', serif;
-        font-size: 28px;
+        font-size: 20px;
         font-weight: 600;
-        color: #C9A962;
+        color: #ffffff;
         text-align: center;
         padding: 32px 40px 24px;
-        border-bottom: 1px solid rgba(201, 169, 98, 0.2);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       }
       
       .email-content { padding: 40px; text-align: center; }
       .greeting { font-size: 18px; margin-bottom: 8px; }
-      .message { color: #A0A0A0; margin-bottom: 32px; }
+      .message { color: rgba(255, 255, 255, 0.6); margin-bottom: 32px; }
       
       .info-card {
-        background: #252525;
-        border: 1px solid rgba(201, 169, 98, 0.2);
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 12px;
         padding: 20px;
         margin-bottom: 24px;
         text-align: left;
       }
       
-      .info-card p { color: #666666; font-size: 13px; margin: 0; }
+      .info-card p { color: rgba(255, 255, 255, 0.5); font-size: 13px; margin: 0; }
       
       .cta-button {
         display: inline-block;
-        background: linear-gradient(135deg, #C9A962 0%, #A88B4A 100%);
-        color: #0F0F0F;
-        padding: 16px 32px;
+        background: rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+        padding: 14px 28px;
         border-radius: 12px;
         font-weight: 600;
         text-decoration: none;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
         font-size: 13px;
-        transition: all 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        transition: all 0.2s ease;
       }
       
       .cta-button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(201, 169, 98, 0.3);
+        background: rgba(255, 255, 255, 0.15);
       }
       
       .email-footer {
-        border-top: 1px solid rgba(201, 169, 98, 0.2);
-        padding: 32px 40px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 28px 40px;
         text-align: center;
       }
       
-      .footer-text { color: #666666; font-size: 12px; }
+      .footer-text { color: rgba(255, 255, 255, 0.35); font-size: 11px; }
+    </style>
       .copyright { color: #666666; font-size: 11px; margin-top: 16px; }
     </style>
   </head>
@@ -317,7 +313,7 @@ export async function sendMagicLinkEmail(
 
           <div style="margin: 40px 0;">
             <a href="${magicLink}" class="cta-button">
-              🎫 Acceder a Mis Reservas
+              Acceder a Mis Reservas
             </a>
           </div>
 
@@ -349,7 +345,7 @@ export async function sendMagicLinkEmail(
     const { error } = await getResendClient().emails.send({
       from: FROM_EMAIL,
       to,
-      subject: `🔐 Tu enlace de acceso | ${BUSINESS.name}`,
+      subject: `Enlace de Acceso | ${BUSINESS.name}`,
       html,
     });
 
@@ -373,18 +369,17 @@ export async function sendStatusUpdateEmail(
   data: EmailData & { status: string; statusMessage: string },
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const statusEmojis: Record<string, string> = {
-      confirmed: "✅",
-      seated: "🪑",
-      completed: "🎉",
-      "no-show": "😕",
+    // Status labels (no emojis)
+    const statusLabels: Record<string, string> = {
+      confirmed: "Confirmada",
+      seated: "Ocupada",
+      completed: "Completada",
+      "no-show": "No asistio",
     };
 
-    const emoji = statusEmojis[data.status] || "📋";
-    
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
     const currentYear = new Date().getFullYear();
-    
+
     const html = `
 <!DOCTYPE html>
 <html lang="es">
@@ -487,29 +482,29 @@ export async function sendStatusUpdateEmail(
           <div class="logo">${BUSINESS.name}</div>
         </div>
         
-        <div class="email-title">${emoji} ${data.status}</div>
+        <div class="email-title">${statusLabels[data.status] || data.status}</div>
         
         <div class="email-content">
           <p class="greeting">Hola <strong>${data.customerName}</strong>,</p>
-          <p class="message">${emoji} ${data.statusMessage}</p>
+          <p class="message">${data.statusMessage}</p>
 
           <div class="info-card">
             <div class="info-row">
-              <span class="info-label">📅 Fecha</span>
+              <span class="info-label">Fecha</span>
               <span class="info-value">${data.bookingDate}</span>
             </div>
             <div class="info-row">
-              <span class="info-label">🕐 Hora</span>
+              <span class="info-label">Hora</span>
               <span class="info-value">${data.bookingTime}</span>
             </div>
             <div class="info-row">
-              <span class="info-label">👥 Comensales</span>
+              <span class="info-label">Comensales</span>
               <span class="info-value">${data.pax}</span>
             </div>
           </div>
 
           <div class="cta-container">
-            <a href="${data.manageBookingUrl || `${baseUrl}/mis-reservas/${data.bookingId || ''}`}" class="cta-button">
+            <a href="${data.manageBookingUrl || `${baseUrl}/mis-reservas/${data.bookingId || ""}`}" class="cta-button">
               Ver Mis Reservas
             </a>
           </div>
@@ -532,7 +527,7 @@ export async function sendStatusUpdateEmail(
     const { error } = await getResendClient().emails.send({
       from: FROM_EMAIL,
       to: data.to,
-      subject: `${emoji} Actualización de tu reserva - ${data.bookingDate} | ${BUSINESS.name}`,
+      subject: `Estado de Reserva: ${data.status} - ${data.bookingDate} | ${BUSINESS.name}`,
       html,
     });
 

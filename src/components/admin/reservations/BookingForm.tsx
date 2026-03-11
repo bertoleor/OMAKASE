@@ -127,12 +127,10 @@ export default function BookingForm({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+      <button
+        type="button"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm w-full h-full border-none cursor-default"
         onClick={onClose}
-        onKeyDown={(e) => e.key === "Escape" && onClose()}
-        role="button"
-        tabIndex={0}
         aria-label="Cerrar modal"
       />
 

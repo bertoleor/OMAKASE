@@ -66,34 +66,34 @@ export function renderTemplate(template: string, variables: Record<string, any>)
   for (const [key, value] of Object.entries(variables)) {
     if (value !== undefined && value !== null) {
       // Handle {{variable}} format
-      result = result.replace(new RegExp(`{{${key}}}`, "g"), String(value));
+      result = result.replaceAll(new RegExp(`{{${key}}}`, "g"), String(value));
     }
   }
 
   // Handle conditional blocks {{#if variable}}...{{/if}}
-  result = result.replace(/{{#if\s+(\w+)}}([\s\S]*?){{\/if}}/g, (match, varName, content) => {
+  result = result.replaceAll(/{{#if\s+(\w+)}}([\s\S]*?){{\/if}}/g, (match, varName, content) => {
     const value = variables[varName];
     return value ? content : "";
   });
 
   // Handle conditional blocks {{#ifNotEmpty variable}}...{{/ifNotEmpty}}
-  result = result.replace(
+  result = result.replaceAll(
     /{{#ifNotEmpty\s+(\w+)}}([\s\S]*?){{\/ifNotEmpty}}/g,
     (match, varName, content) => {
       const value = variables[varName];
-      return value && value.trim() ? content : "";
+      return value?.trim() ? content : "";
     },
   );
 
   // Handle loops/blocks {{#variable}}...{{/variable}} for optional sections
-  result = result.replace(/{{#(\w+)}}([\s\S]*?){{\/\1}}/g, (match, varName, content) => {
+  result = result.replaceAll(/{{#(\w+)}}([\s\S]*?){{\/\1}}/g, (match, varName, content) => {
     const value = variables[varName];
     if (value) {
       // Replace inner variables in the block
       let blockContent = content;
       for (const [key, val] of Object.entries(variables)) {
         if (val !== undefined && val !== null) {
-          blockContent = blockContent.replace(new RegExp(`{{${key}}}`, "g"), String(val));
+          blockContent = blockContent.replaceAll(new RegExp(`{{${key}}}`, "g"), String(val));
         }
       }
       return blockContent;

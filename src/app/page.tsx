@@ -9,10 +9,20 @@ export const metadata = pageMetadata.home;
 
 export default async function HomePage() {
   const supabase = await createClient();
-  const { data: settings } = await supabase
-    .from("restaurant_settings")
-    .select("*")
-    .single();
+  let settings = null;
+
+  try {
+    const { data, error } = await supabase
+      .from("restaurant_settings")
+      .select("*")
+      .single();
+
+    if (!error) {
+      settings = data;
+    }
+  } catch (err) {
+    console.error("[HomePage] Failed to fetch settings:", err);
+  }
 
   const openTime = settings?.opening_time || "20:00";
   const closeTime = settings?.closing_time || "00:00";

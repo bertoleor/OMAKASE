@@ -308,7 +308,7 @@ export function useDashboardKPIs(date: string) {
       const bookings = bookingsData || [];
       const totalPax = bookings.reduce(
         (acc: number, b: { pax: number; status: string }) =>
-          b.status !== "cancelled" ? acc + b.pax : acc,
+          b.status === "cancelled" ? acc : acc + b.pax,
         0,
       );
       const seatedPax = bookings.reduce(
