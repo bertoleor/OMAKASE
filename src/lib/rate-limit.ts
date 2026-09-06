@@ -83,6 +83,30 @@ function getRateLimiter(): InMemoryRateLimiter {
   return rateLimiterInstance;
 }
 
+/*
+ * The InMemoryRateLimiter is a single-instance, in-process store: counters reset on
+ * restart and are not shared across server instances. A Redis-backed limiter behind
+ * the same checkRateLimit signature is deferred to ops slice D (env-driven backend).
+ */
+export interface RateLimitCheckConfig {
+  limit: number;
+  windowMs: number;
+}
+
+export interface RateLimitCheckResult {
+  allowed: boolean;
+  retryAfter: number;
+}
+
+export function checkRateLimit(
+  key: string,
+  cfg: RateLimitCheckConfig,
+): RateLimitCheckResult {
+  const limiter = getRateLimiter();
+  const allowed = limiter.check(key, cfg.limit, cfg.windowMs);
+  return { allowed, retryAfter: limiter.getRetryAfter(key) };
+}
+
 /**
  * Creates a rate limiting middleware for API routes.
  * 
