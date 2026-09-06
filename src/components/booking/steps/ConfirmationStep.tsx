@@ -3,7 +3,7 @@
 import { useBookingStore } from "@/store/booking-store";
 import { Button } from "@/components/ui/button";
 import { createBooking } from "@/app/actions/bookings";
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { Calendar, Clock, Users, MapPin, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
@@ -17,6 +17,12 @@ export default function ConfirmationStep() {
   const [isPending, startTransition] = useTransition();
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [honeypot, setHoneypot] = useState("");
+  const [renderedAt, setRenderedAt] = useState("");
+
+  useEffect(() => {
+    setRenderedAt(new Date().toISOString());
+  }, []);
 
   const customerName =
     `${draftBooking.customer?.firstName || ""} ${draftBooking.customer?.lastName || ""}`.trim();
@@ -47,6 +53,8 @@ export default function ConfirmationStep() {
         paymentToken: draftBooking.paymentToken, // Now retrieved from store
         cardBrand: draftBooking.cardBrand,
         cardLastFour: draftBooking.cardLastFour,
+        honeypot,
+        renderedAt,
       });
 
       if (result.success) {
@@ -168,6 +176,16 @@ END:VCALENDAR`;
 
   return (
     <div className="space-y-6 pt-4">
+      <input
+        type="text"
+        value={honeypot}
+        onChange={(e) => setHoneypot(e.target.value)}
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+        className="sr-only"
+      />
+
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-light text-white uppercase tracking-wide">
           {t("summary.title")}

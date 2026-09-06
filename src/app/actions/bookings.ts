@@ -2,6 +2,9 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { sendConfirmationEmail } from "@/lib/email/resend";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { validateSubmission, MIN_ELAPSED_MS } from "@/lib/anti-abuse";
+import { headers } from "next/headers";
 import { BUSINESS } from "@/config/business";
 import type { TableZoneDb } from "@/types/database.types";
 
@@ -17,10 +20,45 @@ interface CreateBookingData {
   paymentToken?: string;
   cardBrand?: string;
   cardLastFour?: string;
+  honeypot?: string;
+  renderedAt?: string;
 }
 
 export async function createBooking(data: CreateBookingData) {
   const supabase = await createClient();
+
+  const verdict = validateSubmission(
+    { honeypot: data.honeypot, renderedAt: data.renderedAt },
+    { minElapsedMs: MIN_ELAPSED_MS },
+  );
+
+  if (!verdict.ok && verdict.reason === "honeypot") {
+    return { success: true };
+  }
+
+  if (!verdict.ok && verdict.reason === "time-trap") {
+    return {
+      success: false,
+      code: "TIME_TRAP",
+      error: "Please wait before confirming your booking.",
+    };
+  }
+
+  const headerStore = await headers();
+  const forwarded = headerStore.get("x-forwarded-for");
+  const ip = forwarded?.split(",")[0]?.trim() ?? headerStore.get("x-real-ip") ?? "unknown";
+  const ua = headerStore.get("user-agent") ?? "";
+  const rateKey = `${ip}:${ua.slice(0, 50)}`;
+  const limitCheck = checkRateLimit(rateKey, { limit: 20, windowMs: 60 * 1000 });
+
+  if (!limitCheck.allowed) {
+    return {
+      success: false,
+      code: "RATE_LIMITED",
+      error: "Too many requests",
+      retryAfter: limitCheck.retryAfter,
+    };
+  }
 
   // Map zone to database enum
   const zoneMap: Record<string, TableZoneDb> = {
