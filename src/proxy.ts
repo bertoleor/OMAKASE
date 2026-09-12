@@ -15,7 +15,9 @@ const ADMIN_ROLES = new Set(["admin", "manager", "staff"]);
 export async function proxy(request: NextRequest) {
   // 1. Validar Configuración (Fail Closed)
   const configError = checkSecurityConfig();
-  if (configError) return configError;
+  if (configError) {
+    return configError;
+  }
 
   let response = NextResponse.next({
     request: { headers: request.headers },
@@ -30,9 +32,7 @@ export async function proxy(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value),
-          );
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
           response = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
             response.cookies.set(name, value, options),
@@ -48,20 +48,17 @@ export async function proxy(request: NextRequest) {
   // 3. Lógica de Rutas
   const path = request.nextUrl.pathname;
   const redirect = handleAuthRouting(request, user, path);
-  if (redirect) return redirect;
+  if (redirect) {
+    return redirect;
+  }
 
   return response;
 }
 
 // Helpers
 function checkSecurityConfig() {
-  if (
-    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  ) {
-    console.error(
-      "❌ Proxy Security: Missing Supabase Environment Variables!",
-    );
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    console.error("❌ Proxy Security: Missing Supabase Environment Variables!");
     return new NextResponse(
       JSON.stringify({
         error: "Configuration Error",
@@ -114,8 +111,7 @@ function handleAuthRouting(
   // Redirección si ya está logueado
   if ((isAdminLogin || isCustomerLogin) && user) {
     const role = user.user_metadata?.role as string | undefined;
-    const destination =
-      role && ADMIN_ROLES.has(role) ? ADMIN_DASHBOARD : CUSTOMER_HOME;
+    const destination = role && ADMIN_ROLES.has(role) ? ADMIN_DASHBOARD : CUSTOMER_HOME;
     return NextResponse.redirect(new URL(destination, request.url));
   }
 
