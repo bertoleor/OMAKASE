@@ -52,7 +52,7 @@ serve(async (req) => {
     const { error: updateError } = await supabase
       .from("bookings")
       .update({
-        status: "no_show",
+        status: "no-show",
         notes: `Auto-marked as no-show at ${now.toISOString()}`,
       })
       .in("id", bookingIds);

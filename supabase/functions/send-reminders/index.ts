@@ -12,6 +12,55 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+type ReminderBooking = {
+  id: string;
+  customer_name?: string;
+  customer_email?: string;
+  booking_date?: string;
+  booking_time?: string;
+  pax?: number;
+};
+
+/**
+ * Sends the reminder email through Resend's HTTP API (Deno runtime — no SDK).
+ * Graceful no-op when RESEND_API_KEY is missing so the cron still marks the
+ * reminder as sent without exploding on misconfigured env.
+ */
+async function sendReminderEmail(booking: ReminderBooking): Promise<void> {
+  const resendKey = Deno.env.get("RESEND_API_KEY");
+  if (!resendKey || !booking.customer_email) return;
+
+  const from =
+    Deno.env.get("EMAIL_FROM") ||
+    "OMAKASE Reservations <reservas@omakase.restaurant>";
+  const body = {
+    from,
+    to: [booking.customer_email],
+    subject: `Recordatorio de tu reserva — ${booking.booking_date} ${booking.booking_time}`,
+    html:
+      `<p>Hola ${booking.customer_name ?? ""},</p>` +
+      `<p>Te recordamos tu reserva para el <strong>${booking.booking_date ?? ""} a las ${booking.booking_time ?? ""}</strong>` +
+      (booking.pax ? ` (${booking.pax} comensales).` : ".") +
+      `</p><p>Te esperamos en OMAKASE.</p>`,
+  };
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${resendKey}`,
+      },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      console.error("Resend failed:", res.status, await res.text());
+    }
+  } catch (err) {
+    console.error("Resend error:", err);
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -67,7 +116,8 @@ serve(async (req) => {
 
     // Process 24h reminders
     for (const booking of reminder24h || []) {
-      // TODO: Integrate with email service (Resend, SendGrid, etc.)
+      // Send email via Resend (RESEND_API_KEY env, HTTP fetch — Deno runtime).
+      await sendReminderEmail(booking);
       console.log(
         `[24h REMINDER] ${booking.customer_name} - ${booking.booking_date} ${booking.booking_time}`,
       );
@@ -83,6 +133,7 @@ serve(async (req) => {
 
     // Process 2h reminders
     for (const booking of reminder2h || []) {
+      await sendReminderEmail(booking);
       console.log(
         `[2h REMINDER] ${booking.customer_name} - ${booking.booking_date} ${booking.booking_time}`,
       );
