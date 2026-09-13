@@ -3,16 +3,17 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
+import {
+  ADMIN_UI_ROLES,
+  STAFF_UI_ROLES,
+  getUserRole,
+  type UserRole,
+} from "@/lib/auth/roles";
 
-export type UserRole = "admin" | "manager" | "staff" | "cashier" | null;
+const ADMIN_ROLES = ADMIN_UI_ROLES;
+const STAFF_ROLES = STAFF_UI_ROLES;
 
-const ADMIN_ROLES: ReadonlySet<UserRole> = new Set(["admin", "manager"]);
-const STAFF_ROLES: ReadonlySet<UserRole> = new Set([
-  "admin",
-  "manager",
-  "staff",
-  "cashier",
-]);
+export type { UserRole };
 
 export function useUserRole() {
   const [role, setRole] = useState<UserRole>(null);
@@ -33,8 +34,7 @@ export function useUserRole() {
           return;
         }
 
-        const userRole = (user.user_metadata?.role as UserRole) ?? null;
-        setRole(userRole);
+        setRole(getUserRole(user));
       } catch {
         setRole(null);
       } finally {
@@ -48,9 +48,7 @@ export function useUserRole() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(
       (_event: AuthChangeEvent, session: Session | null) => {
-        const userRole =
-          (session?.user?.user_metadata?.role as UserRole) ?? null;
-        setRole(userRole);
+        setRole(getUserRole(session?.user));
         setLoading(false);
       },
     );

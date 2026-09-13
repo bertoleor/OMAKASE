@@ -6,6 +6,7 @@ import { useNotificationStore } from "@/store/notification-store";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
+import { getUserRole } from "@/lib/auth/roles";
 
 export default function AdminHeader() {
   const { toggleSidebar } = useAdminUIStore();
@@ -26,7 +27,7 @@ export default function AdminHeader() {
       if (!error && user) {
         // Get name from user_metadata or email
         const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0] || null;
-        const role = user.user_metadata?.role || "staff";
+        const role = getUserRole(user) ?? "staff";
 
         setUserName(name);
         setUserRole(role);
@@ -45,7 +46,7 @@ export default function AdminHeader() {
           session.user.user_metadata?.full_name ||
           session.user.user_metadata?.name ||
           session.user.email?.split("@")[0] || null;
-        const role = session.user.user_metadata?.role || "staff";
+        const role = session.user ? (getUserRole(session.user) ?? "staff") : "staff";
 
         setUserName(name);
         setUserRole(role);

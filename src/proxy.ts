@@ -1,12 +1,13 @@
 import { type SupabaseClient, type User } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
+import { ADMIN_ROUTE_ROLES, getUserRole } from "@/lib/auth/roles";
 
 const ADMIN_LOGIN = "/admin/login";
 const CUSTOMER_LOGIN = "/mis-reservas/login";
 const ADMIN_DASHBOARD = "/admin/dashboard";
 const CUSTOMER_HOME = "/mis-reservas";
-const ADMIN_ROLES = new Set(["admin", "manager", "staff"]);
+const ADMIN_ROLES = ADMIN_ROUTE_ROLES;
 
 /**
  * Proxy - Next.js 16 replacement for middleware
@@ -95,7 +96,7 @@ function handleAuthRouting(
     if (!user) {
       return NextResponse.redirect(new URL(ADMIN_LOGIN, request.url));
     }
-    const role = user.user_metadata?.role as string | undefined;
+    const role = getUserRole(user);
     if (!role || !ADMIN_ROLES.has(role)) {
       return NextResponse.redirect(new URL(CUSTOMER_HOME, request.url));
     }
@@ -110,7 +111,7 @@ function handleAuthRouting(
 
   // Redirección si ya está logueado
   if ((isAdminLogin || isCustomerLogin) && user) {
-    const role = user.user_metadata?.role as string | undefined;
+    const role = getUserRole(user);
     const destination = role && ADMIN_ROLES.has(role) ? ADMIN_DASHBOARD : CUSTOMER_HOME;
     return NextResponse.redirect(new URL(destination, request.url));
   }

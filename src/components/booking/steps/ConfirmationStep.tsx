@@ -3,7 +3,7 @@
 import { useBookingStore } from "@/store/booking-store";
 import { Button } from "@/components/ui/button";
 import { createBooking } from "@/app/actions/bookings";
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition, useEffect, useRef } from "react";
 import { Calendar, Clock, Users, MapPin, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
@@ -19,6 +19,14 @@ export default function ConfirmationStep() {
   const [error, setError] = useState<string | null>(null);
   const [honeypot, setHoneypot] = useState("");
   const [renderedAt, setRenderedAt] = useState("");
+  // Stable per confirmation attempt so safe retries dedupe server-side.
+  const idempotencyKeyRef = useRef<string | null>(null);
+  if (!idempotencyKeyRef.current) {
+    idempotencyKeyRef.current =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  }
 
   useEffect(() => {
     setRenderedAt(new Date().toISOString());
@@ -50,9 +58,8 @@ export default function ConfirmationStep() {
         pax: draftBooking.pax,
         zone: draftBooking.zone || "indoor-tables",
         notes: draftBooking.notes,
-        paymentToken: draftBooking.paymentToken, // Now retrieved from store
-        cardBrand: draftBooking.cardBrand,
-        cardLastFour: draftBooking.cardLastFour,
+        // PCI: card data stays in the browser only — never sent to the server.
+        idempotencyKey: idempotencyKeyRef.current ?? undefined,
         honeypot,
         renderedAt,
       });

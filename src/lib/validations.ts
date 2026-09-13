@@ -350,6 +350,41 @@ export const staffSchema = z.object({
 export type StaffFormData = z.infer<typeof staffSchema>;
 
 /**
+ * Server-action input schema for createBooking.
+ *
+ * Strict: unknown keys (raw card number, CVV, expiry, legacy paymentToken /
+ * cardBrand / cardLastFour) are rejected. Only Mercado Pago reference IDs
+ * may accompany a booking — never PAN data.
+ */
+export const createBookingInputSchema = z
+  .object({
+    customerName: z.string().trim().min(2).max(100),
+    customerEmail: z
+      .string()
+      .trim()
+      .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, { message: "Invalid email" })
+      .max(255),
+    customerPhone: z.string().trim().regex(phoneRegex, "Invalid phone"),
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date"),
+    timeSlot: z.string().regex(/^\d{2}:\d{2}$/, "Invalid time"),
+    pax: z.number().int().min(1).max(20),
+    zone: z.enum(["indoor-tables", "outdoor-pergola", "indoor-bar"]),
+    notes: z.string().trim().max(500).optional(),
+    idempotencyKey: z.uuid("Invalid idempotency key").optional(),
+    mpPaymentId: z
+      .string()
+      .trim()
+      .regex(/^\d{1,32}$/, "Invalid payment reference")
+      .optional(),
+    mpPreferenceId: z.string().trim().min(1).max(64).optional(),
+    honeypot: z.string().max(500).optional(),
+    renderedAt: z.string().max(64).optional(),
+  })
+  .strict();
+
+export type CreateBookingInput = z.infer<typeof createBookingInputSchema>;
+
+/**
  * Utility function to validate and return formatted errors
  */
 export function validateForm<T>(

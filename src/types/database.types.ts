@@ -27,9 +27,15 @@ export interface BookingRow {
   status: BookingStatusDb;
   notes: string | null;
   deposit_amount: number;
+  /** @deprecated PCI: no longer written. Only MP reference IDs are persisted. */
   payment_token?: string | null;
+  /** @deprecated PCI: no longer written. Only MP reference IDs are persisted. */
   card_brand?: string | null;
+  /** @deprecated PCI: no longer written. Only MP reference IDs are persisted. */
   card_last_four?: string | null;
+  idempotency_key?: string | null;
+  mp_payment_id?: string | null;
+  mp_preference_id?: string | null;
 }
 
 export interface BookingInsert {
@@ -43,9 +49,15 @@ export interface BookingInsert {
   status?: BookingStatusDb;
   notes?: string | null;
   deposit_amount?: number;
+  /** @deprecated PCI: no longer written. Only MP reference IDs are persisted. */
   payment_token?: string | null;
+  /** @deprecated PCI: no longer written. Only MP reference IDs are persisted. */
   card_brand?: string | null;
+  /** @deprecated PCI: no longer written. Only MP reference IDs are persisted. */
   card_last_four?: string | null;
+  idempotency_key?: string | null;
+  mp_payment_id?: string | null;
+  mp_preference_id?: string | null;
 }
 
 export interface BookingUpdate {
@@ -59,9 +71,15 @@ export interface BookingUpdate {
   status?: BookingStatusDb;
   notes?: string | null;
   deposit_amount?: number;
+  /** @deprecated PCI: no longer written. Only MP reference IDs are persisted. */
   payment_token?: string | null;
+  /** @deprecated PCI: no longer written. Only MP reference IDs are persisted. */
   card_brand?: string | null;
+  /** @deprecated PCI: no longer written. Only MP reference IDs are persisted. */
   card_last_four?: string | null;
+  idempotency_key?: string | null;
+  mp_payment_id?: string | null;
+  mp_preference_id?: string | null;
 }
 
 export interface ProfileRow {

@@ -2,6 +2,7 @@
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { getUserRole } from "@/lib/auth/roles";
 import {
   sendCancellationEmail,
   getResendClient,
@@ -34,7 +35,7 @@ async function checkAdminPermission() {
     throw new Error("Unauthorized: authentication required");
   }
 
-  const role = user.user_metadata?.role as string | undefined;
+  const role = getUserRole(user);
   if (!role || !ADMIN_ROLES.has(role)) {
     throw new Error("Unauthorized: admin or staff access required");
   }
@@ -62,7 +63,7 @@ export async function getStaffUsers(): Promise<{
     const staffUsers = users.map((u) => ({
       id: u.id,
       email: u.email || "",
-      role: u.user_metadata?.role || "user",
+      role: getUserRole(u) ?? "user",
       created_at: u.created_at,
       last_sign_in: u.last_sign_in_at || null,
     }));
@@ -89,12 +90,15 @@ export async function updateUserRole(
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (user?.user_metadata?.role !== "admin")
+    if (getUserRole(user) !== "admin")
       throw new Error("Only admins can update roles");
 
     const supabaseAdmin = createAdminClient();
 
     const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+      // app_metadata is authoritative (server-issued, not user-editable).
+      // user_metadata is mirrored during the migration for backward compat.
+      app_metadata: { role },
       user_metadata: { role },
     });
 

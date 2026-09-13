@@ -347,8 +347,8 @@ export default function GuaranteeStep() {
       try {
         const cardLastFour = paymentData.cardNumber.replaceAll(/\s/g, "").slice(-4);
 
-        // NOTE: Integrate payment provider (Stripe/MercadoPago)
-        // Storing card reference without tokenization for now.
+        // PCI: card data stays in-memory for display only and is never sent
+        // to the server. Only Mercado Pago reference IDs may be persisted.
         updateDraft({
           cardBrand: cardBrand,
           cardLastFour: cardLastFour,

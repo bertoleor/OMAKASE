@@ -115,9 +115,14 @@ create table public.bookings (
     reminder_24h_sent timestamp with time zone,
     reminder_2h_sent timestamp with time zone,
     -- Payment / Card Info
+    -- PCI: legacy card columns are no longer written; only MP IDs persist.
     card_brand text,
     card_last_four text,
-    payment_token text
+    payment_token text,
+    -- Idempotency + Mercado Pago references (only IDs, never PAN data)
+    idempotency_key text,
+    mp_payment_id text,
+    mp_preference_id text
 );
 
 -- Payments

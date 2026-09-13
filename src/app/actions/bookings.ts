@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { sendConfirmationEmail } from "@/lib/email/resend";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { validateSubmission, MIN_ELAPSED_MS } from "@/lib/anti-abuse";
+import { createBookingInputSchema } from "@/lib/validations";
 import { headers } from "next/headers";
 import { BUSINESS } from "@/config/business";
 import type { TableZoneDb } from "@/types/database.types";
@@ -17,18 +18,27 @@ interface CreateBookingData {
   pax: number;
   zone: string;
   notes?: string;
-  paymentToken?: string;
-  cardBrand?: string;
-  cardLastFour?: string;
+  idempotencyKey?: string;
+  mpPaymentId?: string;
+  mpPreferenceId?: string;
   honeypot?: string;
   renderedAt?: string;
 }
 
+const GENERIC_INVALID_INPUT = "Invalid booking data. Please review the form.";
+
 export async function createBooking(data: CreateBookingData) {
+  // Never log the raw payload: it travels alongside payment-adjacent fields.
+  const parsed = createBookingInputSchema.safeParse(data);
+  if (!parsed.success) {
+    return { success: false, code: "VALIDATION_ERROR", error: GENERIC_INVALID_INPUT };
+  }
+  const input = parsed.data;
+
   const supabase = await createClient();
 
   const verdict = validateSubmission(
-    { honeypot: data.honeypot, renderedAt: data.renderedAt },
+    { honeypot: input.honeypot, renderedAt: input.renderedAt },
     { minElapsedMs: MIN_ELAPSED_MS },
   );
 
@@ -60,6 +70,19 @@ export async function createBooking(data: CreateBookingData) {
     };
   }
 
+  // Idempotency guard: safe retries with the same key return the original row.
+  if (input.idempotencyKey) {
+    const { data: existing, error: lookupError } = await supabase
+      .from("bookings")
+      .select()
+      .eq("idempotency_key", input.idempotencyKey)
+      .maybeSingle();
+
+    if (!lookupError && existing) {
+      return { success: true, booking: existing, deduped: true };
+    }
+  }
+
   // Map zone to database enum
   const zoneMap: Record<string, TableZoneDb> = {
     "indoor-tables": "indoor_tables",
@@ -68,19 +91,20 @@ export async function createBooking(data: CreateBookingData) {
   };
 
   const bookingData = {
-    customer_name: data.customerName,
-    customer_email: data.customerEmail,
-    customer_phone: data.customerPhone,
-    booking_date: data.date,
-    booking_time: data.timeSlot,
-    pax: data.pax,
-    zone: zoneMap[data.zone] || "indoor_tables",
+    customer_name: input.customerName,
+    customer_email: input.customerEmail,
+    customer_phone: input.customerPhone,
+    booking_date: input.date,
+    booking_time: input.timeSlot,
+    pax: input.pax,
+    zone: zoneMap[input.zone] || "indoor_tables",
     status: "pending",
-    notes: data.notes || null,
+    notes: input.notes || null,
     deposit_amount: 0,
-    payment_token: data.paymentToken || null,
-    card_brand: data.cardBrand || null,
-    card_last_four: data.cardLastFour || null,
+    // PCI: only Mercado Pago reference IDs are persisted — never PAN data.
+    idempotency_key: input.idempotencyKey || null,
+    mp_payment_id: input.mpPaymentId || null,
+    mp_preference_id: input.mpPreferenceId || null,
   };
 
   const { data: result, error } = await supabase
@@ -90,6 +114,17 @@ export async function createBooking(data: CreateBookingData) {
     .single();
 
   if (error) {
+    // A concurrent retry may have won the race on the unique key: return it.
+    if (input.idempotencyKey && error.code === "23505") {
+      const { data: raced } = await supabase
+        .from("bookings")
+        .select()
+        .eq("idempotency_key", input.idempotencyKey)
+        .maybeSingle();
+      if (raced) {
+        return { success: true, booking: raced, deduped: true };
+      }
+    }
     return { success: false, error: error.message };
   }
 
@@ -100,18 +135,19 @@ export async function createBooking(data: CreateBookingData) {
   // Send confirmation email with enhanced data
   try {
     await sendConfirmationEmail({
-      to: data.customerEmail,
-      customerName: data.customerName,
-      bookingDate: data.date,
-      bookingTime: data.timeSlot,
-      pax: data.pax,
-      zoneName: BUSINESS.zones[data.zone] || data.zone,
+      to: input.customerEmail,
+      customerName: input.customerName,
+      bookingDate: input.date,
+      bookingTime: input.timeSlot,
+      pax: input.pax,
+      zoneName: BUSINESS.zones[input.zone] || input.zone,
       bookingId: result.id,
-      notes: data.notes,
+      notes: input.notes,
       manageBookingUrl,
     });
   } catch (e) {
-    console.error("Error sending confirmation email:", e);
+    // Log a sanitized signal only — never the booking payload or identifiers.
+    console.error("Error sending confirmation email:", e instanceof Error ? e.message : "unknown");
     // We don't return error here because the booking was already created successfully
   }
 
