@@ -27,9 +27,10 @@ export interface Booking {
   status: "pending" | "confirmed" | "seated" | "completed" | "cancelled" | "no_show";
   notes?: string;
   deposit_amount: number;
-  payment_token?: string;
-  card_brand?: string;
-  card_last_four?: string;
+  // PCI (ORN-86): legacy card columns were dropped; only MP IDs remain.
+  idempotency_key?: string;
+  mp_payment_id?: string;
+  mp_preference_id?: string;
 }
 
 export interface Zone {

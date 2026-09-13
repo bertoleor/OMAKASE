@@ -19,7 +19,6 @@ import {
   Edit2,
   Loader2,
   CreditCard,
-  Copy,
 } from "lucide-react";
 
 interface Booking {
@@ -35,9 +34,9 @@ interface Booking {
   notes?: string;
   duration_minutes?: number;
   created_at?: string;
-  payment_token?: string;
-  card_brand?: string;
-  card_last_four?: string;
+  idempotency_key?: string;
+  mp_payment_id?: string;
+  mp_preference_id?: string;
 }
 
 interface Zone {
@@ -107,19 +106,25 @@ export default function ReservationDetail({
   const [contactSubject, setContactSubject] = useState("");
   const [contactMessage, setContactMessage] = useState("");
   const [isSendingContact, setIsSendingContact] = useState(false);
-  const [contactFeedback, setContactFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [contactFeedback, setContactFeedback] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
-  if (!booking) return null;
+  if (!booking) {
+    return null;
+  }
 
   const handleSendContact = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!contactMessage) return;
+    if (!contactMessage) {
+      return;
+    }
 
     setIsSendingContact(true);
     try {
       const subject =
-        contactSubject ||
-        `${BUSINESS.name} - Referente a tu reserva del ${booking.booking_date}`;
+        contactSubject || `${BUSINESS.name} - Referente a tu reserva del ${booking.booking_date}`;
       const { success, error } = await sendQuickContactEmail(
         booking.customer_email,
         subject,
@@ -127,7 +132,9 @@ export default function ReservationDetail({
         booking.customer_name,
       );
 
-      if (!success) throw new Error(error);
+      if (!success) {
+        throw new Error(error);
+      }
 
       setContactFeedback({ type: "success", message: "Email enviado con éxito" });
       setTimeout(() => {
@@ -149,8 +156,7 @@ export default function ReservationDetail({
 
   const statusConfig = STATUS_CONFIG[booking.status] || STATUS_CONFIG.pending;
   const StatusIcon = statusConfig.icon;
-  const zoneName =
-    zones.find((z) => z.id === booking.zone_id)?.name || "Unknown";
+  const zoneName = zones.find((z) => z.id === booking.zone_id)?.name || "Unknown";
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString("es-ES", {
@@ -176,9 +182,7 @@ export default function ReservationDetail({
       <div className="fixed right-0 top-0 h-full w-full max-w-md bg-black/80 backdrop-blur-xl border-l border-white/10 z-50 overflow-y-auto animate-slide-in-right">
         {/* Header */}
         <div className="sticky top-0 bg-black/80 backdrop-blur-xl border-b border-white/10 p-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-white">
-            Detalle de Reserva
-          </h2>
+          <h2 className="text-lg font-semibold text-white">Detalle de Reserva</h2>
           <button
             onClick={onClose}
             className="p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors"
@@ -213,19 +217,13 @@ export default function ReservationDetail({
           <div className="bg-white/5 rounded-xl p-4 space-y-3">
             <div className="flex items-center space-x-3">
               <Calendar className="w-5 h-5 text-white/40" />
-              <span className="text-white capitalize">
-                {formatDate(booking.booking_date)}
-              </span>
+              <span className="text-white capitalize">{formatDate(booking.booking_date)}</span>
             </div>
             <div className="flex items-center space-x-3">
               <Clock className="w-5 h-5 text-white/40" />
-              <span className="text-2xl font-bold text-white">
-                {booking.booking_time}
-              </span>
+              <span className="text-2xl font-bold text-white">{booking.booking_time}</span>
               {booking.duration_minutes && (
-                <span className="text-sm text-white/60">
-                  ({booking.duration_minutes} min)
-                </span>
+                <span className="text-sm text-white/60">({booking.duration_minutes} min)</span>
               )}
             </div>
           </div>
@@ -247,16 +245,11 @@ export default function ReservationDetail({
             <div className="bg-white/5 rounded-xl p-4 space-y-3">
               <div className="flex items-center space-x-3">
                 <User className="w-5 h-5 text-white/40" />
-                <span className="text-white font-medium">
-                  {booking.customer_name}
-                </span>
+                <span className="text-white font-medium">{booking.customer_name}</span>
               </div>
               <div className="flex items-center space-x-3">
                 <Phone className="w-5 h-5 text-white/40" />
-                <a
-                  href={`tel:${booking.customer_phone}`}
-                  className="text-blue-400 hover:underline"
-                >
+                <a href={`tel:${booking.customer_phone}`} className="text-blue-400 hover:underline">
                   {booking.customer_phone}
                 </a>
               </div>
@@ -274,18 +267,14 @@ export default function ReservationDetail({
 
           {/* Booking Details */}
           <div className="space-y-3">
-            <h3 className="text-sm font-medium text-white/60 uppercase tracking-wider">
-              Detalles
-            </h3>
+            <h3 className="text-sm font-medium text-white/60 uppercase tracking-wider">Detalles</h3>
             <div className="bg-white/5 rounded-xl p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <Users className="w-5 h-5 text-white/40" />
                   <span className="text-white">Comensales</span>
                 </div>
-                <span className="text-xl font-bold text-white">
-                  {booking.pax}
-                </span>
+                <span className="text-xl font-bold text-white">{booking.pax}</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
@@ -297,8 +286,8 @@ export default function ReservationDetail({
             </div>
           </div>
 
-          {/* Payment Guarantee */}
-          {booking.payment_token && (
+          {/* Payment Guarantee (PCI: MP reference IDs only — no card data) */}
+          {(booking.mp_payment_id || booking.mp_preference_id) && (
             <div className="space-y-3">
               <h3 className="text-sm font-medium text-white/60 uppercase tracking-wider">
                 Garantía
@@ -307,31 +296,28 @@ export default function ReservationDetail({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <CreditCard className="w-5 h-5 text-white/40" />
-                    <span className="text-white capitalize">
-                      {booking.card_brand || "Tarjeta"} ••••{" "}
-                      {booking.card_last_four || "????"}
-                    </span>
+                    <span className="text-white capitalize">Mercado Pago</span>
                   </div>
                   <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded">
-                    Tokenizado
+                    Referencia
                   </span>
                 </div>
-                <div className="pt-2 border-t border-white/10">
-                  <p className="text-xs text-white/40 mb-1">Payment Token</p>
-                  <div className="flex items-center space-x-2 bg-black/40 p-2 rounded text-xs font-mono text-white/70 break-all">
-                    <span>{booking.payment_token}</span>
-                    <button
-                      onClick={() =>
-                        booking.payment_token &&
-                        navigator.clipboard.writeText(booking.payment_token)
-                      }
-                      className="p-1 hover:text-white transition-colors"
-                      title="Copiar Token"
-                    >
-                      <Copy className="w-3 h-3" />
-                    </button>
+                {booking.mp_payment_id && (
+                  <div className="pt-2 border-t border-white/10">
+                    <p className="text-xs text-white/40 mb-1">Mercado Pago Payment ID</p>
+                    <div className="flex items-center space-x-2 bg-black/40 p-2 rounded text-xs font-mono text-white/70 break-all">
+                      <span>{booking.mp_payment_id}</span>
+                    </div>
                   </div>
-                </div>
+                )}
+                {booking.mp_preference_id && (
+                  <div className="pt-2 border-t border-white/10">
+                    <p className="text-xs text-white/40 mb-1">Mercado Pago Preference ID</p>
+                    <div className="flex items-center space-x-2 bg-black/40 p-2 rounded text-xs font-mono text-white/70 break-all">
+                      <span>{booking.mp_preference_id}</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -339,9 +325,7 @@ export default function ReservationDetail({
           {/* Notes */}
           {booking.notes && (
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-white/60 uppercase tracking-wider">
-                Notas
-              </h3>
+              <h3 className="text-sm font-medium text-white/60 uppercase tracking-wider">Notas</h3>
               <div className="bg-white/5 rounded-xl p-4">
                 <div className="flex items-start space-x-3">
                   <MessageSquare className="w-5 h-5 text-white/40 mt-0.5" />
@@ -353,9 +337,7 @@ export default function ReservationDetail({
 
           {/* Quick Actions */}
           <div className="space-y-3">
-            <h3 className="text-sm font-medium text-white/60 uppercase tracking-wider">
-              Acciones
-            </h3>
+            <h3 className="text-sm font-medium text-white/60 uppercase tracking-wider">Acciones</h3>
             <div className="grid grid-cols-2 gap-3">
               {booking.status === "pending" && (
                 <button
@@ -456,9 +438,7 @@ export default function ReservationDetail({
             className="relative w-full max-w-lg bg-[#0a0a0a] border border-white/10 rounded-2xl p-6 shadow-2xl space-y-4"
           >
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xl font-bold text-white">
-                Contactar Cliente
-              </h3>
+              <h3 className="text-xl font-bold text-white">Contactar Cliente</h3>
               <button
                 type="button"
                 onClick={() => setShowContactModal(false)}
@@ -509,11 +489,13 @@ export default function ReservationDetail({
 
             {/* Feedback Banner */}
             {contactFeedback && (
-              <div className={`px-4 py-3 rounded-xl text-sm ${
-                contactFeedback.type === "success"
-                  ? "bg-green-500/10 border border-green-500/20 text-green-400"
-                  : "bg-red-500/10 border border-red-500/20 text-red-400"
-              }`}>
+              <div
+                className={`px-4 py-3 rounded-xl text-sm ${
+                  contactFeedback.type === "success"
+                    ? "bg-green-500/10 border border-green-500/20 text-green-400"
+                    : "bg-red-500/10 border border-red-500/20 text-red-400"
+                }`}
+              >
                 {contactFeedback.message}
               </div>
             )}

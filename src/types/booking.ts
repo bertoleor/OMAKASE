@@ -3,20 +3,11 @@
  */
 
 export type BookingStatus =
-  | "pending"
-  | "confirmed"
-  | "seated"
-  | "completed"
-  | "cancelled"
-  | "no-show";
+  "pending" | "confirmed" | "seated" | "completed" | "cancelled" | "no-show";
 
 export type TableZone = "indoor-tables" | "outdoor-pergola" | "indoor-bar";
 
-export type BookingOccasion =
-  | "birthday"
-  | "anniversary"
-  | "business"
-  | "casual";
+export type BookingOccasion = "birthday" | "anniversary" | "business" | "casual";
 
 export interface Customer {
   id: string;
@@ -43,18 +34,18 @@ export interface Reservation {
 }
 
 // Helper type for the wizard draft
-export type DraftReservation = Partial<
-  Omit<Reservation, "id" | "createdAt" | "customer">
-> & {
+export type DraftReservation = Partial<Omit<Reservation, "id" | "createdAt" | "customer">> & {
   customer?: Partial<Customer>;
   // Personalization
   vegetarians?: number;
   kids?: number;
   restrictions?: boolean;
   policyAccepted?: boolean;
-  // Payment (tokenized - NEVER store raw card data)
+  // PCI (ORN-86): no card data is ever persisted or sent to the server. The
+  // wizard keeps only client-side display hints below — a masked brand label
+  // and the last-4 digits for the summary screen. They are dropped before the
+  // createBooking server action and rejected by its strict schema regardless.
   customerDni?: string; // Argentina DNI/CUIT requirement
-  paymentToken?: string;
-  cardBrand?: string;
-  cardLastFour?: string;
+  cardBrand?: string; // client display only (brand name, e.g. "visa")
+  cardLastFour?: string; // client display only (masked last 4, never full PAN)
 };
