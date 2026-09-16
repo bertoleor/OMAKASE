@@ -13,6 +13,8 @@ export {
   cancellationByRestaurantTemplate,
 } from "./cancellation";
 
+import { BUSINESS } from "@/config/business";
+
 /**
  * Template variables interface
  */
@@ -118,7 +120,6 @@ export function buildTemplateVariables(data: {
   cancellationReason?: string;
   manageBookingUrl?: string;
 }) {
-  const { BUSINESS } = require("@/config/business");
   const currentYear = new Date().getFullYear();
 
   return {
