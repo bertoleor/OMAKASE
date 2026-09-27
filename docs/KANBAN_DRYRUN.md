@@ -1,6 +1,7 @@
 # Kanban Dry-Run — OMAKASE (UNVERIFIED, sin mover trabajo real)
 
 > Propuesta de tablero. Nada fue creado en ningún sistema externo. Todo UNVERIFIED.
+> Parte de: [[projects/omakase/README]] · Relacionados: [[TRIAGE_GAPS]], [[AUDIT_GENERAL_OMAKASE]]
 
 ## Backlog (orden sugerido)
 

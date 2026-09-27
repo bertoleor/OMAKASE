@@ -1,4 +1,5 @@
 # 🔍 INFORME DE AUDITORÍA TÉCNICA COMPLETA
+> Parte de: [[projects/omakase/README]] · Relacionados: [[INFORME_GENERAL]], [[INFORME_PENDIENTES]], [[PROJECT_AUDIT]]
 
 ## Proyecto: Sushi Reservas (Omakase)
 

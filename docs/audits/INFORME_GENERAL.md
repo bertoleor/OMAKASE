@@ -1,4 +1,5 @@
 # Informe General del Proyecto: Sistema de Reservas para Restaurante
+> Parte de: [[projects/omakase/README]] · Relacionados: [[COMPREHENSIVE_AUDIT]], [[INFORME_PENDIENTES]], [[PROJECT_AUDIT]]
 
 ## 1. Visión General
 

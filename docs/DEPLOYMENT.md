@@ -1,4 +1,5 @@
 # Guía de Despliegue - Omakase Reservas
+> Parte de: [[projects/omakase/README]] · Relacionados: [[projects/omakase/docs/SECURITY]], [[STATUS-ORN-85]]
 
 Esta guía detalla los pasos para desplegar la aplicación en producción (Vercel) y configurar los servicios necesarios (Supabase).
 

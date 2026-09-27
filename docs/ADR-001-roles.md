@@ -1,6 +1,7 @@
 # ADR-001 — Fuente de verdad para roles (UNVERIFIED, propuesta)
 
 > Estado: PROPOSED (no decidido, no implementado).
+> Parte de: [[projects/omakase/README]] · Relacionados: [[ADR-002-rate-limit]], [[ADR-003-pci-tarjeta]], [[TRIAGE_GAPS]]
 
 ## Contexto
 

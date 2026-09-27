@@ -1,4 +1,5 @@
 # Informe de Funcionalidades Pendientes y Estrategia
+> Parte de: [[projects/omakase/README]] · Relacionados: [[COMPREHENSIVE_AUDIT]], [[INFORME_GENERAL]], [[OPTIMIZATION_REPORT]]
 
 ## 1. Calidad de Código y Accesibilidad (Completado)
 

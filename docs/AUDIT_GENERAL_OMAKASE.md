@@ -2,6 +2,7 @@
 
 > Estado: **UNVERIFIED** — auditoría nocturna sin notificación, rama `feat/auditoria-abuse-rate-limit-pr2`.
 > Fecha: 2026-09-12. Todo lo afirmado requiere verificación humana antes de actuar.
+> Parte de: [[projects/omakase/README]] · Relacionados: [[TRIAGE_GAPS]], [[KANBAN_DRYRUN]], [[STATUS-ORN-85]]
 
 ## Baseline (medido)
 

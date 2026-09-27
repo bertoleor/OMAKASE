@@ -1,6 +1,7 @@
 # Changelog (UNVERIFIED, mínimo inicial)
 
 > Generado en auditoría nocturna 2026-09-12. Contenido parcial, UNVERIFIED.
+> Parte de: [[projects/omakase/README]] · Relacionados: [[AUDIT_GENERAL_OMAKASE]], [[STATUS-ORN-85]]
 
 ## [Unreleased]
 

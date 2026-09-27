@@ -1,6 +1,7 @@
 # ADR-002 — Rate-limit distribuido (UNVERIFIED, propuesta)
 
 > Estado: PROPOSED (no decidido, no implementado).
+> Parte de: [[projects/omakase/README]] · Relacionados: [[ADR-001-roles]], [[ADR-003-pci-tarjeta]], [[TRIAGE_GAPS]]
 
 ## Contexto
 

@@ -1,4 +1,5 @@
 # Security Policy
+> Parte de: [[projects/omakase/README]] · Relacionados: [[projects/omakase/docs/DEPLOYMENT]], [[ADR-003-pci-tarjeta]]
 
 ## Supported Versions
 

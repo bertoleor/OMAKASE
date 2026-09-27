@@ -1,4 +1,5 @@
 # Informe de Auditoría del Proyecto "Sushi Reservas"
+> Parte de: [[projects/omakase/README]] · Relacionados: [[COMPREHENSIVE_AUDIT]], [[INFORME_GENERAL]], [[projects/omakase/docs/SECURITY]]
 
 ## Resumen Ejecutivo
 

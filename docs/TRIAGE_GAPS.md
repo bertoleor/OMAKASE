@@ -1,6 +1,7 @@
 # Triage de Gaps — OMAKASE (UNVERIFIED)
 
 > Todo UNVERIFIED. Severidad propuesta, no confirmada.
+> Parte de: [[projects/omakase/README]] · Relacionados: [[AUDIT_GENERAL_OMAKASE]], [[KANBAN_DRYRUN]], [[STATUS-ORN-85]]
 
 ## P0 — Seguridad / integridad (atender primero)
 

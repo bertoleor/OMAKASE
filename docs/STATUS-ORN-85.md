@@ -3,6 +3,7 @@
 > Verificado 2026-09-15 (turno liviano). **Estado: PARCIAL / NO COMPLETO.** El riesgo de
 > escalación se mitigó por la vía de `app_metadata`, pero **"roles desde `profiles`"** y
 > **"unificar `cashier`"** siguen abiertos (el segundo está bloqueado por RLS).
+> Parte de: [[projects/omakase/README]] · Relacionados: [[ADR-001-roles]], [[AUDIT_GENERAL_OMAKASE]]
 
 ## Lo que SÍ está en el código (hechos verificados)
 

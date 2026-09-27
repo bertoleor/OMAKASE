@@ -5,6 +5,7 @@
 > Acción al usar: EXTENDER (no reescribir) `E:/Hermes/docs/plans/PRD-TEMPLATE.md` agregando este bloque de portada al inicio.
 
 > **Búsqueda:** keywords: `<k1>, <k2>, <k3>` · clasificación: `<tipo>` · estado: <draft|canónico|histórico> · actualizado: YYYY-MM-DD
+> Parte de: [[projects/omakase/README]] · Relacionados: [[PRD-TEMPLATE]], [[REPORTE_PRODUCTO_MARKETING_ESTILO]]
 
 ```md
 # PRD — <tema>

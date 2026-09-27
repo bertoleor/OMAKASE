@@ -1,6 +1,7 @@
 # ADR-003 — Datos de tarjeta: delegación total a Mercado Pago (PCI)
 
 > Estado: ACEPTADO · Implementado en `3767f14` (ORN-86) · Repo: `E:/sitios web E/suhi reservas`
+> Parte de: [[projects/omakase/README]] · Relacionados: [[ADR-001-roles]], [[projects/omakase/docs/SECURITY]], [[TRIAGE_GAPS]]
 
 ## Contexto
 

@@ -3,6 +3,7 @@
 > **Fecha:** 2026-09-12
 > **Estado:** UNVERIFIED — compilación de fuentes del repo (`docs/`, `src/config`, `src/i18n`, `src/lib/email`, `src/lib/seo`). Nada aquí inventado; todo derivado de archivos leídos. Requiere verificación humana antes de decidir.
 > **Alcance:** producto, posicionamiento, marketing, y voz/estilo. No cubre la deuda técnica (ver `TRIAGE_GAPS.md`).
+> Parte de: [[projects/omakase/README]] · Relacionados: [[PRD-omakase-minimo]], [[TRIAGE_GAPS]]
 
 ---
 

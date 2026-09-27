@@ -1,4 +1,5 @@
 # 📊 Informe de Optimización y Mejoras
+> Parte de: [[projects/omakase/README]] · Relacionados: [[COMPREHENSIVE_AUDIT]], [[INFORME_GENERAL]], [[INFORME_PENDIENTES]]
 
 **Proyecto:** Sushi Reservas (Omakase)  
 **Fecha:** 2026-03-05  
