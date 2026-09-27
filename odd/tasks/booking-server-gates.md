@@ -40,8 +40,8 @@ The three gates (blocked dates, weekly schedule, min/max advance) are only enfor
   - evidence: same vitest run → 14/14 green on the action file. Log: `reports/tdd-green-2026-09-27-fase2b-calendar-gates.log`
 - [x] T4: Verify — vitest suite green, tsc --noEmit EXIT:0, eslint scoped EXIT:0
   - evidence: full suite 65/65 green (log `reports/tdd-green-full-2026-09-27-fase2b.log`); `npx tsc --noEmit` EXIT_TSC=0 after fixing 2 preexisting type errors on the touched lines; `npx eslint src/app/actions/bookings.ts src/app/actions/bookings.test.ts` EXIT_LINT=0 (log `reports/lint-fase2b-2026-09-27.log`)
-- [ ] T5: RDD receipt + work-unit commit + mem_save
-  - evidence: pending
+- [x] T5: RDD receipt + work-unit commit + mem_save
+  - evidence: receipt `80e7b6881d1a` signed over staged diff (11 files); commit `3e9c68c` on master; Engram mirror saved as observation #1243 (`odd/booking-server-gates/tasks`); gentle-ai assess post-commit: Risk medium, engine transition terminal `stop (rdd_disabled)` — followed exactly.
 
 ## Accumulated evidence
 - 2026-09-27 RED run: 3 tests failed exactly on the 3 new reasons (BLOCKED_DATE/SCHEDULE_CLOSED/INVALID_ADVANCE → BOOKING_FAILED). 11 preexisting tests passed — no regression in RED state.
