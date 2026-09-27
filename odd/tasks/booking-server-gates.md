@@ -2,7 +2,7 @@
 
 # ODD Feature — booking-server-gates (ORN-124 Fase 2b)
 
-> **Búsqueda:** keywords: `blocked-dates, weekly-schedule, advance-window, try_create_booking, rpc, server-side, calendar-gates` · clasificación: `odd-feature` · estado: in-progress · actualizado: 2026-09-27
+> **Búsqueda:** keywords: `blocked-dates, weekly-schedule, advance-window, try_create_booking, rpc, server-side, calendar-gates` · clasificación: `odd-feature` · estado: closed · actualizado: 2026-09-27
 
 ## Objective
 Make blocked dates, weekly schedule, and advance window authoritative server-side inside `try_create_booking`, closing the client-only enforcement gap flagged by ORN-84.
@@ -63,3 +63,4 @@ The three gates (blocked dates, weekly schedule, min/max advance) are only enfor
 ## Progress
 - 2026-09-27: Doc created after full context gather (RPC, schema, client steps, validations, prior receipt format). Semantics settled: dow 0=Sunday, midnight wrap, BA timezone, idempotency-first reject order, fail-open on missing config rows, guarded time cast.
 - 2026-09-27: T1-T4 done. RED→GREEN complete: 3 new reject tests red first, mapping added, 65/65 suite green, tsc 0, lint 0.
+- 2026-09-27: CLOSED. Work-unit commit `3e9c68c` (gates+action+tests+docs, 11 files, 460 insertions) pushed to origin/master; evidence commit `ad9437e` (T5 close + push log). Receipt `80e7b6881d1a` signed pre-commit. Engram mirror: observation #1243. Live-DB migration apply remains with the DBA card t_6991e705 (launch-gate).
