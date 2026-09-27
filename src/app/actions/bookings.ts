@@ -46,7 +46,18 @@ const CAPACITY_REASONS: Record<string, string> = {
   ZONE_UNAVAILABLE: "That seating area is not available. Please choose another area.",
   INVALID_PAX: "Invalid party size.",
   INVALID_INPUT: "Invalid booking data. Please review the form.",
+  // ORN-124 Fase 2b — calendar gates enforced server-side by the RPC.
+  BLOCKED_DATE: "We are closed on that date. Please choose another date.",
+  SCHEDULE_CLOSED: "We are closed at that time. Please choose a time within our opening hours.",
+  INVALID_ADVANCE:
+    "That booking time is outside our booking window. Please choose a date closer to today.",
 };
+
+/**
+ * Accepted typed codes: derived from the message map so the RPC and the
+ * action can never drift apart again (this exact gap created ORN-124 Fase 2b).
+ */
+const KNOWN_REASONS = new Set(Object.keys(CAPACITY_REASONS));
 
 export async function createBooking(data: CreateBookingData) {
   // Never log the raw payload: it travels alongside payment-adjacent fields.
@@ -140,8 +151,8 @@ export async function createBooking(data: CreateBookingData) {
   };
 
   if (!gate.ok) {
-    const knownReasons = new Set(["CAPACITY_EXCEEDED", "ZONE_UNAVAILABLE", "INVALID_PAX", "INVALID_INPUT"]);
-    const code = knownReasons.has(gate.reason ?? "") ? gate.reason : "BOOKING_FAILED";
+    const reason = gate.reason ?? "";
+    const code = KNOWN_REASONS.has(reason) ? reason : "BOOKING_FAILED";
     return {
       success: false,
       code,

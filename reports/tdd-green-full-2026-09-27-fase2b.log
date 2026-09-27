@@ -1,0 +1,25 @@
+
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90mE:/Hermes/projects/omakase[39m
+
+[90mstderr[2m | src/lib/email/resend.test.ts[2m > [22m[2mgetResendClient[2m > [22m[2mthrows when RESEND_API_KEY is missing
+[22m[39m[Resend] Critical error: RESEND_API_KEY is not defined in environment.
+
+[90mstderr[2m | src/lib/email/resend.test.ts[2m > [22m[2msendConfirmationEmail[2m > [22m[2mreturns success:false when Resend reports an error
+[22m[39m[Resend] Failed to send confirmation email to guest@example.com: { message: [32m'rejected'[39m }
+
+[90mstderr[2m | src/lib/email/resend.test.ts[2m > [22m[2msendConfirmationEmail[2m > [22m[2mreturns success:false when send throws
+[22m[39m[Resend] Unexpected error sending confirmation email to guest@example.com: network down
+
+ [32m✓[39m src/lib/email/resend.test.ts [2m([22m[2m16 tests[22m[2m)[22m[32m 36[2mms[22m[39m
+ [32m✓[39m src/lib/email/templates.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m src/lib/booking-availability.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m src/lib/cancel-policy.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/lib/validations.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 37[2mms[22m[39m
+ [32m✓[39m src/app/actions/bookings.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 23[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m6 passed[39m[22m[90m (6)[39m
+[2m      Tests [22m [1m[32m65 passed[39m[22m[90m (65)[39m
+[2m   Start at [22m 11:23:23
+[2m   Duration [22m 139.24s[2m (transform 31.19s, setup 0ms, import 119.89s, tests 121ms, environment 1ms)[22m
+
+VITEST_EXIT=0

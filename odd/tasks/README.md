@@ -8,4 +8,4 @@ Trabajo chico: directo, sin ceremonia. Trabajo SUSTANCIAL (2+ pasos): crea `odd/
 SDD solo si el ticket lo trae (classifier del orquestador 24: feature/deuda-grande → SDD automatico; define-rumbo → gate humano del owner).
 
 ## Features
-(vacio — los features sustanciales crean su doc aqui)
+- booking-server-gates (ORN-124 Fase 2b) — blocked_dates + weekly_schedule + advance window server-side en try_create_booking — [[booking-server-gates]]

@@ -35,7 +35,7 @@ interface RpcCall {
 const state: {
   rpcResult: { data: Row | null; error: { code: string; message: string } | null };
   rpcCalls: RpcCall[];
-  emailsSent: number[];
+  emailsSent: string[];
 } = {
   rpcResult: { data: null, error: null },
   rpcCalls: [],
@@ -188,6 +188,43 @@ describe("createBooking — try_create_booking RPC wiring (ORN P1)", () => {
     const res = await createBooking({ ...baseInput });
     expect(res.success).toBe(true);
     expect(state.emailsSent).toEqual(["b_123"]);
+  });
+});
+
+describe("createBooking — calendar gates mapping (ORN-124 Fase 2b)", () => {
+  // The three server-side rejects added to try_create_booking: blocked dates,
+  // weekly schedule, advance window. The action MUST map each RPC reason to
+  // its own typed code + user-facing message (not the generic BOOKING_FAILED
+  // fallback), and never send an email on rejection.
+  const rejectCases: { reason: string; code: string }[] = [
+    { reason: "BLOCKED_DATE", code: "BLOCKED_DATE" },
+    { reason: "SCHEDULE_CLOSED", code: "SCHEDULE_CLOSED" },
+    { reason: "INVALID_ADVANCE", code: "INVALID_ADVANCE" },
+  ];
+
+  it.each(rejectCases)(
+    "maps RPC reason $reason to typed code $code with a user-facing message",
+    async ({ reason, code }) => {
+      state.rpcResult = { data: { ok: false, reason }, error: null };
+      const res = await createBooking({ ...baseInput });
+      expect(res.success).toBe(false);
+      if (!res.success) {
+        expect(res.code).toBe(code);
+        // A specific, non-generic message must exist for each mapped reason.
+        expect(res.error).not.toBe("We could not process your booking. Please try again.");
+        expect(res.error?.length).toBeGreaterThan(10);
+      }
+      expect(state.emailsSent).toHaveLength(0);
+    },
+  );
+
+  it("still maps an unknown RPC reason to the generic BOOKING_FAILED fallback", async () => {
+    state.rpcResult = { data: { ok: false, reason: "SOMETHING_ELSE" }, error: null };
+    const res = await createBooking({ ...baseInput });
+    expect(res.success).toBe(false);
+    if (!res.success) {
+      expect(res.code).toBe("BOOKING_FAILED");
+    }
   });
 });
 

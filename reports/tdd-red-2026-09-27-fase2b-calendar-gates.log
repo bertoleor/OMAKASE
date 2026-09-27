@@ -1,0 +1,45 @@
+    [90m212| [39m        [34mexpect[39m(res[33m.[39mcode)[33m.[39m[34mtoBe[39m(code)[33m;[39m
+    [90m   | [39m                         [31m^[39m
+    [90m213| [39m        // A specific, non-generic message must exist for each mapped …
+    [90m214| [39m        expect(res.error).not.toBe("We could not process your booking.…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/app/actions/bookings.test.ts[2m > [22mcreateBooking — calendar gates mapping (ORN-124 Fase 2b)[2m > [22mmaps RPC reason 'SCHEDULE_CLOSED' to typed code 'SCHEDULE_CLOSED' with a user-facing message
+[31m[1mAssertionError[22m: expected 'BOOKING_FAILED' to be 'SCHEDULE_CLOSED' // Object.is equality[39m
+
+Expected: [32m"[7mSCHEDULE_CLOS[27mED"[39m
+Received: [31m"[7mBOOKING_FAIL[27mED"[39m
+
+[36m [2m❯[22m src/app/actions/bookings.test.ts:[2m212:26[22m[39m
+    [90m210| [39m      [34mexpect[39m(res[33m.[39msuccess)[33m.[39m[34mtoBe[39m([35mfalse[39m)[33m;[39m
+    [90m211| [39m      [35mif[39m ([33m![39mres[33m.[39msuccess) {
+    [90m212| [39m        [34mexpect[39m(res[33m.[39mcode)[33m.[39m[34mtoBe[39m(code)[33m;[39m
+    [90m   | [39m                         [31m^[39m
+    [90m213| [39m        // A specific, non-generic message must exist for each mapped …
+    [90m214| [39m        expect(res.error).not.toBe("We could not process your booking.…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/app/actions/bookings.test.ts[2m > [22mcreateBooking — calendar gates mapping (ORN-124 Fase 2b)[2m > [22mmaps RPC reason 'INVALID_ADVANCE' to typed code 'INVALID_ADVANCE' with a user-facing message
+[31m[1mAssertionError[22m: expected 'BOOKING_FAILED' to be 'INVALID_ADVANCE' // Object.is equality[39m
+
+Expected: [32m"INVALID_ADVANCE"[39m
+Received: [31m"BOOKING_FAILED"[39m
+
+[36m [2m❯[22m src/app/actions/bookings.test.ts:[2m212:26[22m[39m
+    [90m210| [39m      [34mexpect[39m(res[33m.[39msuccess)[33m.[39m[34mtoBe[39m([35mfalse[39m)[33m;[39m
+    [90m211| [39m      [35mif[39m ([33m![39mres[33m.[39msuccess) {
+    [90m212| [39m        [34mexpect[39m(res[33m.[39mcode)[33m.[39m[34mtoBe[39m(code)[33m;[39m
+    [90m   | [39m                         [31m^[39m
+    [90m213| [39m        // A specific, non-generic message must exist for each mapped …
+    [90m214| [39m        expect(res.error).not.toBe("We could not process your booking.…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m11 passed[39m[22m[90m (14)[39m
+[2m   Start at [22m 10:44:16
+[2m   Duration [22m 96.57s[2m (transform 9.58s, setup 0ms, import 92.32s, tests 59ms, environment 0ms)[22m
+
