@@ -7,7 +7,19 @@ import { validateSubmission, MIN_ELAPSED_MS } from "@/lib/anti-abuse";
 import { createBookingInputSchema } from "@/lib/validations";
 import { headers } from "next/headers";
 import { BUSINESS } from "@/config/business";
-import type { TableZoneDb } from "@/types/database.types";
+
+/** Minimal booking row shape returned by try_create_booking's jsonb payload. */
+interface CreateBookingRpcRow {
+  id: string;
+  zone?: string;
+  zone_id?: string;
+  status?: string;
+  pax?: number;
+  booking_date?: string;
+  booking_time?: string;
+  customer_email?: string;
+  idempotency_key?: string | null;
+}
 
 interface CreateBookingData {
   customerName: string;
@@ -26,6 +38,15 @@ interface CreateBookingData {
 }
 
 const GENERIC_INVALID_INPUT = "Invalid booking data. Please review the form.";
+
+/** User-facing messages for the RPC's typed rejection reasons. */
+const CAPACITY_REASONS: Record<string, string> = {
+  CAPACITY_EXCEEDED:
+    "That time slot is fully booked. Please choose another time or reduce your party size.",
+  ZONE_UNAVAILABLE: "That seating area is not available. Please choose another area.",
+  INVALID_PAX: "Invalid party size.",
+  INVALID_INPUT: "Invalid booking data. Please review the form.",
+};
 
 export async function createBooking(data: CreateBookingData) {
   // Never log the raw payload: it travels alongside payment-adjacent fields.
@@ -70,62 +91,78 @@ export async function createBooking(data: CreateBookingData) {
     };
   }
 
-  // Idempotency guard: safe retries with the same key return the original row.
-  if (input.idempotencyKey) {
-    const { data: existing, error: lookupError } = await supabase
-      .from("bookings")
-      .select()
-      .eq("idempotency_key", input.idempotencyKey)
-      .maybeSingle();
+  // ORN P1: the authoritative capacity/overlap/idempotency gate is the
+  // Postgres function `try_create_booking` (SECURITY DEFINER + advisory
+  // lock). This flow runs with the anon key, and bookings RLS only lets a
+  // caller SELECT its own rows (owner-by-email or staff): any occupancy or
+  // idempotency read done here would see ZERO rows, so the gate MUST live
+  // server-side. The RPC resolves the zone by slug, computes live occupancy
+  // (pending/confirmed/seated/completed), enforces capacity, re-checks
+  // idempotency atomically, and inserts with zone_id set.
+  const zoneSlugMap: Record<string, string> = {
+    "indoor-tables": "salon",
+    "outdoor-pergola": "pergola",
+    "indoor-bar": "barra",
+  };
 
-    if (!lookupError && existing) {
-      return { success: true, booking: existing, deduped: true };
-    }
+  const { data: rpcData, error: rpcError } = await supabase.rpc(
+    "try_create_booking",
+    {
+      p_zone_slug: zoneSlugMap[input.zone] ?? null,
+      p_booking_date: input.date,
+      p_booking_time: input.timeSlot,
+      p_pax: input.pax,
+      p_customer_name: input.customerName,
+      p_customer_email: input.customerEmail,
+      p_customer_phone: input.customerPhone,
+      p_notes: input.notes || null,
+      p_idempotency_key: input.idempotencyKey || null,
+      p_mp_payment_id: input.mpPaymentId || null,
+      p_mp_preference_id: input.mpPreferenceId || null,
+    },
+  );
+
+  // Fail closed on transport/schema errors: no booking, no email.
+  if (rpcError || !rpcData) {
+    return {
+      success: false,
+      code: rpcError?.code === "PGRST202" ? "RPC_UNAVAILABLE" : "BOOKING_FAILED",
+      error: "We could not process your booking. Please try again.",
+      ...(rpcError?.code === "PGRST202" ? { rpcCode: "PGRST202" } : {}),
+    };
   }
 
-  // Map zone to database enum
-  const zoneMap: Record<string, TableZoneDb> = {
-    "indoor-tables": "indoor_tables",
-    "outdoor-pergola": "outdoor_pergola",
-    "indoor-bar": "indoor_bar",
+  const gate = rpcData as {
+    ok: boolean;
+    reason?: string;
+    deduped?: boolean;
+    booking?: CreateBookingRpcRow;
   };
 
-  const bookingData = {
-    customer_name: input.customerName,
-    customer_email: input.customerEmail,
-    customer_phone: input.customerPhone,
-    booking_date: input.date,
-    booking_time: input.timeSlot,
-    pax: input.pax,
-    zone: zoneMap[input.zone] || "indoor_tables",
-    status: "pending",
-    notes: input.notes || null,
-    deposit_amount: 0,
-    // PCI: only Mercado Pago reference IDs are persisted — never PAN data.
-    idempotency_key: input.idempotencyKey || null,
-    mp_payment_id: input.mpPaymentId || null,
-    mp_preference_id: input.mpPreferenceId || null,
-  };
+  if (!gate.ok) {
+    const knownReasons = new Set(["CAPACITY_EXCEEDED", "ZONE_UNAVAILABLE", "INVALID_PAX", "INVALID_INPUT"]);
+    const code = knownReasons.has(gate.reason ?? "") ? gate.reason : "BOOKING_FAILED";
+    return {
+      success: false,
+      code,
+      // eslint-disable-next-line security/detect-object-injection -- code is a closed set derived from gate.reason
+      error: CAPACITY_REASONS[code] ?? "We could not process your booking. Please try again.",
+    };
+  }
 
-  const { data: result, error } = await supabase
-    .from("bookings")
-    .insert(bookingData)
-    .select()
-    .single();
+  const result = gate.booking;
+  if (!result?.id) {
+    // Defensive: RPC contract violated — never proceed with a broken row.
+    return { success: false, code: "BOOKING_FAILED", error: "We could not process your booking." };
+  }
 
-  if (error) {
-    // A concurrent retry may have won the race on the unique key: return it.
-    if (input.idempotencyKey && error.code === "23505") {
-      const { data: raced } = await supabase
-        .from("bookings")
-        .select()
-        .eq("idempotency_key", input.idempotencyKey)
-        .maybeSingle();
-      if (raced) {
-        return { success: true, booking: raced, deduped: true };
-      }
-    }
-    return { success: false, error: error.message };
+  // Idempotent retry: the original booking already exists and its
+  // confirmation email was already sent on the first attempt.
+  // NOTE: read `gate.deduped` (the RPC payload), NOT `verdict.deduped` —
+  // `verdict` is the anti-abuse result and has no such field; reading it
+  // would silently fall through and re-send the email on every retry.
+  if (gate.deduped) {
+    return { success: true, booking: result, deduped: true };
   }
 
   // Generate manage booking URL

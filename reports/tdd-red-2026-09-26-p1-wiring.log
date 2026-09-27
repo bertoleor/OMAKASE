@@ -1,0 +1,20 @@
+[31m     [31m×[31m delegates the insert to the try_create_booking RPC with the mapped zone slug[39m[32m 14[2mms[22m[39m
+[31m     [31m×[31m maps each UI zone key to its seeded zone slug[39m[32m 5[2mms[22m[39m
+[31m     [31m×[31m forwards the idempotency key and payment references to the RPC[39m[32m 2[2mms[22m[39m
+[31m     [31m×[31m rejects with CAPACITY_EXCEEDED when the RPC reports it (no email)[39m[32m 1[2mms[22m[39m
+[31m     [31m×[31m rejects with ZONE_UNAVAILABLE when the zone is missing or inactive[39m[32m 1[2mms[22m[39m
+[31m     [31m×[31m fails closed when the RPC call itself errors (no success, no email)[39m[32m 1[2mms[22m[39m
+[31m     [31m×[31m returns the original booking on a deduped idempotent retry (no second email)[39m[32m 1[2mms[22m[39m
+[31m     [31m×[31m sends the confirmation email exactly once for a fresh accepted booking[39m[32m 5[2mms[22m[39m
+     [32m✓[39m same slot + fitting pax: hasSlotOverlap=true but canAcceptBooking accepts[32m 6[2mms[22m[39m
+     [32m✓[39m LIVE_STATUSES excludes cancelled/no_show so they free the slot[32m 1[2mms[22m[39m
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 8 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+[41m[1m FAIL [22m[49m src/app/actions/bookings.test.ts[2m > [22mcreateBooking — try_create_booking RPC wiring (ORN P1)[2m > [22mdelegates the insert to the try_create_booking RPC with the mapped zone slug
+[41m[1m FAIL [22m[49m src/app/actions/bookings.test.ts[2m > [22mcreateBooking — try_create_booking RPC wiring (ORN P1)[2m > [22mmaps each UI zone key to its seeded zone slug
+[41m[1m FAIL [22m[49m src/app/actions/bookings.test.ts[2m > [22mcreateBooking — try_create_booking RPC wiring (ORN P1)[2m > [22mforwards the idempotency key and payment references to the RPC
+[41m[1m FAIL [22m[49m src/app/actions/bookings.test.ts[2m > [22mcreateBooking — try_create_booking RPC wiring (ORN P1)[2m > [22mrejects with CAPACITY_EXCEEDED when the RPC reports it (no email)
+[41m[1m FAIL [22m[49m src/app/actions/bookings.test.ts[2m > [22mcreateBooking — try_create_booking RPC wiring (ORN P1)[2m > [22mrejects with ZONE_UNAVAILABLE when the zone is missing or inactive
+[41m[1m FAIL [22m[49m src/app/actions/bookings.test.ts[2m > [22mcreateBooking — try_create_booking RPC wiring (ORN P1)[2m > [22mfails closed when the RPC call itself errors (no success, no email)
+[41m[1m FAIL [22m[49m src/app/actions/bookings.test.ts[2m > [22mcreateBooking — try_create_booking RPC wiring (ORN P1)[2m > [22mreturns the original booking on a deduped idempotent retry (no second email)
+[41m[1m FAIL [22m[49m src/app/actions/bookings.test.ts[2m > [22mcreateBooking — try_create_booking RPC wiring (ORN P1)[2m > [22msends the confirmation email exactly once for a fresh accepted booking
+[2m      Tests [22m [1m[31m8 failed[39m[22m[2m | [22m[1m[32m2 passed[39m[22m[90m (10)[39m

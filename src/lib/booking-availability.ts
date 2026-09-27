@@ -20,8 +20,12 @@ export interface CapacityBooking {
   status: BookingStatusDb | "no-show" | string;
 }
 
-/** Statuses that still hold the table (consume capacity / block overlap). */
-const LIVE_STATUSES = new Set(["pending", "confirmed", "seated", "completed"]);
+/**
+ * Statuses that still hold the table (consume capacity / block overlap).
+ * Exported for tests and admin tooling that need the same live-set the
+ * server-side gate (try_create_booking) enforces.
+ */
+export const LIVE_STATUSES = new Set(["pending", "confirmed", "seated", "completed"]);
 
 function isLive(b: Pick<CapacityBooking, "status">): boolean {
   return LIVE_STATUSES.has(b.status);
