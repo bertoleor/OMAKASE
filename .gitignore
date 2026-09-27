@@ -42,3 +42,5 @@ next-env.d.ts
 .atl/
 .changeset/
 .husky/
+
+!.env.example

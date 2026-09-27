@@ -1,38 +1,60 @@
-# Omakase Reservations
+> Parte de: [[INDICE-SISTEMA]] · Relacionados: [[ADR-001-roles]], [[ADR-002-rate-limit]], [[ADR-003-pci-tarjeta]]
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# OMAKASE — Sistema de reservas para restaurante de sushi (Omakase)
 
-## Getting Started
+> Path: `E:/Hermes/projects/omakase` · Stack: Next.js 16.3.5 (App Router, Turbopack) + React 19.2.4 + Supabase (Postgres 17, Auth, Realtime, RPC) + Resend · Estado: ACTIVO
+> Registry: `E:/Hermes/projects/registry` (branch `master`, priority 2, window `02:00`) · Mapa: `E:/Hermes/docs/plans/project-map.md`
+> Última verificación: 2026-09-27 (escaneo F0 — ver `docs/F0-2026-09-27.md`)
 
-First, run the development server:
+## 1. Qué es
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Sistema de reservas online para restaurante de sushi (omakase): wizard de reserva de 8 pasos (fecha/hora, zona, pax, auth por magic link, garantía, confirmación).
+- Módulo admin: dashboard con KPIs, calendario de reservas, plano de sala con drag & drop (dnd-kit), gestión de zonas/mesas/eventos especiales, horarios semanales, notificaciones en vivo (Supabase Realtime).
+- Reglas de negocio nucleares: capacidad y solapamiento por zona-mesa-horario, fechas bloqueadas, horario semanal y ventana de avance — **enforzadas server-side en la RPC `try_create_booking`** (desde ORN-124 Fase 2b, 2026-09-27), con ventana de cancelación y emails transaccionales vía Resend.
+- Usuario final: comensales (reserva self-service); usuario staff: admin/cashier (dashboard operativo).
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 2. Cómo correr
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Requisitos: Node 20+, npm, proyecto Supabase (Postgres + Auth + Realtime), API key de Resend, secrets en env (ver `.env.example`).
+- Comandos:
+  - `npm install` — instalar dependencias
+  - `npm run dev` — servidor de desarrollo (`next dev`)
+  - `npm test` — suite unit (Vitest, 65 tests en 6 archivos)
+  - `npm run typecheck` — `tsc --noEmit` (strict)
+  - `npm run lint` — ESLint 9 (flat config)
+  - `npm run format` / `npm run format:check` — Prettier
+  - `npm run build` — build de producción (requiere env de Supabase: falla en prerender sin `NEXT_PUBLIC_SUPABASE_URL`)
+  - `npm run test:e2e` — E2E (⚠ script existe pero Playwright no está instalado en devDeps)
+  - `npm run changeset` / `npm run release` — versionado con Changesets
+- Migraciones: `supabase/migrations/` — aplicar contra el proyecto Supabase; esquema completo en `supabase/schema.sql`; edge functions (Deno) en `supabase/functions/` (`auto-confirm`, `no-show-handler`, `send-reminders`).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 3. Estructura de carpetas (solo primer nivel)
 
-## Learn More
+- `src/app` — rutas App Router (pages del wizard cliente, `admin/*`, `mis-reservas/*`, `api/webhooks`), server actions (`src/app/actions/`)
+- `src/components` — UI organizada por dominio: `booking/` (wizard + steps), `admin/` (dashboard, floorplan, reservas), `ui/` (16 primitivos tipo shadcn con CVA)
+- `src/lib` — lógica de dominio: `booking-availability`, `cancel-policy`, `email/` (Resend + templates), `validations` (Zod), `auth/roles`, `supabase/` (client/server/admin), `logger`
+- `src/hooks` — hooks de realtime (`useRealtime`, `useRealtimeBookings`), `useUserRole`, i18n
+- `src/i18n` — traducciones (ES/EN/PT)
+- `src/proxy.ts` — middleware de seguridad y roles
+- `supabase/` — `schema.sql`, `migrations/`, `functions/` (edge functions Deno)
+- `docs/` — ADRs (roles, rate-limit, PCI), auditorías, PRD, planes
+- `reports/` — logs de evidencia de tests/TDD y health reports
+- `odd/` — features ODD (ver `odd/tasks/booking-server-gates.md`, cerrado 2026-09-27)
+- `openspec/` — cambios SDD
+- `plans/` — análisis UI/auditoría
 
-To learn more about Next.js, take a look at the following resources:
+## 4. Documentación canónica
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Producto (PRD): `docs/plans/PRD-omakase-minimo.md` (⚠ es la plantilla canónica sin extender — el PRD real sigue pendiente)
+- Plan activo: `odd/tasks/booking-server-gates.md` (cerrado 2026-09-27)
+- ADRs: `docs/ADR-001-roles.md` (⚠ desactualizado vs implementación), `docs/ADR-002-rate-limit.md`, `docs/ADR-003-pci-tarjeta.md`
+- Auditorías: `docs/AUDIT_GENERAL_OMAKASE.md`, `docs/audits/COMPREHENSIVE_AUDIT.md`, `docs/TRIAGE_GAPS.md`, `docs/STATUS-ORN-85.md`
+- Escaneo F0: `docs/F0-2026-09-27.md` (estado del proyecto + deuda inventariada)
+- Espejo en Hermes: `E:/Hermes/docs/proyectos/omakase.md`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 5. Estado actual
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Rama: `master` (al día con `origin/master` = `github.com/bertoleor/OMAKASE`) · CI: **FAIL** (últimos 8 runs de "Verify build and lint" en rojo — errores lint `curly`; `ci.yml` no triggerea en master)
+- Tests: 65/65 PASS · Typecheck: PASS · Build: FAIL sin env de Supabase
+- Próximo hito: **F3 — volver CI/build a verde** (ver `docs/F0-2026-09-27.md` §9)
+- Tickets abiertos: ORN-85 (roles desde profiles + unificar cashier — PARCIAL), ORN-124 (server-side gates — implementado 2026-09-27, migración pendiente de aplicar a DB live, card t_6991e705), ORN-202 (realtime p95 922ms — sin instrumentación, verificar con medición fresca), launch-gate DB (RLS en `agent_audit_logs`, health 2/5)
