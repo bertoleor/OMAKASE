@@ -201,3 +201,84 @@ export async function createBooking(data: CreateBookingData) {
 
   return { success: true, booking: result };
 }
+
+/**
+ * ORN-84 P1-8 — user-facing messages for cancel_my_booking's typed rejects.
+ * Mirrors the RPC's jsonb contract; kept in one place so a new RPC reason
+ * surfaces as CANCEL_FAILED instead of passing silently.
+ */
+const CANCEL_REASONS: Record<string, string> = {
+  NOT_AUTHORIZED: "You can only cancel your own booking.",
+  BOOKING_NOT_FOUND: "We could not find that booking.",
+  ALREADY_CLOSED: "This booking can no longer be cancelled.",
+  CANCEL_WINDOW_CLOSED: "The free-cancellation window for this booking has closed. Contact us for assistance.",
+  INVALID_INPUT: "Invalid booking reference.",
+};
+
+const CANCEL_KNOWN_REASONS = new Set(Object.keys(CANCEL_REASONS));
+
+/** Minimal uuid shape check (v4-ish); the RPC re-validates authoritatively. */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Typed result contract for cancelBooking — consumed by /mis-reservas/[id]. */
+export interface CancelBookingResult {
+  success: boolean;
+  code?: string;
+  error?: string;
+  status?: string;
+  rpcCode?: string;
+}
+
+/**
+ * Client self-service cancellation. The authoritative ownership check and
+ * status transition live in the Postgres function `cancel_my_booking`
+ * (SECURITY DEFINER): bookings' UPDATE policy is staff-only, so a raw
+ * .update() from the customer's session affects ZERO rows under RLS — the
+ * old button silently did nothing. The RPC verifies the session email owns
+ * the booking and cancels server-side.
+ */
+export async function cancelBooking(bookingId: string): Promise<CancelBookingResult> {
+  const supabase = await createClient();
+
+  // Ownership travels with the session (JWT), never with a client-sent email.
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session?.user?.email) {
+    return { success: false, code: "NOT_AUTHENTICATED", error: "Please sign in to manage your booking." };
+  }
+
+  if (typeof bookingId !== "string" || !UUID_RE.test(bookingId)) {
+    return { success: false, code: "INVALID_INPUT", error: CANCEL_REASONS.INVALID_INPUT };
+  }
+
+  const { data: rpcData, error: rpcError } = await supabase.rpc("cancel_my_booking", {
+    p_booking_id: bookingId,
+  });
+
+  // Fail closed on transport/schema errors: nothing cancelled, nothing claimed.
+  if (rpcError || !rpcData) {
+    return {
+      success: false,
+      code: rpcError?.code === "PGRST202" ? "RPC_UNAVAILABLE" : "CANCEL_FAILED",
+      error: "We could not cancel your booking. Please try again.",
+      ...(rpcError?.code === "PGRST202" ? { rpcCode: "PGRST202" } : {}),
+    };
+  }
+
+  const gate = rpcData as { ok?: boolean; reason?: string; status?: string };
+
+  if (!gate.ok) {
+    const reason = gate.reason ?? "";
+    const code = CANCEL_KNOWN_REASONS.has(reason) ? reason : "CANCEL_FAILED";
+    return {
+      success: false,
+      code,
+      // eslint-disable-next-line security/detect-object-injection -- code is a closed set derived from gate.reason
+      error: CANCEL_REASONS[code] ?? "We could not cancel your booking. Please try again.",
+    };
+  }
+
+  return { success: true, status: gate.status ?? "cancelled" };
+}

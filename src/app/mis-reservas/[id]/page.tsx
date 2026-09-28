@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { cancelBooking } from "@/app/actions/bookings";
 import { BUSINESS } from "@/config/business";
 
 interface Reservation {
@@ -112,7 +113,9 @@ export default function ReservationDetailPage() {
         .eq("customer_email", email)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
       setReservation(data);
     } catch (err) {
       console.error("Error fetching reservation:", err);
@@ -123,19 +126,30 @@ export default function ReservationDetailPage() {
   }
 
   async function handleCancel() {
-    if (!reservation) return;
+    if (!reservation) {
+      return;
+    }
     setCancelling(true);
 
     try {
-      const supabase = createClient();
-      const { error } = await supabase
-        .from("bookings")
-        .update({ status: "cancelled" })
-        .eq("id", reservation.id);
+      // ORN-84 P1-8: cancellation is delegated to the cancel_my_booking RPC
+      // (SECURITY DEFINER) via a server action. The raw .update() from the
+      // browser affected ZERO rows under the staff-only UPDATE policy.
+      const res = await cancelBooking(reservation.id);
 
-      if (error) throw error;
+      if (!res.success) {
+        setCancelError(
+          res.code === "CANCEL_WINDOW_CLOSED"
+            ? "El plazo para cancelar sin cargo ya venció. Escribinos para reprogramar."
+            : res.code === "ALREADY_CLOSED"
+              ? "Esta reserva ya no puede cancelarse."
+              : "Error al cancelar. Por favor intentá de nuevo.",
+        );
+        setTimeout(() => setCancelError(null), 4000);
+        return;
+      }
 
-      // Send cancellation email
+      // Send cancellation email (best-effort, same contract as before).
       await fetch("/api/email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -153,7 +167,7 @@ export default function ReservationDetailPage() {
       setReservation({ ...reservation, status: "cancelled" });
       setShowCancelConfirm(false);
     } catch (err) {
-      console.error("Error cancelling:", err);
+      console.error("Error cancelling reservation:", err);
       setCancelError("Error al cancelar. Por favor intentá de nuevo.");
       setTimeout(() => setCancelError(null), 4000);
     } finally {
@@ -162,11 +176,11 @@ export default function ReservationDetailPage() {
   }
 
   function addToCalendar() {
-    if (!reservation) return;
+    if (!reservation) {
+      return;
+    }
 
-    const startDate = new Date(
-      `${reservation.booking_date}T${reservation.booking_time}`,
-    );
+    const startDate = new Date(`${reservation.booking_date}T${reservation.booking_time}`);
     const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000); // 2 hours
 
     const formatDate = (d: Date) => d.toISOString().replaceAll(/-|:|\.\d{3}/g, "");
@@ -211,8 +225,7 @@ export default function ReservationDetailPage() {
   });
 
   const canCancel = ["pending", "confirmed"].includes(reservation.status);
-  const isPast =
-    reservation.booking_date < new Date().toISOString().split("T")[0];
+  const isPast = reservation.booking_date < new Date().toISOString().split("T")[0];
 
   return (
     <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black font-light">
@@ -284,24 +297,16 @@ export default function ReservationDetailPage() {
             <div className="bg-white/[0.01] p-5 sm:p-6 flex flex-col items-center text-center space-y-2">
               <Users className="w-4 h-4 text-white/20" />
               <div className="space-y-0.5">
-                <p className="text-[9px] uppercase tracking-[0.2em] text-white/30">
-                  Personas
-                </p>
-                <p className="text-lg font-light text-white">
-                  {reservation.pax}
-                </p>
+                <p className="text-[9px] uppercase tracking-[0.2em] text-white/30">Personas</p>
+                <p className="text-lg font-light text-white">{reservation.pax}</p>
               </div>
             </div>
 
             <div className="bg-white/[0.01] p-5 sm:p-6 flex flex-col items-center text-center space-y-2">
               <MapPin className="w-4 h-4 text-white/20" />
               <div className="space-y-0.5">
-                <p className="text-[9px] uppercase tracking-[0.2em] text-white/30">
-                  Zona
-                </p>
-                <p className="text-lg font-light text-white truncate max-w-full px-2">
-                  {zoneName}
-                </p>
+                <p className="text-[9px] uppercase tracking-[0.2em] text-white/30">Zona</p>
+                <p className="text-lg font-light text-white truncate max-w-full px-2">{zoneName}</p>
               </div>
             </div>
           </div>
@@ -358,8 +363,7 @@ export default function ReservationDetailPage() {
         {/* Help Link */}
         <div className="text-center pt-8">
           <p className="text-[10px] text-white/20 uppercase tracking-[0.3em]">
-            ¿Necesitas ayuda?{" "}
-            <span className="text-white/40">{BUSINESS.emails.support}</span>
+            ¿Necesitas ayuda? <span className="text-white/40">{BUSINESS.emails.support}</span>
           </p>
         </div>
       </main>
@@ -378,12 +382,10 @@ export default function ReservationDetailPage() {
               <div className="w-16 h-16 mx-auto mb-6 rounded-3xl bg-red-500/10 flex items-center justify-center border border-red-500/20">
                 <AlertTriangle className="w-8 h-8 text-red-400" />
               </div>
-              <h3 className="text-xl font-light text-white mb-3">
-                ¿Confirmas la cancelación?
-              </h3>
+              <h3 className="text-xl font-light text-white mb-3">¿Confirmas la cancelación?</h3>
               <p className="text-xs text-white/40 mb-8 font-light leading-relaxed">
-                Esta acción cancelará tu reserva permanentemente y el espacio
-                quedará disponible para otros clientes.
+                Esta acción cancelará tu reserva permanentemente y el espacio quedará disponible
+                para otros clientes.
               </p>
               <div className="flex flex-col space-y-3">
                 <button

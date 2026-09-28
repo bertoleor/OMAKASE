@@ -1,0 +1,143 @@
+
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90mE:/Hermes/projects/omakase[39m
+
+ [31m❯[39m src/app/actions/cancel-booking.test.ts [2m([22m[2m10 tests[22m[2m | [22m[31m10 failed[39m[2m)[22m[32m 49[2mms[22m[39m
+[31m     [31m×[31m requires a session: no session → NOT_AUTHENTICATED, no RPC call[39m[32m 11[2mms[22m[39m
+[31m     [31m×[31m delegates to cancel_my_booking with p_booking_id on the session client[39m[32m 1[2mms[22m[39m
+[31m     [31m×[31m maps NOT_AUTHORIZED without leaking the booking id[39m[32m 2[2mms[22m[39m
+[31m     [31m×[31m maps BOOKING_NOT_FOUND fail-closed[39m[32m 4[2mms[22m[39m
+[31m     [31m×[31m maps ALREADY_CLOSED without treating it as success[39m[32m 5[2mms[22m[39m
+[31m     [31m×[31m maps CANCEL_WINDOW_CLOSED (free-cancellation window expired)[39m[32m 17[2mms[22m[39m
+[31m     [31m×[31m maps INVALID_INPUT fail-closed[39m[32m 3[2mms[22m[39m
+[31m     [31m×[31m fails closed on unknown typed reasons (CANCEL_FAILED, no silent success)[39m[32m 1[2mms[22m[39m
+[31m     [31m×[31m fails closed on RPC transport errors (PGRST202 → RPC_UNAVAILABLE)[39m[32m 1[2mms[22m[39m
+[31m     [31m×[31m rejects a non-uuid booking id before calling the RPC (INVALID_INPUT)[39m[32m 1[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 10 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m src/app/actions/cancel-booking.test.ts[2m > [22mcancelBooking — cancel_my_booking RPC wiring (ORN-84 P1-8)[2m > [22mrequires a session: no session → NOT_AUTHENTICATED, no RPC call
+[31m[1mTypeError[22m: __vi_import_0__.cancelBooking is not a function[39m
+[36m [2m❯[22m src/app/actions/cancel-booking.test.ts:[2m65:23[22m[39m
+    [90m 63| [39m  it("requires a session: no session → NOT_AUTHENTICATED, no RPC call"…
+    [90m 64| [39m    state[33m.[39msession [33m=[39m [35mnull[39m[33m;[39m
+    [90m 65| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [34mcancelBooking[39m([32m"b_123"[39m)[33m;[39m
+    [90m   | [39m                      [31m^[39m
+    [90m 66| [39m    [34mexpect[39m(res[33m.[39msuccess)[33m.[39m[34mtoBe[39m([35mfalse[39m)[33m;[39m
+    [90m 67| [39m    [34mexpect[39m(res[33m.[39mcode)[33m.[39m[34mtoBe[39m([32m"NOT_AUTHENTICATED"[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/10]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/app/actions/cancel-booking.test.ts[2m > [22mcancelBooking — cancel_my_booking RPC wiring (ORN-84 P1-8)[2m > [22mdelegates to cancel_my_booking with p_booking_id on the session client
+[31m[1mTypeError[22m: __vi_import_0__.cancelBooking is not a function[39m
+[36m [2m❯[22m src/app/actions/cancel-booking.test.ts:[2m73:23[22m[39m
+    [90m 71| [39m  it("delegates to cancel_my_booking with p_booking_id on the session …
+    [90m 72| [39m    state.rpcResult = { data: { ok: true, status: "cancelled" }, error…
+    [90m 73| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [34mcancelBooking[39m([32m"b_123"[39m)[33m;[39m
+    [90m   | [39m                      [31m^[39m
+    [90m 74| [39m    [34mexpect[39m(state[33m.[39mrpcCalls)[33m.[39m[34mtoHaveLength[39m([34m1[39m)[33m;[39m
+    [90m 75| [39m    [34mexpect[39m(state[33m.[39mrpcCalls[[34m0[39m][33m.[39mfn)[33m.[39m[34mtoBe[39m([32m"cancel_my_booking"[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/10]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/app/actions/cancel-booking.test.ts[2m > [22mcancelBooking — cancel_my_booking RPC wiring (ORN-84 P1-8)[2m > [22mmaps NOT_AUTHORIZED without leaking the booking id
+[31m[1mTypeError[22m: __vi_import_0__.cancelBooking is not a function[39m
+[36m [2m❯[22m src/app/actions/cancel-booking.test.ts:[2m82:23[22m[39m
+    [90m 80| [39m  it("maps NOT_AUTHORIZED without leaking the booking id", async () =>…
+    [90m 81| [39m    state.rpcResult = { data: { ok: false, reason: "NOT_AUTHORIZED" },…
+    [90m 82| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [34mcancelBooking[39m([32m"b_other"[39m)[33m;[39m
+    [90m   | [39m                      [31m^[39m
+    [90m 83| [39m    [34mexpect[39m(res[33m.[39msuccess)[33m.[39m[34mtoBe[39m([35mfalse[39m)[33m;[39m
+    [90m 84| [39m    [34mexpect[39m(res[33m.[39mcode)[33m.[39m[34mtoBe[39m([32m"NOT_AUTHORIZED"[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/10]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/app/actions/cancel-booking.test.ts[2m > [22mcancelBooking — cancel_my_booking RPC wiring (ORN-84 P1-8)[2m > [22mmaps BOOKING_NOT_FOUND fail-closed
+[31m[1mTypeError[22m: __vi_import_0__.cancelBooking is not a function[39m
+[36m [2m❯[22m src/app/actions/cancel-booking.test.ts:[2m91:23[22m[39m
+    [90m 89| [39m  [34mit[39m([32m"maps BOOKING_NOT_FOUND fail-closed"[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m 90| [39m    state.rpcResult = { data: { ok: false, reason: "BOOKING_NOT_FOUND"…
+    [90m 91| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [34mcancelBooking[39m([32m"b_missing"[39m)[33m;[39m
+    [90m   | [39m                      [31m^[39m
+    [90m 92| [39m    [34mexpect[39m(res[33m.[39msuccess)[33m.[39m[34mtoBe[39m([35mfalse[39m)[33m;[39m
+    [90m 93| [39m    [34mexpect[39m(res[33m.[39mcode)[33m.[39m[34mtoBe[39m([32m"BOOKING_NOT_FOUND"[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/10]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/app/actions/cancel-booking.test.ts[2m > [22mcancelBooking — cancel_my_booking RPC wiring (ORN-84 P1-8)[2m > [22mmaps ALREADY_CLOSED without treating it as success
+[31m[1mTypeError[22m: __vi_import_0__.cancelBooking is not a function[39m
+[36m [2m❯[22m src/app/actions/cancel-booking.test.ts:[2m98:23[22m[39m
+    [90m 96| [39m  it("maps ALREADY_CLOSED without treating it as success", async () =>…
+    [90m 97| [39m    state.rpcResult = { data: { ok: false, reason: "ALREADY_CLOSED" },…
+    [90m 98| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [34mcancelBooking[39m([32m"b_123"[39m)[33m;[39m
+    [90m   | [39m                      [31m^[39m
+    [90m 99| [39m    [34mexpect[39m(res[33m.[39msuccess)[33m.[39m[34mtoBe[39m([35mfalse[39m)[33m;[39m
+    [90m100| [39m    [34mexpect[39m(res[33m.[39mcode)[33m.[39m[34mtoBe[39m([32m"ALREADY_CLOSED"[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/10]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/app/actions/cancel-booking.test.ts[2m > [22mcancelBooking — cancel_my_booking RPC wiring (ORN-84 P1-8)[2m > [22mmaps CANCEL_WINDOW_CLOSED (free-cancellation window expired)
+[31m[1mTypeError[22m: __vi_import_0__.cancelBooking is not a function[39m
+[36m [2m❯[22m src/app/actions/cancel-booking.test.ts:[2m105:23[22m[39m
+    [90m103| [39m  it("maps CANCEL_WINDOW_CLOSED (free-cancellation window expired)", a…
+    [90m104| [39m    state.rpcResult = { data: { ok: false, reason: "CANCEL_WINDOW_CLOS…
+    [90m105| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [34mcancelBooking[39m([32m"b_123"[39m)[33m;[39m
+    [90m   | [39m                      [31m^[39m
+    [90m106| [39m    [34mexpect[39m(res[33m.[39msuccess)[33m.[39m[34mtoBe[39m([35mfalse[39m)[33m;[39m
+    [90m107| [39m    [34mexpect[39m(res[33m.[39mcode)[33m.[39m[34mtoBe[39m([32m"CANCEL_WINDOW_CLOSED"[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/10]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/app/actions/cancel-booking.test.ts[2m > [22mcancelBooking — cancel_my_booking RPC wiring (ORN-84 P1-8)[2m > [22mmaps INVALID_INPUT fail-closed
+[31m[1mTypeError[22m: __vi_import_0__.cancelBooking is not a function[39m
+[36m [2m❯[22m src/app/actions/cancel-booking.test.ts:[2m112:23[22m[39m
+    [90m110| [39m  [34mit[39m([32m"maps INVALID_INPUT fail-closed"[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m111| [39m    state.rpcResult = { data: { ok: false, reason: "INVALID_INPUT" }, …
+    [90m112| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [34mcancelBooking[39m([32m"not-a-uuid"[39m)[33m;[39m
+    [90m   | [39m                      [31m^[39m
+    [90m113| [39m    [34mexpect[39m(res[33m.[39msuccess)[33m.[39m[34mtoBe[39m([35mfalse[39m)[33m;[39m
+    [90m114| [39m    [34mexpect[39m(res[33m.[39mcode)[33m.[39m[34mtoBe[39m([32m"INVALID_INPUT"[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/10]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/app/actions/cancel-booking.test.ts[2m > [22mcancelBooking — cancel_my_booking RPC wiring (ORN-84 P1-8)[2m > [22mfails closed on unknown typed reasons (CANCEL_FAILED, no silent success)
+[31m[1mTypeError[22m: __vi_import_0__.cancelBooking is not a function[39m
+[36m [2m❯[22m src/app/actions/cancel-booking.test.ts:[2m119:23[22m[39m
+    [90m117| [39m  it("fails closed on unknown typed reasons (CANCEL_FAILED, no silent …
+    [90m118| [39m    state.rpcResult = { data: { ok: false, reason: "SOMETHING_NEW" }, …
+    [90m119| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [34mcancelBooking[39m([32m"b_123"[39m)[33m;[39m
+    [90m   | [39m                      [31m^[39m
+    [90m120| [39m    [34mexpect[39m(res[33m.[39msuccess)[33m.[39m[34mtoBe[39m([35mfalse[39m)[33m;[39m
+    [90m121| [39m    [34mexpect[39m(res[33m.[39mcode)[33m.[39m[34mtoBe[39m([32m"CANCEL_FAILED"[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/10]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/app/actions/cancel-booking.test.ts[2m > [22mcancelBooking — cancel_my_booking RPC wiring (ORN-84 P1-8)[2m > [22mfails closed on RPC transport errors (PGRST202 → RPC_UNAVAILABLE)
+[31m[1mTypeError[22m: __vi_import_0__.cancelBooking is not a function[39m
+[36m [2m❯[22m src/app/actions/cancel-booking.test.ts:[2m126:23[22m[39m
+    [90m124| [39m  it("fails closed on RPC transport errors (PGRST202 → RPC_UNAVAILABLE…
+    [90m125| [39m    state.rpcResult = { data: null, error: { code: "PGRST202", message…
+    [90m126| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [34mcancelBooking[39m([32m"b_123"[39m)[33m;[39m
+    [90m   | [39m                      [31m^[39m
+    [90m127| [39m    [34mexpect[39m(res[33m.[39msuccess)[33m.[39m[34mtoBe[39m([35mfalse[39m)[33m;[39m
+    [90m128| [39m    [34mexpect[39m(res[33m.[39mcode)[33m.[39m[34mtoBe[39m([32m"RPC_UNAVAILABLE"[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/10]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/app/actions/cancel-booking.test.ts[2m > [22mcancelBooking — cancel_my_booking RPC wiring (ORN-84 P1-8)[2m > [22mrejects a non-uuid booking id before calling the RPC (INVALID_INPUT)
+[31m[1mTypeError[22m: __vi_import_0__.cancelBooking is not a function[39m
+[36m [2m❯[22m src/app/actions/cancel-booking.test.ts:[2m133:23[22m[39m
+    [90m131| [39m  it("rejects a non-uuid booking id before calling the RPC (INVALID_IN…
+    [90m132| [39m    state.rpcResult = { data: { ok: true, status: "cancelled" }, error…
+    [90m133| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [34mcancelBooking[39m([32m"definitely-not-a-uuid"[39m)[33m;[39m
+    [90m   | [39m                      [31m^[39m
+    [90m134| [39m    [34mexpect[39m(res[33m.[39msuccess)[33m.[39m[34mtoBe[39m([35mfalse[39m)[33m;[39m
+    [90m135| [39m    [34mexpect[39m(res[33m.[39mcode)[33m.[39m[34mtoBe[39m([32m"INVALID_INPUT"[39m)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/10]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m10 failed[39m[22m[90m (10)[39m
+[2m   Start at [22m 04:40:12
+[2m   Duration [22m 280.88s[2m (transform 44.85s, setup 0ms, import 269.65s, tests 49ms, environment 0ms)[22m
+

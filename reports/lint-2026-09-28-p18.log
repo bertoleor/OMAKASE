@@ -1,0 +1,10 @@
+
+E:\Hermes\projects\omakase\src\app\mis-reservas\[id]\page.tsx
+  116:18  error  Expected { after 'if' condition  curly
+  127:23  error  Expected { after 'if' condition  curly
+  175:23  error  Expected { after 'if' condition  curly
+
+✖ 3 problems (3 errors, 0 warnings)
+  3 errors and 0 warnings potentially fixable with the `--fix` option.
+
+LINT_EXIT:0
