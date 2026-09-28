@@ -74,15 +74,28 @@ begin
     return jsonb_build_object('ok', false, 'reason', 'ALREADY_CLOSED');
   end if;
 
-  -- Free-cancellation window: min_advance_minutes from restaurant_settings
-  -- doubles as the minimum notice to cancel (default 240 = 4h, matching
-  -- cancel-policy's FREE_CANCEL_MINUTES_BEFORE=240). Missing settings row =
-  -- fail-open window 240 (same default the client uses).
-  select * into v_settings from public.restaurant_settings order by created_at limit 1;
+  -- Cancellation window: reads restaurant_settings.min_advance_minutes — the
+  -- same knob as the booking advance gate (the schema has no separate
+  -- free_cancel column). Column default is 60 (schema.sql), so a seeded row
+  -- yields a 60-minute window; the coalesce fallback (240, matching the docs'
+  -- FREE_CANCEL_MINUTES_BEFORE) only applies when the settings row is
+  -- MISSING. FIX 2026-09-28: settings has NO created_at column (42703 at
+  -- runtime, found by live smoke; single-row table → limit 1 without order by).
+  select * into v_settings from public.restaurant_settings limit 1;
   v_window_minutes := coalesce(v_settings.min_advance_minutes, 240);
 
   v_now := now() at time zone 'America/Argentina/Buenos_Aires';
-  v_slot_ts := v_booking.booking_date + v_booking.booking_time;
+
+  -- Guarded cast (same convention as try_create_booking 20260927000000):
+  -- bookings.booking_time is TEXT; casting inside an exception handler keeps
+  -- the "always returns typed jsonb" contract for legacy/admin-written rows
+  -- with non-parseable times, instead of a 500 (SQLSTATE 42883 on the bare
+  -- `date + text` expression — found by the dual judge, verified live).
+  begin
+    v_slot_ts := v_booking.booking_date + v_booking.booking_time::time;
+  exception when others then
+    return jsonb_build_object('ok', false, 'reason', 'INVALID_INPUT');
+  end;
 
   if v_slot_ts < v_now + make_interval(mins => v_window_minutes) then
     return jsonb_build_object('ok', false, 'reason', 'CANCEL_WINDOW_CLOSED');

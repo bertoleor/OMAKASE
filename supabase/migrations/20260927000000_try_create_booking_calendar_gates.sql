@@ -175,7 +175,10 @@ begin
   -- wall-clock. BA is fixed -03 (no DST since 2009) so wall-clock arithmetic
   -- is exact for both bounds. Missing settings row = fail-open (the client
   -- falls back to the same schema defaults).
-  select * into v_settings from public.restaurant_settings order by created_at limit 1;
+-- FIX 2026-09-28: restaurant_settings has NO created_at column (42703 at
+-- runtime, found by live smoke). Single-row settings table: limit 1
+-- without order by is the correct read.
+  select * into v_settings from public.restaurant_settings limit 1;
   if found then
     v_now := now() at time zone 'America/Argentina/Buenos_Aires';
     v_slot_ts := p_booking_date + v_slot_time;

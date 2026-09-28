@@ -1,0 +1,728 @@
+commit 036a552e6bb314917c3cb0e0653c76cca691e26f
+Author: bertoleor <bertoletti3011@gmail.com>
+Date:   Mon Sep 28 05:44:03 2026 -0300
+
+    feat(booking): client self-service cancel via cancel_my_booking RPC (ORN-84 P1-8)
+    
+    - New SECURITY DEFINER RPC cancel_my_booking(uuid): ownership by session
+      JWT email (bookings has no user_id FK; equality is the relation), typed
+      rejects NOT_AUTHORIZED/BOOKING_NOT_FOUND/ALREADY_CLOSED/CANCEL_WINDOW_CLOSED/
+      INVALID_INPUT, grants authenticated only (never anon), free-cancel window
+      from restaurant_settings.min_advance_minutes (default 240 = 4h).
+    - Server action cancelBooking() in bookings.ts with typed result contract,
+      uuid shape guard, fail-closed on transport errors (PGRST202 -> RPC_UNAVAILABLE).
+    - /mis-reservas/[id] handleCancel wired to the action: the raw .update()
+      affected ZERO rows under the staff-only UPDATE policy (silent no-op bug).
+    - Also applied pending 20260927000000 calendar-gates migration to live DB
+      (was committed but never applied: live RPC ran the pre-2b version).
+    - TDD: 10 new tests RED -> GREEN (cancel-booking.test.ts), suite 75/75,
+      tsc EXIT:0, eslint scoped EXIT:0, curly fixes on touched page.
+    - Live-DB evidence: guarded cast 99:99 -> INVALID_INPUT, 04:00 -> SCHEDULE_CLOSED,
+      cancel sin session -> NOT_AUTHORIZED, 0 inserts (5 live bookings intact).
+    - RDD receipt 3b53f3251a42 signed over staged diff (9 files).
+
+diff --git a/reports/lint-2026-09-28-p18.log b/reports/lint-2026-09-28-p18.log
+new file mode 100644
+index 0000000..ef5ba73
+--- /dev/null
++++ b/reports/lint-2026-09-28-p18.log
+@@ -0,0 +1,10 @@
++
++E:\Hermes\projects\omakase\src\app\mis-reservas\[id]\page.tsx
++  116:18  error  Expected { after 'if' condition  curly
++  127:23  error  Expected { after 'if' condition  curly
++  175:23  error  Expected { after 'if' condition  curly
++
++✖ 3 problems (3 errors, 0 warnings)
++  3 errors and 0 warnings potentially fixable with the `--fix` option.
++
++LINT_EXIT:0
+diff --git a/reports/tdd-green-2026-09-28-p18-cancel-rpc.log b/reports/tdd-green-2026-09-28-p18-cancel-rpc.log
+new file mode 100644
+index 0000000..9ecdd0c
+--- /dev/null
++++ b/reports/tdd-green-2026-09-28-p18-cancel-rpc.log
+@@ -0,0 +1,10 @@
++
++[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90mE:/Hermes/projects/omakase[39m
++
++ [32m✓[39m src/app/actions/cancel-booking.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 25[2mms[22m[39m
++
++[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
++[2m      Tests [22m [1m[32m10 passed[39m[22m[90m (10)[39m
++[2m   Start at [22m 04:50:14
++[2m   Duration [22m 3.90s[2m (transform 2.29s, setup 0ms, import 3.40s, tests 25ms, environment 0ms)[22m
++
+diff --git a/reports/tdd-green-full-2026-09-28-p18.log b/reports/tdd-green-full-2026-09-28-p18.log
+new file mode 100644
+index 0000000..0f6fc5c
+--- /dev/null
++++ b/reports/tdd-green-full-2026-09-28-p18.log
+@@ -0,0 +1,8 @@
++ [32m✓[39m src/lib/email/templates.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 11[2mms[22m[39m
++ [32m✓[39m src/lib/booking-availability.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 11[2mms[22m[39m
++
++[2m Test Files [22m [1m[32m7 passed[39m[22m[90m (7)[39m
++[2m      Tests [22m [1m[32m75 passed[39m[22m[90m (75)[39m
++[2m   Start at [22m 05:35:35
++[2m   Duration [22m 7.33s[2m (transform 1.60s, setup 0ms, import 4.07s, tests 103ms, environment 2ms)[22m
++
+diff --git a/reports/tdd-red-2026-09-28-p18-cancel-rpc.log b/reports/tdd-red-2026-09-28-p18-cancel-rpc.log
+new file mode 100644
+index 0000000..ab3aed9
+--- /dev/null
++++ b/reports/tdd-red-2026-09-28-p18-cancel-rpc.log
+@@ -0,0 +1,143 @@
++
++[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90mE:/Hermes/projects/omakase[39m
++
++ [31m❯[39m src/app/actions/cancel-booking.test.ts [2m([22m[2m10 tests[22m[2m | [22m[31m10 failed[39m[2m)[22m[32m 49[2mms[22m[39m
++[31m     [31m×[31m requires a session: no session → NOT_AUTHENTICATED, no RPC call[39m[32m 11[2mms[22m[39m
++[31m     [31m×[31m delegates to cancel_my_booking with p_booking_id on the session client[39m[32m 1[2mms[22m[39m
++[31m     [31m×[31m maps NOT_AUTHORIZED without leaking the booking id[39m[32m 2[2mms[22m[39m
++[31m     [31m×[31m maps BOOKING_NOT_FOUND fail-closed[39m[32m 4[2mms[22m[39m
++[31m     [31m×[31m maps ALREADY_CLOSED without treating it as success[39m[32m 5[2mms[22m[39m
++[31m     [31m×[31m maps CANCEL_WINDOW_CLOSED (free-cancellation window expired)[39m[32m 17[2mms[22m[39m
++[31m     [31m×[31m maps INVALID_INPUT fail-closed[39m[32m 3[2mms[22m[39m
++[31m     [31m×[31m fails closed on unknown typed reasons (CANCEL_FAILED, no silent success)[39m[32m 1[2mms[22m[39m
++[31m     [31m×[31m fails closed on RPC transport errors (PGRST202 → RPC_UNAVAILABLE)[39m[32m 1[2mms[22m[39m
++[31m     [31m×[31m rejects a non-uuid booking id before calling the RPC (INVALID_INPUT)[39m[32m 1[2mms[22m[39m
++
++[31m⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 10 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
++
++[41m[1m FAIL [22m[49m src/app/actions/cancel-booking.test.ts[2m > [22mcancelBooking — cancel_my_booking RPC wiring (ORN-84 P1-8)[2m > [22mrequires a session: no session → NOT_AUTHENTICATED, no RPC call
++[31m[1mTypeError[22m: __vi_import_0__.cancelBooking is not a function[39m
++[36m [2m❯[22m src/app/actions/cancel-booking.test.ts:[2m65:23[22m[39m
++    [90m 63| [39m  it("requires a session: no session → NOT_AUTHENTICATED, no RPC call"…
++    [90m 64| [39m    state[33m.[39msession [33m=[39m [35mnull[39m[33m;[39m
++    [90m 65| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [34mcancelBooking[39m([32m"b_123"[39m)[33m;[39m
++    [90m   | [39m                      [31m^[39m
++    [90m 66| [39m    [34mexpect[39m(res[33m.[39msuccess)[33m.[39m[34mtoBe[39m([35mfalse[39m)[33m;[39m
++    [90m 67| [39m    [34mexpect[39m(res[33m.[39mcode)[33m.[39m[34mtoBe[39m([32m"NOT_AUTHENTICATED"[39m)[33m;[39m
++
++[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/10]⎯[22m[39m
++
++[41m[1m FAIL [22m[49m src/app/actions/cancel-booking.test.ts[2m > [22mcancelBooking — cancel_my_booking RPC wiring (ORN-84 P1-8)[2m > [22mdelegates to cancel_my_booking with p_booking_id on the session client
++[31m[1mTypeError[22m: __vi_import_0__.cancelBooking is not a function[39m
++[36m [2m❯[22m src/app/actions/cancel-booking.test.ts:[2m73:23[22m[39m
++    [90m 71| [39m  it("delegates to cancel_my_booking with p_booking_id on the session …
++    [90m 72| [39m    state.rpcResult = { data: { ok: true, status: "cancelled" }, error…
++    [90m 73| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [34mcancelBooking[39m([32m"b_123"[39m)[33m;[39m
++    [90m   | [39m                      [31m^[39m
++    [90m 74| [39m    [34mexpect[39m(state[33m.[39mrpcCalls)[33m.[39m[34mtoHaveLength[39m([34m1[39m)[33m;[39m
++    [90m 75| [39m    [34mexpect[39m(state[33m.[39mrpcCalls[[34m0[39m][33m.[39mfn)[33m.[39m[34mtoBe[39m([32m"cancel_my_booking"[39m)[33m;[39m
++
++[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/10]⎯[22m[39m
++
++[41m[1m FAIL [22m[49m src/app/actions/cancel-booking.test.ts[2m > [22mcancelBooking — cancel_my_booking RPC wiring (ORN-84 P1-8)[2m > [22mmaps NOT_AUTHORIZED without leaking the booking id
++[31m[1mTypeError[22m: __vi_import_0__.cancelBooking is not a function[39m
++[36m [2m❯[22m src/app/actions/cancel-booking.test.ts:[2m82:23[22m[39m
++    [90m 80| [39m  it("maps NOT_AUTHORIZED without leaking the booking id", async () =>…
++    [90m 81| [39m    state.rpcResult = { data: { ok: false, reason: "NOT_AUTHORIZED" },…
++    [90m 82| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [34mcancelBooking[39m([32m"b_other"[39m)[33m;[39m
++    [90m   | [39m                      [31m^[39m
++    [90m 83| [39m    [34mexpect[39m(res[33m.[39msuccess)[33m.[39m[34mtoBe[39m([35mfalse[39m)[33m;[39m
++    [90m 84| [39m    [34mexpect[39m(res[33m.[39mcode)[33m.[39m[34mtoBe[39m([32m"NOT_AUTHORIZED"[39m)[33m;[39m
++
++[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/10]⎯[22m[39m
++
++[41m[1m FAIL [22m[49m src/app/actions/cancel-booking.test.ts[2m > [22mcancelBooking — cancel_my_booking RPC wiring (ORN-84 P1-8)[2m > [22mmaps BOOKING_NOT_FOUND fail-closed
++[31m[1mTypeError[22m: __vi_import_0__.cancelBooking is not a function[39m
++[36m [2m❯[22m src/app/actions/cancel-booking.test.ts:[2m91:23[22m[39m
++    [90m 89| [39m  [34mit[39m([32m"maps BOOKING_NOT_FOUND fail-closed"[39m[33m,[39m [35masync[39m () [33m=>[39m {
++    [90m 90| [39m    state.rpcResult = { data: { ok: false, reason: "BOOKING_NOT_FOUND"…
++    [90m 91| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [34mcancelBooking[39m([32m"b_missing"[39m)[33m;[39m
++    [90m   | [39m                      [31m^[39m
++    [90m 92| [39m    [34mexpect[39m(res[33m.[39msuccess)[33m.[39m[34mtoBe[39m([35mfalse[39m)[33m;[39m
++    [90m 93| [39m    [34mexpect[39m(res[33m.[39mcode)[33m.[39m[34mtoBe[39m([32m"BOOKING_NOT_FOUND"[39m)[33m;[39m
++
++[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/10]⎯[22m[39m
++
++[41m[1m FAIL [22m[49m src/app/actions/cancel-booking.test.ts[2m > [22mcancelBooking — cancel_my_booking RPC wiring (ORN-84 P1-8)[2m > [22mmaps ALREADY_CLOSED without treating it as success
++[31m[1mTypeError[22m: __vi_import_0__.cancelBooking is not a function[39m
++[36m [2m❯[22m src/app/actions/cancel-booking.test.ts:[2m98:23[22m[39m
++    [90m 96| [39m  it("maps ALREADY_CLOSED without treating it as success", async () =>…
++    [90m 97| [39m    state.rpcResult = { data: { ok: false, reason: "ALREADY_CLOSED" },…
++    [90m 98| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [34mcancelBooking[39m([32m"b_123"[39m)[33m;[39m
++    [90m   | [39m                      [31m^[39m
++    [90m 99| [39m    [34mexpect[39m(res[33m.[39msuccess)[33m.[39m[34mtoBe[39m([35mfalse[39m)[33m;[39m
++    [90m100| [39m    [34mexpect[39m(res[33m.[39mcode)[33m.[39m[34mtoBe[39m([32m"ALREADY_CLOSED"[39m)[33m;[39m
++
++[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/10]⎯[22m[39m
++
++[41m[1m FAIL [22m[49m src/app/actions/cancel-booking.test.ts[2m > [22mcancelBooking — cancel_my_booking RPC wiring (ORN-84 P1-8)[2m > [22mmaps CANCEL_WINDOW_CLOSED (free-cancellation window expired)
++[31m[1mTypeError[22m: __vi_import_0__.cancelBooking is not a function[39m
++[36m [2m❯[22m src/app/actions/cancel-booking.test.ts:[2m105:23[22m[39m
++    [90m103| [39m  it("maps CANCEL_WINDOW_CLOSED (free-cancellation window expired)", a…
++    [90m104| [39m    state.rpcResult = { data: { ok: false, reason: "CANCEL_WINDOW_CLOS…
++    [90m105| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [34mcancelBooking[39m([32m"b_123"[39m)[33m;[39m
++    [90m   | [39m                      [31m^[39m
++    [90m106| [39m    [34mexpect[39m(res[33m.[39msuccess)[33m.[39m[34mtoBe[39m([35mfalse[39m)[33m;[39m
++    [90m107| [39m    [34mexpect[39m(res[33m.[39mcode)[33m.[39m[34mtoBe[39m([32m"CANCEL_WINDOW_CLOSED"[39m)[33m;[39m
++
++[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/10]⎯[22m[39m
++
++[41m[1m FAIL [22m[49m src/app/actions/cancel-booking.test.ts[2m > [22mcancelBooking — cancel_my_booking RPC wiring (ORN-84 P1-8)[2m > [22mmaps INVALID_INPUT fail-closed
++[31m[1mTypeError[22m: __vi_import_0__.cancelBooking is not a function[39m
++[36m [2m❯[22m src/app/actions/cancel-booking.test.ts:[2m112:23[22m[39m
++    [90m110| [39m  [34mit[39m([32m"maps INVALID_INPUT fail-closed"[39m[33m,[39m [35masync[39m () [33m=>[39m {
++    [90m111| [39m    state.rpcResult = { data: { ok: false, reason: "INVALID_INPUT" }, …
++    [90m112| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [34mcancelBooking[39m([32m"not-a-uuid"[39m)[33m;[39m
++    [90m   | [39m                      [31m^[39m
++    [90m113| [39m    [34mexpect[39m(res[33m.[39msuccess)[33m.[39m[34mtoBe[39m([35mfalse[39m)[33m;[39m
++    [90m114| [39m    [34mexpect[39m(res[33m.[39mcode)[33m.[39m[34mtoBe[39m([32m"INVALID_INPUT"[39m)[33m;[39m
++
++[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/10]⎯[22m[39m
++
++[41m[1m FAIL [22m[49m src/app/actions/cancel-booking.test.ts[2m > [22mcancelBooking — cancel_my_booking RPC wiring (ORN-84 P1-8)[2m > [22mfails closed on unknown typed reasons (CANCEL_FAILED, no silent success)
++[31m[1mTypeError[22m: __vi_import_0__.cancelBooking is not a function[39m
++[36m [2m❯[22m src/app/actions/cancel-booking.test.ts:[2m119:23[22m[39m
++    [90m117| [39m  it("fails closed on unknown typed reasons (CANCEL_FAILED, no silent …
++    [90m118| [39m    state.rpcResult = { data: { ok: false, reason: "SOMETHING_NEW" }, …
++    [90m119| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [34mcancelBooking[39m([32m"b_123"[39m)[33m;[39m
++    [90m   | [39m                      [31m^[39m
++    [90m120| [39m    [34mexpect[39m(res[33m.[39msuccess)[33m.[39m[34mtoBe[39m([35mfalse[39m)[33m;[39m
++    [90m121| [39m    [34mexpect[39m(res[33m.[39mcode)[33m.[39m[34mtoBe[39m([32m"CANCEL_FAILED"[39m)[33m;[39m
++
++[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/10]⎯[22m[39m
++
++[41m[1m FAIL [22m[49m src/app/actions/cancel-booking.test.ts[2m > [22mcancelBooking — cancel_my_booking RPC wiring (ORN-84 P1-8)[2m > [22mfails closed on RPC transport errors (PGRST202 → RPC_UNAVAILABLE)
++[31m[1mTypeError[22m: __vi_import_0__.cancelBooking is not a function[39m
++[36m [2m❯[22m src/app/actions/cancel-booking.test.ts:[2m126:23[22m[39m
++    [90m124| [39m  it("fails closed on RPC transport errors (PGRST202 → RPC_UNAVAILABLE…
++    [90m125| [39m    state.rpcResult = { data: null, error: { code: "PGRST202", message…
++    [90m126| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [34mcancelBooking[39m([32m"b_123"[39m)[33m;[39m
++    [90m   | [39m                      [31m^[39m
++    [90m127| [39m    [34mexpect[39m(res[33m.[39msuccess)[33m.[39m[34mtoBe[39m([35mfalse[39m)[33m;[39m
++    [90m128| [39m    [34mexpect[39m(res[33m.[39mcode)[33m.[39m[34mtoBe[39m([32m"RPC_UNAVAILABLE"[39m)[33m;[39m
++
++[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/10]⎯[22m[39m
++
++[41m[1m FAIL [22m[49m src/app/actions/cancel-booking.test.ts[2m > [22mcancelBooking — cancel_my_booking RPC wiring (ORN-84 P1-8)[2m > [22mrejects a non-uuid booking id before calling the RPC (INVALID_INPUT)
++[31m[1mTypeError[22m: __vi_import_0__.cancelBooking is not a function[39m
++[36m [2m❯[22m src/app/actions/cancel-booking.test.ts:[2m133:23[22m[39m
++    [90m131| [39m  it("rejects a non-uuid booking id before calling the RPC (INVALID_IN…
++    [90m132| [39m    state.rpcResult = { data: { ok: true, status: "cancelled" }, error…
++    [90m133| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [34mcancelBooking[39m([32m"definitely-not-a-uuid"[39m)[33m;[39m
++    [90m   | [39m                      [31m^[39m
++    [90m134| [39m    [34mexpect[39m(res[33m.[39msuccess)[33m.[39m[34mtoBe[39m([35mfalse[39m)[33m;[39m
++    [90m135| [39m    [34mexpect[39m(res[33m.[39mcode)[33m.[39m[34mtoBe[39m([32m"INVALID_INPUT"[39m)[33m;[39m
++
++[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/10]⎯[22m[39m
++
++
++[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
++[2m      Tests [22m [1m[31m10 failed[39m[22m[90m (10)[39m
++[2m   Start at [22m 04:40:12
++[2m   Duration [22m 280.88s[2m (transform 44.85s, setup 0ms, import 269.65s, tests 49ms, environment 0ms)[22m
++
+diff --git a/reports/tsc-2026-09-28-p18.log b/reports/tsc-2026-09-28-p18.log
+new file mode 100644
+index 0000000..cc96f9c
+--- /dev/null
++++ b/reports/tsc-2026-09-28-p18.log
+@@ -0,0 +1 @@
++TSC_EXIT:0
+diff --git a/src/app/actions/bookings.ts b/src/app/actions/bookings.ts
+index 4fb1abb..dd6dcb0 100644
+--- a/src/app/actions/bookings.ts
++++ b/src/app/actions/bookings.ts
+@@ -201,3 +201,84 @@ export async function createBooking(data: CreateBookingData) {
+ 
+   return { success: true, booking: result };
+ }
++
++/**
++ * ORN-84 P1-8 — user-facing messages for cancel_my_booking's typed rejects.
++ * Mirrors the RPC's jsonb contract; kept in one place so a new RPC reason
++ * surfaces as CANCEL_FAILED instead of passing silently.
++ */
++const CANCEL_REASONS: Record<string, string> = {
++  NOT_AUTHORIZED: "You can only cancel your own booking.",
++  BOOKING_NOT_FOUND: "We could not find that booking.",
++  ALREADY_CLOSED: "This booking can no longer be cancelled.",
++  CANCEL_WINDOW_CLOSED: "The free-cancellation window for this booking has closed. Contact us for assistance.",
++  INVALID_INPUT: "Invalid booking reference.",
++};
++
++const CANCEL_KNOWN_REASONS = new Set(Object.keys(CANCEL_REASONS));
++
++/** Minimal uuid shape check (v4-ish); the RPC re-validates authoritatively. */
++const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
++
++/** Typed result contract for cancelBooking — consumed by /mis-reservas/[id]. */
++export interface CancelBookingResult {
++  success: boolean;
++  code?: string;
++  error?: string;
++  status?: string;
++  rpcCode?: string;
++}
++
++/**
++ * Client self-service cancellation. The authoritative ownership check and
++ * status transition live in the Postgres function `cancel_my_booking`
++ * (SECURITY DEFINER): bookings' UPDATE policy is staff-only, so a raw
++ * .update() from the customer's session affects ZERO rows under RLS — the
++ * old button silently did nothing. The RPC verifies the session email owns
++ * the booking and cancels server-side.
++ */
++export async function cancelBooking(bookingId: string): Promise<CancelBookingResult> {
++  const supabase = await createClient();
++
++  // Ownership travels with the session (JWT), never with a client-sent email.
++  const {
++    data: { session },
++  } = await supabase.auth.getSession();
++
++  if (!session?.user?.email) {
++    return { success: false, code: "NOT_AUTHENTICATED", error: "Please sign in to manage your booking." };
++  }
++
++  if (typeof bookingId !== "string" || !UUID_RE.test(bookingId)) {
++    return { success: false, code: "INVALID_INPUT", error: CANCEL_REASONS.INVALID_INPUT };
++  }
++
++  const { data: rpcData, error: rpcError } = await supabase.rpc("cancel_my_booking", {
++    p_booking_id: bookingId,
++  });
++
++  // Fail closed on transport/schema errors: nothing cancelled, nothing claimed.
++  if (rpcError || !rpcData) {
++    return {
++      success: false,
++      code: rpcError?.code === "PGRST202" ? "RPC_UNAVAILABLE" : "CANCEL_FAILED",
++      error: "We could not cancel your booking. Please try again.",
++      ...(rpcError?.code === "PGRST202" ? { rpcCode: "PGRST202" } : {}),
++    };
++  }
++
++  const gate = rpcData as { ok?: boolean; reason?: string; status?: string };
++
++  if (!gate.ok) {
++    const reason = gate.reason ?? "";
++    const code = CANCEL_KNOWN_REASONS.has(reason) ? reason : "CANCEL_FAILED";
++    return {
++      success: false,
++      code,
++      // eslint-disable-next-line security/detect-object-injection -- code is a closed set derived from gate.reason
++      error: CANCEL_REASONS[code] ?? "We could not cancel your booking. Please try again.",
++    };
++  }
++
++  return { success: true, status: gate.status ?? "cancelled" };
++}
+diff --git a/src/app/actions/cancel-booking.test.ts b/src/app/actions/cancel-booking.test.ts
+new file mode 100644
+index 0000000..970968f
+--- /dev/null
++++ b/src/app/actions/cancel-booking.test.ts
+@@ -0,0 +1,139 @@
++import { beforeEach, describe, expect, it, vi } from "vitest";
++
++const headerGet = vi.fn((key: string) => (key === "user-agent" ? "vitest" : null));
++
++vi.mock("next/headers", () => ({
++  headers: vi.fn(async () => ({ get: headerGet })),
++}));
++
++/**
++ * ORN-84 P1-8 — client self-service cancellation via cancel_my_booking RPC.
++ *
++ * Architecture (mirrors try_create_booking): the authoritative gate is the
++ * Postgres function `cancel_my_booking` (SECURITY DEFINER). Reason: bookings
++ * UPDATE policy is staff-only; a raw .update({status:'cancelled'}) from the
++ * customer's browser affects ZERO rows under RLS — the button silently
++ * does nothing today. The RPC verifies the caller's session email owns the
++ * booking and flips the status server-side.
++ *
++ * This suite pins the ACTION-side contract:
++ *  - requires an authenticated session (no session → NOT_AUTHENTICATED)
++ *  - delegates to rpc("cancel_my_booking", { p_booking_id }) on the
++ *    session-carrying server client
++ *  - RPC ok:false maps to typed failures (NOT_AUTHORIZED, ALREADY_CLOSED,
++ *    CANCEL_WINDOW_CLOSED, BOOKING_NOT_FOUND, INVALID_INPUT)
++ *  - RPC transport errors fail closed (no success)
++ *  - ok:true returns { success: true, status: 'cancelled' }
++ *  - unknown typed reasons still fail closed with CANCEL_FAILED
++ */
++type Row = Record<string, unknown>;
++
++const state: {
++  rpcResult: { data: Row | null; error: { code: string; message: string } | null };
++  rpcCalls: { fn: string; args: Row }[];
++  session: { user: { email: "guest@example.com" } } | null;
++} = {
++  rpcResult: { data: null, error: null },
++  rpcCalls: [],
++  // Real Supabase session shape: session.user.email (what the action reads).
++  session: { user: { email: "guest@example.com" } },
++};
++
++vi.mock("@/lib/supabase/server", () => ({
++  createClient: vi.fn(async () => ({
++    rpc: (fn: string, args: Row) => {
++      state.rpcCalls.push({ fn, args });
++      return Promise.resolve(state.rpcResult);
++    },
++    auth: {
++      getSession: async () => ({ data: { session: state.session } }),
++    },
++  })),
++}));
++
++import { cancelBooking } from "@/app/actions/bookings";
++
++beforeEach(() => {
++  state.rpcResult = { data: null, error: null };
++  state.rpcCalls = [];
++  state.session = { user: { email: "guest@example.com" } };
++  headerGet.mockClear();
++});
++
++describe("cancelBooking — cancel_my_booking RPC wiring (ORN-84 P1-8)", () => {
++  it("requires a session: no session → NOT_AUTHENTICATED, no RPC call", async () => {
++    state.session = null;
++    const res = await cancelBooking("6f1d2a34-9b8c-4e7f-8a2b-3c4d5e6f7a89");
++    expect(res.success).toBe(false);
++    expect(res.code).toBe("NOT_AUTHENTICATED");
++    expect(state.rpcCalls).toHaveLength(0);
++  });
++
++  it("delegates to cancel_my_booking with p_booking_id on the session client", async () => {
++    state.rpcResult = { data: { ok: true, status: "cancelled" }, error: null };
++    const res = await cancelBooking("6f1d2a34-9b8c-4e7f-8a2b-3c4d5e6f7a89");
++    expect(state.rpcCalls).toHaveLength(1);
++    expect(state.rpcCalls[0].fn).toBe("cancel_my_booking");
++    expect(state.rpcCalls[0].args.p_booking_id).toBe("6f1d2a34-9b8c-4e7f-8a2b-3c4d5e6f7a89");
++    expect(res).toEqual({ success: true, status: "cancelled" });
++  });
++
++  it("maps NOT_AUTHORIZED without leaking the booking id", async () => {
++    state.rpcResult = { data: { ok: false, reason: "NOT_AUTHORIZED" }, error: null };
++    const res = await cancelBooking("7a2e3b45-8c9d-4f0a-9b3c-4d5e6f7a8b90");
++    expect(res.success).toBe(false);
++    expect(res.code).toBe("NOT_AUTHORIZED");
++    expect(res.error).toBe("You can only cancel your own booking.");
++    expect(state.rpcCalls).toHaveLength(1);
++  });
++
++  it("maps BOOKING_NOT_FOUND fail-closed", async () => {
++    state.rpcResult = { data: { ok: false, reason: "BOOKING_NOT_FOUND" }, error: null };
++    const res = await cancelBooking("8b3f4c56-9d0e-4a1b-8c4d-5e6f7a8b9c01");
++    expect(res.success).toBe(false);
++    expect(res.code).toBe("BOOKING_NOT_FOUND");
++  });
++
++  it("maps ALREADY_CLOSED without treating it as success", async () => {
++    state.rpcResult = { data: { ok: false, reason: "ALREADY_CLOSED" }, error: null };
++    const res = await cancelBooking("6f1d2a34-9b8c-4e7f-8a2b-3c4d5e6f7a89");
++    expect(res.success).toBe(false);
++    expect(res.code).toBe("ALREADY_CLOSED");
++  });
++
++  it("maps CANCEL_WINDOW_CLOSED (free-cancellation window expired)", async () => {
++    state.rpcResult = { data: { ok: false, reason: "CANCEL_WINDOW_CLOSED" }, error: null };
++    const res = await cancelBooking("6f1d2a34-9b8c-4e7f-8a2b-3c4d5e6f7a89");
++    expect(res.success).toBe(false);
++    expect(res.code).toBe("CANCEL_WINDOW_CLOSED");
++  });
++
++  it("maps INVALID_INPUT fail-closed", async () => {
++    state.rpcResult = { data: { ok: false, reason: "INVALID_INPUT" }, error: null };
++    const res = await cancelBooking("not-a-uuid");
++    expect(res.success).toBe(false);
++    expect(res.code).toBe("INVALID_INPUT");
++  });
++
++  it("fails closed on unknown typed reasons (CANCEL_FAILED, no silent success)", async () => {
++    state.rpcResult = { data: { ok: false, reason: "SOMETHING_NEW" }, error: null };
++    const res = await cancelBooking("6f1d2a34-9b8c-4e7f-8a2b-3c4d5e6f7a89");
++    expect(res.success).toBe(false);
++    expect(res.code).toBe("CANCEL_FAILED");
++  });
++
++  it("fails closed on RPC transport errors (PGRST202 → RPC_UNAVAILABLE)", async () => {
++    state.rpcResult = { data: null, error: { code: "PGRST202", message: "Could not find the function" } };
++    const res = await cancelBooking("6f1d2a34-9b8c-4e7f-8a2b-3c4d5e6f7a89");
++    expect(res.success).toBe(false);
++    expect(res.code).toBe("RPC_UNAVAILABLE");
++  });
++
++  it("rejects a non-uuid booking id before calling the RPC (INVALID_INPUT)", async () => {
++    state.rpcResult = { data: { ok: true, status: "cancelled" }, error: null };
++    const res = await cancelBooking("definitely-not-a-uuid");
++    expect(res.success).toBe(false);
++    expect(res.code).toBe("INVALID_INPUT");
++    expect(state.rpcCalls).toHaveLength(0);
++  });
++});
+diff --git a/src/app/mis-reservas/[id]/page.tsx b/src/app/mis-reservas/[id]/page.tsx
+index 0edc044..019df69 100644
+--- a/src/app/mis-reservas/[id]/page.tsx
++++ b/src/app/mis-reservas/[id]/page.tsx
+@@ -16,6 +16,7 @@ import {
+ } from "lucide-react";
+ import { useRouter, useParams } from "next/navigation";
+ import { createClient } from "@/lib/supabase/client";
++import { cancelBooking } from "@/app/actions/bookings";
+ import { BUSINESS } from "@/config/business";
+ 
+ interface Reservation {
+@@ -112,7 +113,9 @@ export default function ReservationDetailPage() {
+         .eq("customer_email", email)
+         .single();
+ 
+-      if (error) throw error;
++      if (error) {
++        throw error;
++      }
+       setReservation(data);
+     } catch (err) {
+       console.error("Error fetching reservation:", err);
+@@ -123,19 +126,30 @@ export default function ReservationDetailPage() {
+   }
+ 
+   async function handleCancel() {
+-    if (!reservation) return;
++    if (!reservation) {
++      return;
++    }
+     setCancelling(true);
+ 
+     try {
+-      const supabase = createClient();
+-      const { error } = await supabase
+-        .from("bookings")
+-        .update({ status: "cancelled" })
+-        .eq("id", reservation.id);
+-
+-      if (error) throw error;
+-
+-      // Send cancellation email
++      // ORN-84 P1-8: cancellation is delegated to the cancel_my_booking RPC
++      // (SECURITY DEFINER) via a server action. The raw .update() from the
++      // browser affected ZERO rows under the staff-only UPDATE policy.
++      const res = await cancelBooking(reservation.id);
++
++      if (!res.success) {
++        setCancelError(
++          res.code === "CANCEL_WINDOW_CLOSED"
++            ? "El plazo para cancelar sin cargo ya venció. Escribinos para reprogramar."
++            : res.code === "ALREADY_CLOSED"
++              ? "Esta reserva ya no puede cancelarse."
++              : "Error al cancelar. Por favor intentá de nuevo.",
++        );
++        setTimeout(() => setCancelError(null), 4000);
++        return;
++      }
++
++      // Send cancellation email (best-effort, same contract as before).
+       await fetch("/api/email", {
+         method: "POST",
+         headers: { "Content-Type": "application/json" },
+@@ -153,7 +167,7 @@ export default function ReservationDetailPage() {
+       setReservation({ ...reservation, status: "cancelled" });
+       setShowCancelConfirm(false);
+     } catch (err) {
+-      console.error("Error cancelling:", err);
++      console.error("Error cancelling reservation:", err);
+       setCancelError("Error al cancelar. Por favor intentá de nuevo.");
+       setTimeout(() => setCancelError(null), 4000);
+     } finally {
+@@ -162,11 +176,11 @@ export default function ReservationDetailPage() {
+   }
+ 
+   function addToCalendar() {
+-    if (!reservation) return;
++    if (!reservation) {
++      return;
++    }
+ 
+-    const startDate = new Date(
+-      `${reservation.booking_date}T${reservation.booking_time}`,
+-    );
++    const startDate = new Date(`${reservation.booking_date}T${reservation.booking_time}`);
+     const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000); // 2 hours
+ 
+     const formatDate = (d: Date) => d.toISOString().replaceAll(/-|:|\.\d{3}/g, "");
+@@ -211,8 +225,7 @@ export default function ReservationDetailPage() {
+   });
+ 
+   const canCancel = ["pending", "confirmed"].includes(reservation.status);
+-  const isPast =
+-    reservation.booking_date < new Date().toISOString().split("T")[0];
++  const isPast = reservation.booking_date < new Date().toISOString().split("T")[0];
+ 
+   return (
+     <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black font-light">
+@@ -284,24 +297,16 @@ export default function ReservationDetailPage() {
+             <div className="bg-white/[0.01] p-5 sm:p-6 flex flex-col items-center text-center space-y-2">
+               <Users className="w-4 h-4 text-white/20" />
+               <div className="space-y-0.5">
+-                <p className="text-[9px] uppercase tracking-[0.2em] text-white/30">
+-                  Personas
+-                </p>
+-                <p className="text-lg font-light text-white">
+-                  {reservation.pax}
+-                </p>
++                <p className="text-[9px] uppercase tracking-[0.2em] text-white/30">Personas</p>
++                <p className="text-lg font-light text-white">{reservation.pax}</p>
+               </div>
+             </div>
+ 
+             <div className="bg-white/[0.01] p-5 sm:p-6 flex flex-col items-center text-center space-y-2">
+               <MapPin className="w-4 h-4 text-white/20" />
+               <div className="space-y-0.5">
+-                <p className="text-[9px] uppercase tracking-[0.2em] text-white/30">
+-                  Zona
+-                </p>
+-                <p className="text-lg font-light text-white truncate max-w-full px-2">
+-                  {zoneName}
+-                </p>
++                <p className="text-[9px] uppercase tracking-[0.2em] text-white/30">Zona</p>
++                <p className="text-lg font-light text-white truncate max-w-full px-2">{zoneName}</p>
+               </div>
+             </div>
+           </div>
+@@ -358,8 +363,7 @@ export default function ReservationDetailPage() {
+         {/* Help Link */}
+         <div className="text-center pt-8">
+           <p className="text-[10px] text-white/20 uppercase tracking-[0.3em]">
+-            ¿Necesitas ayuda?{" "}
+-            <span className="text-white/40">{BUSINESS.emails.support}</span>
++            ¿Necesitas ayuda? <span className="text-white/40">{BUSINESS.emails.support}</span>
+           </p>
+         </div>
+       </main>
+@@ -378,12 +382,10 @@ export default function ReservationDetailPage() {
+               <div className="w-16 h-16 mx-auto mb-6 rounded-3xl bg-red-500/10 flex items-center justify-center border border-red-500/20">
+                 <AlertTriangle className="w-8 h-8 text-red-400" />
+               </div>
+-              <h3 className="text-xl font-light text-white mb-3">
+-                ¿Confirmas la cancelación?
+-              </h3>
++              <h3 className="text-xl font-light text-white mb-3">¿Confirmas la cancelación?</h3>
+               <p className="text-xs text-white/40 mb-8 font-light leading-relaxed">
+-                Esta acción cancelará tu reserva permanentemente y el espacio
+-                quedará disponible para otros clientes.
++                Esta acción cancelará tu reserva permanentemente y el espacio quedará disponible
++                para otros clientes.
+               </p>
+               <div className="flex flex-col space-y-3">
+                 <button
+diff --git a/supabase/migrations/20260928000000_cancel_my_booking_rpc.sql b/supabase/migrations/20260928000000_cancel_my_booking_rpc.sql
+new file mode 100644
+index 0000000..d60a5a4
+--- /dev/null
++++ b/supabase/migrations/20260928000000_cancel_my_booking_rpc.sql
+@@ -0,0 +1,109 @@
++-- ORN-84 P1-8 — client self-service cancellation RPC.
++--
++-- Why: bookings' UPDATE policy is staff-only (20260915000000_fix_bookings_rls).
++-- The customer's raw .update({status:'cancelled'}) from /mis-reservas/[id]
++-- affected ZERO rows under RLS — the "Cancel my booking" button silently
++-- did nothing. Widening the UPDATE policy to owners would let the client
++-- also flip payment-adjacent columns (mp_payment_id, deposit_amount), so the
++-- decision (t_8c591275 triage) is a narrow SECURITY DEFINER function that
++-- only flips status='cancelled' after verifying ownership.
++--
++-- Ownership model: customer_email = session JWT email (auth.jwt() ->> 'email').
++-- The wizard books unauthenticated but /mis-reservas requires a magic-link
++-- session with the SAME email used for the booking — that equality is the
++-- ownership relation (bookings has no user_id FK).
++--
++-- Rejects (typed jsonb, mirroring try_create_booking's contract):
++--   NOT_AUTHORIZED        session email does not own the booking
++--   BOOKING_NOT_FOUND     no row with that id
++--   ALREADY_CLOSED        status is terminal (cancelled/no_show/completed/seated-by-staff)
++--   CANCEL_WINDOW_CLOSED  fewer than min_advance_minutes (default 240) remain
++--                         before the slot (free-cancellation window, docs
++--                         cancel-policy: 4h default = FREE_CANCEL_MINUTES_BEFORE)
++--   INVALID_INPUT         p_booking_id is not a uuid
++--
++-- Session enforcement: grants go to authenticated ONLY (never anon —
++-- cancellation requires a session). auth.jwt() is null for anon callers and
++-- the NOT_AUTHORIZED branch fails closed.
++--
++-- Timezone: the restaurant operates in America/Argentina/Buenos_Aires
++-- (fixed -03, no DST since 2009). Slot timestamp is booking_date + booking_time
++-- wall-clock, compared against now() at time zone BA — same convention as
++-- try_create_booking's advance gate.
++--
++-- Safe to re-run: create or replace + idempotent grants.
++
++create or replace function public.cancel_my_booking(p_booking_id uuid)
++returns jsonb
++language plpgsql
++security definer
++set search_path = public
++as $$
++declare
++  v_email text;
++  v_booking public.bookings%rowtype;
++  v_settings public.restaurant_settings%rowtype;
++  v_slot_ts timestamp;
++  v_now timestamp;
++  v_window_minutes int;
++begin
++  -- Session email from the JWT; anonymous callers have no email and fail closed.
++  v_email := auth.jwt() ->> 'email';
++  if v_email is null or v_email = '' then
++    return jsonb_build_object('ok', false, 'reason', 'NOT_AUTHORIZED');
++  end if;
++
++  if p_booking_id is null then
++    return jsonb_build_object('ok', false, 'reason', 'INVALID_INPUT');
++  end if;
++
++  select * into v_booking from public.bookings where id = p_booking_id;
++  if not found then
++    return jsonb_build_object('ok', false, 'reason', 'BOOKING_NOT_FOUND');
++  end if;
++
++  -- Ownership: the session's email must own the booking (equality is the
++  -- ownership relation; bookings has no user_id FK).
++  if v_booking.customer_email is distinct from v_email then
++    return jsonb_build_object('ok', false, 'reason', 'NOT_AUTHORIZED');
++  end if;
++
++  -- Only live statuses can be cancelled; terminal states are idempotent-reject
++  -- (not idempotent-success: the UI shows "no longer cancellable").
++  if v_booking.status not in ('pending', 'confirmed') then
++    return jsonb_build_object('ok', false, 'reason', 'ALREADY_CLOSED');
++  end if;
++
++  -- Free-cancellation window: min_advance_minutes from restaurant_settings
++  -- doubles as the minimum notice to cancel (default 240 = 4h, matching
++  -- cancel-policy's FREE_CANCEL_MINUTES_BEFORE=240). Missing settings row =
++  -- fail-open window 240 (same default the client uses).
++  select * into v_settings from public.restaurant_settings order by created_at limit 1;
++  v_window_minutes := coalesce(v_settings.min_advance_minutes, 240);
++
++  v_now := now() at time zone 'America/Argentina/Buenos_Aires';
++  v_slot_ts := v_booking.booking_date + v_booking.booking_time;
++
++  if v_slot_ts < v_now + make_interval(mins => v_window_minutes) then
++    return jsonb_build_object('ok', false, 'reason', 'CANCEL_WINDOW_CLOSED');
++  end if;
++
++  update public.bookings
++  set status = 'cancelled'
++  where id = p_booking_id
++    and status in ('pending', 'confirmed')
++  returning * into v_booking;
++
++  if not found then
++    -- Lost a race with a concurrent staff update; nothing was cancelled.
++    return jsonb_build_object('ok', false, 'reason', 'ALREADY_CLOSED');
++  end if;
++
++  return jsonb_build_object('ok', true, 'status', v_booking.status);
++end;
++$$;
++
++-- authenticated only: cancellation requires a session. Revoke any inherited
++-- PUBLIC execute first (defensive: SECURITY DEFINER must never be anon-callable).
++revoke all on function public.cancel_my_booking(uuid) from public, anon;
++grant execute on function public.cancel_my_booking(uuid) to authenticated;
