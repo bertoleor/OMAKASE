@@ -44,3 +44,6 @@ next-env.d.ts
 .husky/
 
 !.env.example
+
+# rdd receipts (local)
+.rdd/
