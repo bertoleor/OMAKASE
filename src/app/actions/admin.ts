@@ -3,6 +3,8 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { getUserRole } from "@/lib/auth/roles";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { headers } from "next/headers";
 import {
   sendCancellationEmail,
   getResendClient,
@@ -223,6 +225,37 @@ export async function sendQuickContactEmail(
  */
 export async function sendAuthMagicLink(email: string, redirectTo: string) {
   try {
+    // Rate limiting BEFORE generating/sending the magic link.
+    // Keys are namespaced `ml:` to avoid collision with other limiters.
+    // Email is normalized so "A@x.com" and "a@x.com" share a counter.
+    // IP is extracted exactly like bookings.ts does (x-forwarded-for first segment,
+    // fallback x-real-ip, fallback "unknown"). Redis backend deferred to ops slice D.
+    const normalizedEmail = email.toLowerCase().trim();
+    const headerStore = await headers();
+    const forwarded = headerStore.get("x-forwarded-for");
+    const ip =
+      forwarded?.split(",")[0]?.trim() ??
+      headerStore.get("x-real-ip") ??
+      "unknown";
+
+    const emailCheck = checkRateLimit(`ml:email:${normalizedEmail}`, {
+      limit: 3,
+      windowMs: 5 * 60 * 1000,
+    });
+    const ipCheck = checkRateLimit(`ml:ip:${ip}`, {
+      limit: 10,
+      windowMs: 5 * 60 * 1000,
+    });
+
+    if (!emailCheck.allowed || !ipCheck.allowed) {
+      return {
+        success: false,
+        code: "RATE_LIMITED",
+        error: "Too many requests",
+        retryAfter: Math.max(emailCheck.retryAfter, ipCheck.retryAfter),
+      };
+    }
+
     const supabase = createAdminClient();
 
     // Generate the magic link

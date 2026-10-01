@@ -41,7 +41,7 @@ Magic-link IP cap resolved by orchestrator to **10/5min** (overrides design defa
 
 ## Phase 3: Magic-link wiring
 
-- [ ] 3.1 (PR3) `src/app/actions/admin.ts` in `sendAuthMagicLink`: `checkRateLimit(email, 3/5min)` AND `checkRateLimit(ip, 10/5min)` before `generateLink`; reject → 429 payload, no Resend. Verify: script 4th email send in 5min → 429, Resend stubbed not called.
+- [x] 3.1 (PR3) `src/app/actions/admin.ts` in `sendAuthMagicLink`: `checkRateLimit(email, 3/5min)` AND `checkRateLimit(ip, 10/5min)` before `generateLink`; reject → 429 payload, no Resend. Verify: script 4th email send in 5min → 429, Resend stubbed not called.
 
 ## Phase 4: RBAC + backfill
 
