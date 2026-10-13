@@ -1,12 +1,12 @@
 # AGENTS — indice liviano — omakase
 
 > **Busqueda:** keywords: `agents, indice, omakase` · clasificacion: `doc-sistema` · estado: canonico · actualizado: 2026-09-25
-> Stack: Next 16 / React 19 / TS / Tailwind / supabase / Resend. Doctrina: flota Hermes (ODD/SDD/RDD).
+> Stack: Next 16 / React 19 / TS / Tailwind / supabase / Resend. Doctrina: flota Hermes (ODD/RDD).
 
 ## Rutas
 - `docs/plans/PRD-omakase-minimo.md` — producto
 - `odd/tasks/` — feature docs sustanciales
-- `openspec/` — SDD activo (3 changes cerrados)
+- `openspec/` — legacy read-only (retirado con v4; 3 changes cerrados)
 - `.agent/skills/` — skills locales del project
 
 ## Verificacion
