@@ -17,7 +17,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -38,7 +38,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -57,7 +57,7 @@ jobs:
     if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -78,6 +78,6 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Run npm audit
         run: npm audit --audit-level=high || true
