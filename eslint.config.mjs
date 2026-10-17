@@ -52,6 +52,7 @@ const eslintConfig = defineConfig([
     "coverage/**",
     "playwright-report/**",
     "test-results/**",
+    "scripts/design-qa/**",
     "src/lib/email-templates/**",
     "src/types/database.types.ts",
   ]),
