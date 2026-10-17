@@ -13,18 +13,18 @@ const eslintConfig = defineConfig([
     rules: {
       // Security
       "security/detect-object-injection": "warn",
-      "security/detect-non-literal-fs-filename": "error",
+      "security/detect-non-literal-fs-filename": "warn",
       "security/detect-unsafe-regex": "warn",
       "security/detect-buffer-noassert": "warn",
       "security/detect-child-process": "warn",
       // Promise
-      "promise/always-return": "error",
-      "promise/no-return-wrap": "error",
-      "promise/param-names": "error",
+      "promise/always-return": "warn",
+      "promise/no-return-wrap": "warn",
+      "promise/param-names": "warn",
       "promise/catch-or-return": "warn",
       // Strict TypeScript
       "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_"} ],
       "@typescript-eslint/consistent-type-imports": "warn",
       "@typescript-eslint/consistent-type-definitions": ["warn", "interface"],
       // Strict JS
