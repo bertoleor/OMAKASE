@@ -1,0 +1,11 @@
+{
+  "total": 255,
+  "per_dir": {
+    "src": 255
+  },
+  "scan_dirs": [
+    "src"
+  ],
+  "taken_at": "2026-10-17",
+  "source_commit": "23599f5ffd92196d23800273badefa30588ba97d"
+}
