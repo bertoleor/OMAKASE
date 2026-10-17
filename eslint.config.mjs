@@ -22,6 +22,8 @@ const eslintConfig = defineConfig([
       "promise/no-return-wrap": "warn",
       "promise/param-names": "warn",
       "promise/catch-or-return": "warn",
+      "react-hooks/rules-of-hooks": "warn",
+      "react-hooks/exhaustive-deps": "warn",
       // Strict TypeScript
       "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_"} ],
